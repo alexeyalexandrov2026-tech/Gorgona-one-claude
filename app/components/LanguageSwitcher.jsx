@@ -1,30 +1,38 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { SUPPORTED_LANGUAGES } from '../../lib/languages';
+import { useLocaleController } from './LocaleProvider';
 
 export function LanguageSwitcher() {
-  const [locale, setLocale] = useState('en');
-
-  useEffect(() => {
-    const savedLocale = window.localStorage.getItem('gorgona-locale');
-    if (savedLocale) {
-      setLocale(savedLocale);
-    }
-  }, []);
+  const controller = useLocaleController();
+  const locale = controller ? controller.locale : 'en';
 
   const handleChange = (value) => {
-    setLocale(value);
-    window.localStorage.setItem('gorgona-locale', value);
-    window.location.reload();
+    if (controller) {
+      controller.setLocale(value);
+    }
   };
 
   return (
-    <select value={locale} onChange={(event) => handleChange(event.target.value)} className="rounded-full border border-white/10 bg-black/50 px-3 py-2 text-sm text-white outline-none">
-      <option value="en">English</option>
-      <option value="ru">Русский</option>
-      <option value="es" disabled>Español</option>
-      <option value="de" disabled>Deutsch</option>
-      <option value="fr" disabled>Français</option>
-    </select>
+    <div className="flex items-center gap-2">
+      <select
+        value={locale}
+        onChange={(event) => handleChange(event.target.value)}
+        className="rounded-full border border-white/10 bg-black/50 px-3 py-2 text-sm text-white outline-none"
+      >
+        {SUPPORTED_LANGUAGES.map((language) => (
+          <option key={language.code} value={language.code}>
+            {language.nativeLabel}
+          </option>
+        ))}
+      </select>
+      <button
+        type="button"
+        onClick={() => controller && controller.openModal()}
+        className="hidden text-sm text-zinc-400 transition hover:text-brand-gold sm:inline"
+      >
+        Change Language
+      </button>
+    </div>
   );
 }
