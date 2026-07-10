@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SearchBar } from './components/SearchBar';
+import { NewsletterSignup } from './components/NewsletterSignup';
 import { categories, featuredDeals } from '../lib/dealsData';
 import { getTranslation } from '../lib/i18n';
 
@@ -104,6 +105,10 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
+      </section>
+
+      <section className="py-6">
+        <NewsletterSignup />
       </section>
     </main>
   );
