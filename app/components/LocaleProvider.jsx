@@ -1,12 +1,15 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { DEFAULT_LANGUAGE, getLanguageDir, isSupportedLanguage } from '../../lib/languages';
+import { defaultTranslations, loadTranslations } from '../../lib/i18n';
 
 const LOCALE_STORAGE_KEY = 'gorgona-locale';
 const LOCALE_COOKIE_KEY = 'gorgona-locale';
 
 const LocaleContext = createContext(DEFAULT_LANGUAGE);
+const TranslationsContext = createContext(defaultTranslations);
 const LocaleControllerContext = createContext(null);
 
 function readCookie(name) {
@@ -34,11 +37,14 @@ function readSavedLocale() {
 
 // LocaleProvider tracks the active locale (unchanged public API: useLocale()
 // still returns a plain locale string, exactly as before) and, alongside it,
+// lazily loads that locale's translation dictionary (useTranslations()) and
 // a controller (useLocaleController()) used by the first-visit language
 // modal and the header language switcher to read/change the selection and
 // know whether a choice has already been saved.
 export function LocaleProvider({ children }) {
+  const router = useRouter();
   const [locale, setLocaleState] = useState(DEFAULT_LANGUAGE);
+  const [translations, setTranslations] = useState(defaultTranslations);
   const [hasSavedChoice, setHasSavedChoice] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -53,6 +59,16 @@ export function LocaleProvider({ children }) {
     }
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    loadTranslations(locale).then((dict) => {
+      if (!cancelled) setTranslations(dict);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [locale]);
+
   const setLocale = (code) => {
     const next = isSupportedLanguage(code) ? code : DEFAULT_LANGUAGE;
     setLocaleState(next);
@@ -61,26 +77,37 @@ export function LocaleProvider({ children }) {
     applyDocumentLocale(next);
     setHasSavedChoice(true);
     setIsModalOpen(false);
+    // Server Components (page headings, static copy) read the locale from
+    // the cookie on the server, so a client-only state change doesn't
+    // reach them - force a refresh so already-rendered pages pick up the
+    // new language immediately instead of staying stale until next navigation.
+    router.refresh();
   };
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  const value = useMemo(() => locale, [locale]);
+  const localeValue = useMemo(() => locale, [locale]);
   const controllerValue = useMemo(
     () => ({ locale, setLocale, hasSavedChoice, isModalOpen, openModal, closeModal }),
     [locale, hasSavedChoice, isModalOpen]
   );
 
   return (
-    <LocaleContext.Provider value={value}>
-      <LocaleControllerContext.Provider value={controllerValue}>{children}</LocaleControllerContext.Provider>
+    <LocaleContext.Provider value={localeValue}>
+      <TranslationsContext.Provider value={translations}>
+        <LocaleControllerContext.Provider value={controllerValue}>{children}</LocaleControllerContext.Provider>
+      </TranslationsContext.Provider>
     </LocaleContext.Provider>
   );
 }
 
 export function useLocale() {
   return useContext(LocaleContext);
+}
+
+export function useTranslations() {
+  return useContext(TranslationsContext);
 }
 
 export function useLocaleController() {

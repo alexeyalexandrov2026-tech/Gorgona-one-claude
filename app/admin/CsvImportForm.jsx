@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from '../components/LocaleProvider';
 
 export function CsvImportForm() {
+  const t = useTranslations();
   const [csv, setCsv] = useState('');
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
@@ -22,16 +24,16 @@ export function CsvImportForm() {
 
       if (!response.ok) {
         setStatus('error');
-        setMessage(data.error || 'Import failed.');
+        setMessage(data.error || t.admin.importFailed);
         return;
       }
 
       setStatus('success');
-      setMessage(`Imported ${data.imported} store${data.imported === 1 ? '' : 's'}.`);
+      setMessage(t.admin.importedCount.replace('{count}', data.imported));
       setCsv('');
     } catch {
       setStatus('error');
-      setMessage('Network error. Please try again.');
+      setMessage(t.errors.networkError);
     }
   }
 
@@ -50,7 +52,7 @@ export function CsvImportForm() {
         disabled={status === 'loading'}
         className="rounded-full bg-brand-gold px-4 py-3 text-sm font-medium text-black disabled:opacity-60"
       >
-        {status === 'loading' ? 'Importing…' : 'Import CSV'}
+        {status === 'loading' ? t.admin.importing : t.admin.importButton}
       </button>
       {message && (
         <p className={`text-sm ${status === 'error' ? 'text-red-400' : 'text-brand-gold'}`}>{message}</p>
