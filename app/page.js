@@ -74,7 +74,7 @@ export default function HomePage() {
           <p className="mt-3 max-w-2xl text-zinc-400">The homepage now surfaces transport, travel, nightlife, and luxury experiences before generic shopping offers.</p>
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {[
-              { title: 'Car Rentals', description: 'Luxury cars and premium experiences', href: '/rentals' },
+              { title: 'Car Rentals', description: 'Luxury cars and premium experiences', href: '/rentals/car-rentals' },
               { title: 'Yacht Rentals', description: 'Private charters and nightlife-ready boats', href: '/rentals/yacht-rentals' },
               { title: 'Sportsbook Bonuses', description: 'Verified affiliate-ready offers', href: '/sportsbook' },
               { title: 'Vacation Rentals', description: 'High-end stays and short-term luxury homes', href: '/rentals/vacation-rentals' },
