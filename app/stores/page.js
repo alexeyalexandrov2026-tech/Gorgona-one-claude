@@ -1,9 +1,11 @@
 import Link from 'next/link';
-import { categories, featuredDeals } from '../../lib/dealsData';
+import { getCategories, getFeaturedDeals } from '../../lib/data/deals';
 import { BrandImage } from '../components/BrandImage';
 import { SearchBar } from '../components/SearchBar';
 
-export default function StoresPage() {
+export default async function StoresPage() {
+  const [categories, featuredDeals] = await Promise.all([getCategories(), getFeaturedDeals()]);
+
   return (
     <main className="flex-1 py-10">
       <div className="market-shell mb-8 rounded-[2rem] p-8">

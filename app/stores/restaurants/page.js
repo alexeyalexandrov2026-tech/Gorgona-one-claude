@@ -1,8 +1,8 @@
-import { getDealsByCategory } from '../../../lib/dealsData';
+import { getDealsByCategory } from '../../../lib/data/deals';
 import { SearchBar } from '../../components/SearchBar';
 
-export default function RestaurantsCategoryPage() {
-  const deals = getDealsByCategory('restaurants');
+export default async function RestaurantsCategoryPage() {
+  const deals = await getDealsByCategory('restaurants');
 
   return (
     <main className="flex-1 py-10">

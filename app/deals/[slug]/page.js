@@ -1,12 +1,12 @@
 import { notFound } from 'next/navigation';
-import { getDealBySlug } from '../../../lib/dealsData';
+import { getDealBySlug } from '../../../lib/data/deals';
 
 export function generateStaticParams() {
   return [];
 }
 
-export default function DealDetailPage({ params }) {
-  const deal = getDealBySlug(params.slug);
+export default async function DealDetailPage({ params }) {
+  const deal = await getDealBySlug(params.slug);
 
   if (!deal) {
     notFound();

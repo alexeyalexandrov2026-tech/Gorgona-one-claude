@@ -11,7 +11,7 @@ GORGONA ONE is a premium, mobile-first coupon, deals, and offers marketplace bui
 - Admin dashboard gated by a `users.role = 'admin'` check, with CSV import for stores and live views of partner applications and newsletter subscribers
 - SEO routes, robots, sitemap, manifest, and Open Graph assets for Vercel deployment
 
-Store, coupon, and sportsbook listing pages still read from the static data in `lib/` rather than Supabase — migrating those to live queries is the next step for full Supabase integration.
+Store, coupon, and sportsbook pages (`/stores`, `/coupons`, `/deals`, `/brands`, `/sportsbook`) read from Supabase (`stores`, `coupons`, `sportsbooks`, `deal_categories`, `deals` tables) when configured, via `lib/data/*`. Without Supabase env vars, or if a table is empty, each falls back to the original static data in `lib/mockData.js` / `lib/dealsData.js`, so the site behaves identically either way. Run `database/seed.sql` after `database/schema.sql` to populate Supabase with the exact catalog the static fallbacks contain.
 
 ## Tech stack
 - Next.js 14
@@ -23,7 +23,7 @@ Store, coupon, and sportsbook listing pages still read from the static data in `
 ## Local development
 1. Install dependencies: npm install
 2. Copy .env.example to .env.local and add your Supabase project URL, anon key, and service role key
-3. Run `database/schema.sql` against your Supabase project
+3. Run `database/schema.sql` then `database/seed.sql` against your Supabase project
 4. To grant yourself admin access, sign up through /login, then insert a row into `users` with your auth user id, email, and `role = 'admin'`
 5. Run the development server: npm run dev
 

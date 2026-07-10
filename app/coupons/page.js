@@ -1,8 +1,10 @@
-import { allDeals } from '../../lib/dealsData';
+import { getAllDeals } from '../../lib/data/deals';
 import { BrandImage } from '../components/BrandImage';
 import { SearchBar } from '../components/SearchBar';
 
-export default function CouponsPage() {
+export default async function CouponsPage() {
+  const allDeals = await getAllDeals();
+
   return (
     <main className="flex-1 py-10">
       <div className="market-shell mb-8 rounded-[2rem] p-8">

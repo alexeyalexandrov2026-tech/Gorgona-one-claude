@@ -1,8 +1,8 @@
-import { getDealsByCategory } from '../../../lib/dealsData';
+import { getDealsByCategory } from '../../../lib/data/deals';
 import { SearchBar } from '../../components/SearchBar';
 
-export default function SportCategoryPage() {
-  const deals = getDealsByCategory('sport');
+export default async function SportCategoryPage() {
+  const deals = await getDealsByCategory('sport');
 
   return (
     <main className="flex-1 py-10">

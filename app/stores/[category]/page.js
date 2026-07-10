@@ -1,21 +1,23 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BrandImage } from '../../components/BrandImage';
-import { categories, getDealsByCategory } from '../../../lib/dealsData';
+import { getCategories, getDealsByCategory } from '../../../lib/data/deals';
 import { SearchBar } from '../../components/SearchBar';
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const categories = await getCategories();
   return categories.map((category) => ({ category: category.slug }));
 }
 
-export default function CategoryPage({ params }) {
+export default async function CategoryPage({ params }) {
+  const categories = await getCategories();
   const category = categories.find((entry) => entry.slug === params.category);
 
   if (!category) {
     notFound();
   }
 
-  const deals = getDealsByCategory(params.category);
+  const deals = await getDealsByCategory(params.category);
 
   return (
     <main className="flex-1 py-10">

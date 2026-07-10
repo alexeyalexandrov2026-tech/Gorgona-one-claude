@@ -1,12 +1,14 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { coupons, stores } from '../../../lib/mockData';
+import { getStores, getCoupons } from '../../../lib/data/stores';
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const stores = await getStores();
   return stores.map((store) => ({ slug: store.slug }));
 }
 
-export default function StoreProfilePage({ params }) {
+export default async function StoreProfilePage({ params }) {
+  const [stores, coupons] = await Promise.all([getStores(), getCoupons()]);
   const store = stores.find((entry) => entry.slug === params.slug);
 
   if (!store) {

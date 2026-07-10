@@ -1,6 +1,8 @@
-import { stores, sportsbooks } from '../lib/mockData';
+import { getStores } from '../lib/data/stores';
+import { getSportsbooks } from '../lib/data/sportsbooks';
 
-export default function sitemap() {
+export default async function sitemap() {
+  const [stores, sportsbooks] = await Promise.all([getStores(), getSportsbooks()]);
   const baseUrl = 'https://gorgona-one.vercel.app';
   const routes = [
     '',

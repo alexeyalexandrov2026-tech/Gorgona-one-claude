@@ -1,7 +1,9 @@
 import Link from 'next/link';
-import { sportsbooks } from '../../lib/mockData';
+import { getSportsbooks } from '../../lib/data/sportsbooks';
 
-export default function SportsbookPage() {
+export default async function SportsbookPage() {
+  const sportsbooks = await getSportsbooks();
+
   return (
     <main className="flex-1 py-10">
       <div className="mb-8">

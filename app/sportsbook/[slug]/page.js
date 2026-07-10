@@ -1,11 +1,13 @@
 import { notFound } from 'next/navigation';
-import { sportsbooks } from '../../../lib/mockData';
+import { getSportsbooks } from '../../../lib/data/sportsbooks';
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const sportsbooks = await getSportsbooks();
   return sportsbooks.map((book) => ({ slug: book.slug }));
 }
 
-export default function SportsbookProfilePage({ params }) {
+export default async function SportsbookProfilePage({ params }) {
+  const sportsbooks = await getSportsbooks();
   const sportsbook = sportsbooks.find((entry) => entry.slug === params.slug);
 
   if (!sportsbook) {

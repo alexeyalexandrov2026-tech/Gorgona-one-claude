@@ -69,3 +69,29 @@ CREATE TABLE IF NOT EXISTS partner_applications (
   status TEXT DEFAULT 'pending',
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Category and deal catalog backing the /stores, /coupons, and /deals pages.
+-- Distinct from `categories` above, which backs the sportsbook-era store model.
+CREATE TABLE IF NOT EXISTS deal_categories (
+  id SERIAL PRIMARY KEY,
+  slug TEXT UNIQUE NOT NULL,
+  label TEXT NOT NULL,
+  icon TEXT,
+  description TEXT
+);
+
+CREATE TABLE IF NOT EXISTS deals (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  category TEXT NOT NULL REFERENCES deal_categories(slug),
+  logo TEXT,
+  image TEXT,
+  description TEXT,
+  promo_code TEXT,
+  discount TEXT,
+  expiration_date DATE,
+  affiliate_link TEXT,
+  website TEXT,
+  featured BOOLEAN DEFAULT false
+);
