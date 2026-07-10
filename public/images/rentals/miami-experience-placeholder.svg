@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600">
+  <defs>
+    <linearGradient id="expBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#101010"/>
+      <stop offset="100%" stop-color="#050505"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="600" fill="url(#expBg)"/>
+  <rect x="150" y="380" width="30" height="220" fill="#d4af37" opacity="0.85"/>
+  <rect x="260" y="320" width="30" height="280" fill="#d4af37" opacity="0.85"/>
+  <rect x="370" y="260" width="30" height="340" fill="#d4af37" opacity="0.85"/>
+  <rect x="480" y="340" width="30" height="260" fill="#d4af37" opacity="0.85"/>
+  <rect x="590" y="300" width="30" height="300" fill="#d4af37" opacity="0.85"/>
+  <rect x="700" y="360" width="30" height="240" fill="#d4af37" opacity="0.85"/>
+  <circle cx="450" cy="140" r="50" fill="#d4af37" opacity="0.25"/>
+  <text x="450" y="560" fill="#d4af37" font-family="Arial, sans-serif" font-size="26" text-anchor="middle" letter-spacing="3">MIAMI EXPERIENCES</text>
+</svg>

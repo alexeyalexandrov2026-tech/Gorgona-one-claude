@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600">
+  <defs>
+    <linearGradient id="yachtBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#101010"/>
+      <stop offset="100%" stop-color="#050505"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="600" fill="url(#yachtBg)"/>
+  <rect y="430" width="900" height="170" fill="#0a1a1f"/>
+  <path d="M120 420 Q450 380 780 420 L720 470 Q450 440 180 470 Z" fill="#d4af37" opacity="0.9"/>
+  <rect x="410" y="300" width="20" height="120" fill="#d4af37"/>
+  <path d="M430 300 L500 400 L430 400 Z" fill="#f5e6b8"/>
+  <path d="M405 320 L360 400 L405 400 Z" fill="#e9d38b"/>
+  <circle cx="450" cy="200" r="70" fill="#d4af37" opacity="0.15"/>
+  <text x="450" y="560" fill="#d4af37" font-family="Arial, sans-serif" font-size="28" text-anchor="middle" letter-spacing="4">YACHT RENTALS</text>
+</svg>
