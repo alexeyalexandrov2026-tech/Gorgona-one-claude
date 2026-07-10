@@ -53,3 +53,19 @@ CREATE TABLE IF NOT EXISTS analytics (
   clicks INTEGER DEFAULT 0,
   date DATE
 );
+
+CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+  id SERIAL PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  subscribed_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS partner_applications (
+  id SERIAL PRIMARY KEY,
+  company_name TEXT NOT NULL,
+  website TEXT,
+  contact_email TEXT NOT NULL,
+  category TEXT,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
