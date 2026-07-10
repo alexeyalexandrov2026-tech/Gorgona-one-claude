@@ -13,7 +13,7 @@ import { EventsSearch } from './EventsSearch';
 import { getServerTranslations } from '../../lib/serverLocale';
 
 export const metadata = {
-  title: 'Tickets & Events | GORGONA ONE',
+  title: 'Events | GORGONA ONE',
   description: 'Sports tickets and concert tickets from trusted providers, all in one place.'
 };
 
