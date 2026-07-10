@@ -1,7 +1,15 @@
 import Link from 'next/link';
 import { SearchBar } from './components/SearchBar';
 import { NewsletterSignup } from './components/NewsletterSignup';
+import { EventGrid } from './events/EventGrid';
 import { categories as dealCategories } from '../lib/dealsData';
+import {
+  getFeaturedEvents,
+  getTrendingEvents,
+  getUpcomingEvents,
+  getFeaturedConcerts,
+  getFeaturedSportsEvents
+} from '../lib/eventsData';
 import { getServerTranslations } from '../lib/serverLocale';
 
 export default async function HomePage() {
@@ -22,6 +30,12 @@ export default async function HomePage() {
     { title: t.home.miamiExperiences, description: t.home.miamiExperiencesDesc, href: '/rentals/miami-experiences' },
     { title: t.home.restaurantsNightlife, description: t.home.restaurantsNightlifeDesc, href: '/coupons' }
   ];
+
+  const featuredEvents = getFeaturedEvents().slice(0, 3);
+  const trendingEvents = getTrendingEvents().slice(0, 3);
+  const upcomingEvents = getUpcomingEvents(3);
+  const featuredConcerts = getFeaturedConcerts().slice(0, 3);
+  const featuredSportsEvents = getFeaturedSportsEvents().slice(0, 3);
 
   const featureItems = [
     { title: t.home.userAccountsTitle, body: t.home.userAccountsBody, href: '/login' },
@@ -95,6 +109,51 @@ export default async function HomePage() {
                 <Link href={item.href} className="mt-4 inline-flex text-sm text-brand-gold">{t.home.viewSection}</Link>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-6">
+        <div className="market-shell rounded-[2rem] p-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold text-white">{t.events.marketplaceTitle}</h2>
+            <Link href="/events" className="text-sm text-brand-gold">{t.events.viewAllEvents}</Link>
+          </div>
+          <p className="mt-3 max-w-2xl text-zinc-400">{t.events.marketplaceSubtitle}</p>
+
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-white">{t.events.featuredEvents}</h3>
+            <div className="mt-3">
+              <EventGrid events={featuredEvents} emptyMessage={t.events.comingSoon} t={t} />
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold text-white">{t.events.trendingEvents}</h3>
+            <div className="mt-3">
+              <EventGrid events={trendingEvents} emptyMessage={t.events.comingSoon} t={t} />
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold text-white">{t.events.upcomingEvents}</h3>
+            <div className="mt-3">
+              <EventGrid events={upcomingEvents} emptyMessage={t.events.comingSoon} t={t} />
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold text-white">{t.events.featuredSportsEvents}</h3>
+            <div className="mt-3">
+              <EventGrid events={featuredSportsEvents} emptyMessage={t.events.comingSoon} t={t} />
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold text-white">{t.events.featuredConcerts}</h3>
+            <div className="mt-3">
+              <EventGrid events={featuredConcerts} emptyMessage={t.events.comingSoon} t={t} />
+            </div>
           </div>
         </div>
       </section>

@@ -1,6 +1,49 @@
 # Logo download manifest
 
-Generated from the entities that currently exist in `lib/mockData.js` and `lib/dealsData.js` (stores, sportsbooks, and the deals/brands catalog). 106 unique domains, covering 134 slugs. No entities were added beyond what already exists in the project.
+Generated from the entities that currently exist in `lib/mockData.js`, `lib/dealsData.js` (stores, sportsbooks, and the deals/brands catalog), and `lib/eventsData.js` (leagues, teams, and ticket providers). No entities were added beyond what already exists in the project.
+
+## Leagues, teams, and ticket providers (Tickets & Events Marketplace)
+
+Several NBA/MLB/NHL teams' official sites are subpaths of the league domain (e.g. `nba.com/lakers`), so their resolved domain is the same as the league's — meaning those team logo slots automatically fall back to the league logo (`nba.com.png`, `mlb.com.png`, `nhl.com.png`) until a team-specific file is added under a distinct filename and wired in manually. This is the existing "one file per domain" behavior, not a bug.
+
+| Entity | Type | Logo source URL | Suggested filename |
+|---|---|---|---|
+| NFL | League | https://logo.clearbit.com/nfl.com | nfl.com.png |
+| NBA | League | https://logo.clearbit.com/nba.com | nba.com.png |
+| MLB | League | https://logo.clearbit.com/mlb.com | mlb.com.png |
+| NHL | League | https://logo.clearbit.com/nhl.com | nhl.com.png |
+| MLS | League | https://logo.clearbit.com/mlssoccer.com | mlssoccer.com.png |
+| ATP | League | https://logo.clearbit.com/atptour.com | atptour.com.png |
+| WTA | League | https://logo.clearbit.com/wtatennis.com | wtatennis.com.png |
+| UFC | League | https://logo.clearbit.com/ufc.com | ufc.com.png |
+| Formula 1 | League | https://logo.clearbit.com/formula1.com | formula1.com.png |
+| Kansas City Chiefs | Team (NFL) | https://logo.clearbit.com/chiefs.com | chiefs.com.png |
+| Dallas Cowboys | Team (NFL) | https://logo.clearbit.com/dallascowboys.com | dallascowboys.com.png |
+| San Francisco 49ers | Team (NFL) | https://logo.clearbit.com/49ers.com | 49ers.com.png |
+| Miami Dolphins | Team (NFL) | https://logo.clearbit.com/miamidolphins.com | miamidolphins.com.png |
+| Los Angeles Lakers | Team (NBA) | https://logo.clearbit.com/nba.com (falls back to league logo; official page is nba.com/lakers) | nba.com.png |
+| Boston Celtics | Team (NBA) | https://logo.clearbit.com/nba.com (falls back to league logo) | nba.com.png |
+| Miami Heat | Team (NBA) | https://logo.clearbit.com/nba.com (falls back to league logo) | nba.com.png |
+| Golden State Warriors | Team (NBA) | https://logo.clearbit.com/nba.com (falls back to league logo) | nba.com.png |
+| New York Yankees | Team (MLB) | https://logo.clearbit.com/mlb.com (falls back to league logo) | mlb.com.png |
+| Los Angeles Dodgers | Team (MLB) | https://logo.clearbit.com/mlb.com (falls back to league logo) | mlb.com.png |
+| Miami Marlins | Team (MLB) | https://logo.clearbit.com/mlb.com (falls back to league logo) | mlb.com.png |
+| Florida Panthers | Team (NHL) | https://logo.clearbit.com/nhl.com (falls back to league logo) | nhl.com.png |
+| Toronto Maple Leafs | Team (NHL) | https://logo.clearbit.com/nhl.com (falls back to league logo) | nhl.com.png |
+| Vegas Golden Knights | Team (NHL) | https://logo.clearbit.com/nhl.com (falls back to league logo) | nhl.com.png |
+| Inter Miami CF | Team (MLS) | https://logo.clearbit.com/intermiamicf.com | intermiamicf.com.png |
+| LA Galaxy | Team (MLS) | https://logo.clearbit.com/lagalaxy.com | lagalaxy.com.png |
+| Seattle Sounders FC | Team (MLS) | https://logo.clearbit.com/soundersfc.com | soundersfc.com.png |
+| Ticketmaster | Provider | https://logo.clearbit.com/ticketmaster.com | ticketmaster.com.png |
+| StubHub | Provider | https://logo.clearbit.com/stubhub.com | stubhub.com.png |
+| SeatGeek | Provider | https://logo.clearbit.com/seatgeek.com | seatgeek.com.png |
+| Vivid Seats | Provider | https://logo.clearbit.com/vividseats.com | vividseats.com.png |
+| TickPick | Provider | https://logo.clearbit.com/tickpick.com | tickpick.com.png |
+| Gametime | Provider | https://logo.clearbit.com/gametime.co | gametime.co.png |
+| Eventbrite | Provider | https://logo.clearbit.com/eventbrite.com | eventbrite.com.png |
+| AXS | Provider | https://logo.clearbit.com/axs.com | axs.com.png |
+
+## Stores, sportsbooks, and deals/brands catalog
 
 Download each source URL and save it under `public/logos/` using the suggested filename (PNG). Once a file lands at that path, `lib/logos` + `<Logo>` pick it up automatically — no code changes needed.
 

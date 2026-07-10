@@ -1,14 +1,17 @@
 import { getStores } from '../lib/data/stores';
 import { getSportsbooks } from '../lib/data/sportsbooks';
+import { EVENT_CATEGORIES, LEAGUES, getAllEvents } from '../lib/eventsData';
 
 export default async function sitemap() {
   const [stores, sportsbooks] = await Promise.all([getStores(), getSportsbooks()]);
+  const events = getAllEvents();
   const baseUrl = 'https://gorgona-one.vercel.app';
   const routes = [
     '',
     '/stores',
     '/coupons',
     '/sportsbook',
+    '/events',
     '/best-shopping-deals',
     '/nike-coupons',
     '/amazon-promo-codes',
@@ -34,5 +37,26 @@ export default async function sitemap() {
     priority: 0.7
   }));
 
-  return [...staticRoutes, ...dynamicRoutes];
+  const eventCategoryRoutes = EVENT_CATEGORIES.map((category) => ({
+    url: `${baseUrl}/events/category/${category.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily',
+    priority: 0.7
+  }));
+
+  const leagueRoutes = LEAGUES.map((league) => ({
+    url: `${baseUrl}/events/league/${league.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.6
+  }));
+
+  const eventRoutes = events.map((event) => ({
+    url: `${baseUrl}/events/${event.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily',
+    priority: 0.8
+  }));
+
+  return [...staticRoutes, ...dynamicRoutes, ...eventCategoryRoutes, ...leagueRoutes, ...eventRoutes];
 }
