@@ -23,7 +23,18 @@ export async function PUT(request, { params }) {
   }
 
   const body = await request.json();
-  const { data, error: updateError } = await admin.from('businesses').update(body).eq('id', params.id).select().single();
+  // A write-scoped key must never be able to self-approve (status), steal a
+  // listing (owner_id), or forge its id/creation metadata - only an
+  // admin-scoped key may touch those. The businesses table also has a DB
+  // trigger (protect_business_status) enforcing this independently, but
+  // stripping it here avoids a confusing "your update silently no-op'd".
+  const restrictedFields = ['id', 'owner_id', 'status', 'source', 'created_at'];
+  const updates = { ...body };
+  if (!hasScope(keyRow, 'admin')) {
+    for (const field of restrictedFields) delete updates[field];
+  }
+
+  const { data, error: updateError } = await admin.from('businesses').update(updates).eq('id', params.id).select().single();
   if (updateError) return Response.json({ error: updateError.message }, { status: 400 });
 
   await dispatchWebhookEvent('business.updated', data);

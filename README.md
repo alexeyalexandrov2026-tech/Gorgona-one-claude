@@ -49,6 +49,10 @@ update public.users set role = 'admin' where email = 'you@example.com';
 
 See `/api-docs` for the full REST reference. In short: sign in as a business owner or admin, call `POST /api/partner/keys` with your Supabase session token to generate an API key, then use that key against `/api/businesses`, `/api/categories`, `/api/promocodes`, `/api/offers`.
 
+## Webhook coverage
+
+`dispatchWebhookEvent` (in `lib/webhooks.js`) needs the service-role client, so it can only run from a server route - not from a plain browser Supabase call. It fires today for: businesses/promo codes/offers created through the **Partner API** (`/api/businesses`, `/api/promocodes`, `/api/offers`), and for status changes/deletes made through the **admin panel** (`/api/admin/businesses/[id]`, used by `/admin`'s approve/reject/suspend/delete actions). It does **not** yet fire when a business owner creates or edits their own listing from `/dashboard`, since that path writes directly to Supabase via the RLS-scoped browser client for simplicity. To close that gap, either move dashboard writes through a server route the same way, or configure a native [Supabase Database Webhook](https://supabase.com/docs/guides/database/webhooks) on the `businesses` table pointing at a small internal endpoint that calls `dispatchWebhookEvent` - the latter needs your deployed URL, so it's left for you to wire up post-deploy.
+
 ## Production build
 - `npm run build`
 - `npm run start`

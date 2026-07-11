@@ -13,7 +13,14 @@ export async function GET(request) {
 
   let query = admin.from('businesses').select('*,categories(name,slug)', { count: 'exact' }).eq('status', 'approved');
   if (search) query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
-  if (category) query = query.eq('categories.slug', category);
+  if (category) {
+    // PostgREST only honors a filter on an embedded resource (categories.slug)
+    // when the select uses the `!inner` join hint - otherwise it's silently
+    // ignored and every category is returned. Resolve the slug to an id and
+    // filter on businesses.category_id directly instead.
+    const { data: categoryRow } = await admin.from('categories').select('id').eq('slug', category).maybeSingle();
+    query = query.eq('category_id', categoryRow?.id || '00000000-0000-0000-0000-000000000000');
+  }
   if (city) query = query.ilike('city', `%${city}%`);
   query = query.order('created_at', { ascending: false }).range(from, to);
 

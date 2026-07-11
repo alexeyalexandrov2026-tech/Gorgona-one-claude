@@ -361,6 +361,56 @@ create table if not exists public.webhook_deliveries (
 create index if not exists idx_webhook_deliveries_webhook on public.webhook_deliveries(webhook_id);
 
 -- ============================================================
+-- Ownership/status escalation guards. RLS's owner_id = auth.uid() check
+-- only gates *which rows* an owner can touch, not *which columns* - a
+-- business owner (or a write-scoped partner API key, which uses the
+-- service-role client and bypasses RLS entirely) could otherwise set
+-- their own business straight to status='approved', or reassign
+-- owner_id/business_id. These BEFORE UPDATE triggers silently clamp those
+-- fields back to their previous value unless the caller is an admin
+-- (is_admin() reads public.users.role via auth.uid(), so it is false for
+-- both non-admin end users and for service-role/API connections, which
+-- carry no authenticated uid - exactly the callers that must not be able
+-- to self-approve).
+-- ============================================================
+create or replace function public.protect_business_status()
+returns trigger
+language plpgsql
+as $$
+begin
+  if not public.is_admin() then
+    if new.status is distinct from old.status then
+      new.status := old.status;
+    end if;
+    if new.owner_id is distinct from old.owner_id then
+      new.owner_id := old.owner_id;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_business_status on public.businesses;
+create trigger protect_business_status before update on public.businesses
+  for each row execute function public.protect_business_status();
+
+create or replace function public.protect_review_status()
+returns trigger
+language plpgsql
+as $$
+begin
+  if not public.is_admin() and new.status is distinct from old.status then
+    new.status := old.status;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_review_status on public.reviews;
+create trigger protect_review_status before update on public.reviews
+  for each row execute function public.protect_review_status();
+
+-- ============================================================
 -- updated_at triggers
 -- ============================================================
 do $$

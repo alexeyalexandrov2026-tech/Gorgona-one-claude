@@ -50,15 +50,28 @@ export default function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, auth?.session]);
 
+  async function getAccessToken() {
+    const { data } = await supabase.auth.getSession();
+    return data?.session?.access_token;
+  }
+
   async function setBusinessStatus(id, status) {
-    const { error } = await supabase.from('businesses').update({ status }).eq('id', id);
-    if (error) { setMessage(error.message); return; }
+    const token = await getAccessToken();
+    const response = await fetch(`/api/admin/businesses/${id}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    const body = await response.json();
+    if (!response.ok) { setMessage(body.error || 'Could not update status.'); return; }
     setBusinesses((prev) => prev.map((b) => (b.id === id ? { ...b, status } : b)));
   }
 
   async function deleteBusiness(id) {
     if (!confirm('Delete this business permanently?')) return;
-    await supabase.from('businesses').delete().eq('id', id);
+    const token = await getAccessToken();
+    const response = await fetch(`/api/admin/businesses/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    if (!response.ok) { const body = await response.json(); setMessage(body.error || 'Could not delete business.'); return; }
     setBusinesses((prev) => prev.filter((b) => b.id !== id));
   }
 

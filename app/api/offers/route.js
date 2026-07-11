@@ -1,4 +1,4 @@
-import { authenticateApiKey, hasScope, paginationParams } from '../../../lib/apiAuth';
+import { authenticateApiKey, hasScope, paginationParams, assertOwnsBusiness } from '../../../lib/apiAuth';
 import { dispatchWebhookEvent } from '../../../lib/webhooks';
 
 export async function GET(request) {
@@ -25,6 +25,9 @@ export async function POST(request) {
 
   const body = await request.json();
   if (!body?.business_id || !body?.title) return Response.json({ error: 'business_id and title are required' }, { status: 422 });
+
+  const ownershipError = await assertOwnsBusiness(admin, keyRow, body.business_id);
+  if (ownershipError) return ownershipError;
 
   const { data, error: insertError } = await admin.from('offers').insert({ ...body, owner_id: keyRow.owner_id }).select().single();
   if (insertError) return Response.json({ error: insertError.message }, { status: 400 });
