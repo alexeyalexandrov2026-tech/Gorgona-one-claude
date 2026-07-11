@@ -20,10 +20,12 @@ Every Supabase-backed feature degrades gracefully (empty/"not connected" states,
 ## Setup
 
 1. Install dependencies: `npm install`
-2. Create a Supabase project, then in the SQL editor run, in order:
-   - `database/schema.sql` - tables, indexes, RLS policies
-   - `database/storage.sql` - the `business-media` public bucket (image-only, 8MB limit) and its storage policies
-   - `database/seed.sql` - optional starter categories (shopping, fashion, travel, kosher, rentals, etc.)
+2. Create a Supabase project, then in the SQL editor either:
+   - paste and run `database/bootstrap.sql` (schema + storage + seed combined, one paste), or
+   - run `database/schema.sql`, then `database/storage.sql`, then `database/seed.sql` separately, in that order.
+
+   Regenerate `bootstrap.sql` after editing any of the three source files with:
+   `cat database/schema.sql database/storage.sql database/seed.sql > database/bootstrap.sql` (it's a plain concatenation, not templated).
 3. Copy `.env.example` to `.env.local` and fill in:
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` - from Supabase Settings > API
    - `SUPABASE_SERVICE_ROLE_KEY` - server-only, used by API routes/imports/feed sync/webhooks to enforce ownership checks explicitly instead of via RLS
