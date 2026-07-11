@@ -1,15 +1,19 @@
 import Link from 'next/link';
 import { getRentals } from '../../lib/rentalsData';
+import { getServerTranslation } from '../../lib/serverLocale';
+
+export const dynamic = 'force-dynamic';
 
 export default function RentalsPage() {
   const rentals = getRentals();
+  const { t } = getServerTranslation();
 
   return (
     <main className="flex-1 py-10">
       <div className="market-shell mb-8 rounded-[2rem] p-8">
-        <p className="market-pill">Luxury Rentals</p>
-        <h1 className="market-title mt-4">Premium cars, yachts, villas, and private experiences</h1>
-        <p className="market-subtitle">A simple marketplace for high-value rentals and concierge-led bookings in Miami and beyond.</p>
+        <p className="market-pill">{t.rentals.pill}</p>
+        <h1 className="market-title mt-4">{t.rentals.title}</h1>
+        <p className="market-subtitle">{t.rentals.subtitle}</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -26,14 +30,14 @@ export default function RentalsPage() {
               </div>
               <p className="mt-4 text-sm text-zinc-400">{item.description}</p>
               <div className="mt-5 grid gap-2 text-sm text-zinc-300">
-                <div className="flex items-center justify-between"><span>Company</span><span className="text-white">{item.company}</span></div>
-                <div className="flex items-center justify-between"><span>Location</span><span className="text-white">{item.location}</span></div>
-                <div className="flex items-center justify-between"><span>Daily</span><span className="text-brand-gold">{item.dailyPrice}</span></div>
-                <div className="flex items-center justify-between"><span>Weekly</span><span className="text-white">{item.weeklyPrice}</span></div>
+                <div className="flex items-center justify-between"><span>{t.rentals.company}</span><span className="text-white">{item.company}</span></div>
+                <div className="flex items-center justify-between"><span>{t.rentals.location}</span><span className="text-white">{item.location}</span></div>
+                <div className="flex items-center justify-between"><span>{t.rentals.daily}</span><span className="text-brand-gold">{item.dailyPrice}</span></div>
+                <div className="flex items-center justify-between"><span>{t.rentals.weekly}</span><span className="text-white">{item.weeklyPrice}</span></div>
               </div>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link href={`/rentals/${item.slug}`} className="market-button">View Details</Link>
-                <Link href="/partner" className="market-button-secondary">Reserve</Link>
+                <Link href={`/rentals/${item.slug}`} className="market-button">{t.common.viewDetails}</Link>
+                <Link href="/partner" className="market-button-secondary">{t.rentals.reserve}</Link>
               </div>
             </div>
           </article>

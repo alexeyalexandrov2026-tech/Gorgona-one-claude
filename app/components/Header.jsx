@@ -22,7 +22,7 @@ export function Header() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#050505]/90 backdrop-blur-xl">
+    <header dir="ltr" className="sticky top-0 z-40 border-b border-white/10 bg-[#050505]/90 backdrop-blur-xl">
       <div className="flex flex-wrap items-center justify-between gap-3 py-4">
         <Link href="/" className="text-xl font-semibold tracking-[0.3em] text-brand-gold">
           GORGONA ONE
