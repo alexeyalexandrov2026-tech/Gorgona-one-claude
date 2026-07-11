@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { getTranslation } from '../../lib/i18n';
 import { useLocale } from './LocaleProvider';
+import { useAuth } from './AuthProvider';
 
 const navItems = [
   { key: 'home', href: '/' },
@@ -19,6 +20,7 @@ const navItems = [
 export function Header() {
   const locale = useLocale();
   const t = getTranslation(locale);
+  const auth = useAuth();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
@@ -36,9 +38,19 @@ export function Header() {
         </nav>
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
-          <Link href="/login" className="rounded-full border border-brand-gold/50 px-4 py-2 text-sm font-medium text-brand-gold transition hover:bg-brand-gold hover:text-black">
-            Sign In
-          </Link>
+          {auth?.session ? (
+            <button
+              type="button"
+              onClick={() => auth.signOut()}
+              className="rounded-full border border-brand-gold/50 px-4 py-2 text-sm font-medium text-brand-gold transition hover:bg-brand-gold hover:text-black"
+            >
+              {t.auth.signOut}
+            </button>
+          ) : (
+            <Link href="/login" className="rounded-full border border-brand-gold/50 px-4 py-2 text-sm font-medium text-brand-gold transition hover:bg-brand-gold hover:text-black">
+              {t.auth.signInTab}
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => setMobileNavOpen((value) => !value)}

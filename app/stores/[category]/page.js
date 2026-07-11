@@ -20,7 +20,7 @@ export async function generateMetadata({ params }) {
   const label = t.categories[camelizeSlug(category.slug)] || category.label;
   return {
     title: `${label} ${t.category.dealsAndPromoCodes} | GORGONA ONE`,
-    description: category.description
+    description: t.categoryDescriptions[camelizeSlug(category.slug)] || category.description
   };
 }
 
@@ -40,7 +40,7 @@ export default function CategoryPage({ params }) {
       <div className="market-shell mb-8 rounded-[2rem] p-8">
         <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">{label}</p>
         <h1 className="mt-2 text-3xl font-semibold text-white">{label} {t.category.dealsAndPromoCodes}</h1>
-        <p className="mt-3 max-w-2xl text-zinc-400">{category.description}</p>
+        <p className="mt-3 max-w-2xl text-zinc-400">{t.categoryDescriptions[camelizeSlug(category.slug)] || category.description}</p>
       </div>
 
       <div className="mb-8">

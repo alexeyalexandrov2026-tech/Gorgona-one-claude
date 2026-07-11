@@ -4,7 +4,8 @@ import { buildAffiliateUrl } from '../../../lib/providers';
 import { Logo } from '../../components/Logo';
 import { BuyTicketsButton } from '../BuyTicketsButton';
 import { EventViewTracker } from '../EventViewTracker';
-import { getServerTranslations } from '../../../lib/serverLocale';
+import { getServerTranslations, getServerLocale } from '../../../lib/serverLocale';
+import { eventDescriptions, getContentText } from '../../../lib/contentTranslations';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,9 +14,10 @@ export async function generateMetadata({ params }) {
   if (!event) {
     return { title: 'Event not found | GORGONA ONE' };
   }
+  const locale = getServerLocale();
   return {
     title: `${event.name} Tickets | ${event.venue}, ${event.city} | GORGONA ONE`,
-    description: event.description
+    description: getContentText(eventDescriptions, locale, event.id, event.description)
   };
 }
 
@@ -26,7 +28,7 @@ export default async function EventDetailPage({ params }) {
     notFound();
   }
 
-  const { t } = await getServerTranslations();
+  const { t, locale } = await getServerTranslations();
   const category = getEventCategoryBySlug(event.category);
   const league = event.league ? getLeagueBySlug(event.league) : null;
   const providers = event.providers.map((slug) => getProviderBySlug(slug)).filter(Boolean);
@@ -45,7 +47,7 @@ export default async function EventDetailPage({ params }) {
           </div>
         </div>
 
-        <p className="mt-4 max-w-2xl text-zinc-400">{event.description}</p>
+        <p className="mt-4 max-w-2xl text-zinc-400">{getContentText(eventDescriptions, locale, event.id, event.description)}</p>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
           <div className="rounded-2xl border border-white/10 bg-black/40 p-6">

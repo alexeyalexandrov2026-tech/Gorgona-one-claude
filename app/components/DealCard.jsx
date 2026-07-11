@@ -1,5 +1,10 @@
 import Link from 'next/link';
 import { BrandImage } from './BrandImage';
+import { getDealDescription } from '../../lib/dealsData';
+
+function camelizeSlug(slug) {
+  return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+}
 
 // Shared deal card used by /stores, /stores/[category], and /coupons - was
 // previously copy-pasted with drifting hardcoded English text in each page,
@@ -9,13 +14,13 @@ export function DealCard({ deal, t }) {
     <article className="market-card rounded-[1.5rem] p-6">
       <div className="flex items-center justify-between gap-3">
         <BrandImage src={deal.logo} alt={deal.name} className="h-12 w-12 rounded-2xl object-cover" />
-        <span className="rounded-full bg-brand-gold/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-brand-gold">{deal.category}</span>
+        <span className="rounded-full bg-brand-gold/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-brand-gold">{t.categories[camelizeSlug(deal.category)] || deal.category}</span>
       </div>
       <h2 className="mt-6 text-xl font-semibold text-white">{deal.name}</h2>
       {deal.city && (
         <p className="mt-1 text-xs uppercase tracking-[0.2em] text-zinc-500">{deal.city}, {deal.state}</p>
       )}
-      <p className="mt-3 text-sm text-zinc-400">{deal.description}</p>
+      <p className="mt-3 text-sm text-zinc-400">{getDealDescription(deal, t)}</p>
 
       {typeof deal.rating === 'number' && (
         <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-2 text-sm">

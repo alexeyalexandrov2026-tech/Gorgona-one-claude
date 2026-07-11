@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { sportsbooks } from '../../lib/mockData';
+import { sportsbookDescriptions, getContentText } from '../../lib/contentTranslations';
 import { getServerTranslation } from '../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
 
 export default function SportsbookPage() {
-  const { t } = getServerTranslation();
+  const { t, locale } = getServerTranslation();
 
   return (
     <main className="flex-1 py-10">
@@ -22,7 +23,7 @@ export default function SportsbookPage() {
               <span className="rounded-full bg-brand-gold/10 px-2 py-1 text-xs text-brand-gold">{t.sportsbookPage.pill}</span>
             </div>
             <h2 className="mt-6 text-xl font-semibold text-white">{book.name}</h2>
-            <p className="mt-3 text-sm text-zinc-400">{book.description}</p>
+            <p className="mt-3 text-sm text-zinc-400">{getContentText(sportsbookDescriptions, locale, book.slug, book.description)}</p>
             <Link href={`/sportsbook/${book.slug}`} className="mt-6 inline-flex rounded-full border border-brand-gold/40 px-4 py-2 text-sm font-medium text-brand-gold transition hover:bg-brand-gold hover:text-black">{t.sportsbookPage.viewProfile}</Link>
           </article>
         ))}
