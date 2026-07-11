@@ -59,12 +59,12 @@ $$;
 -- ============================================================
 create table if not exists public.categories (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
+  owner_id uuid references public.users(id) on delete set null,
   name text not null,
   slug text unique not null,
   icon text,
   description text,
-  parent_id uuid references public.categories(id),
+  parent_id uuid references public.categories(id) on delete set null,
   status text not null default 'active' check (status in ('active', 'inactive')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -77,7 +77,7 @@ create index if not exists idx_categories_status on public.categories(status);
 -- ============================================================
 create table if not exists public.partner_accounts (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
+  owner_id uuid references public.users(id) on delete set null,
   company_name text not null,
   slug text unique not null,
   contact_email text not null,
@@ -94,8 +94,8 @@ create index if not exists idx_partner_accounts_owner on public.partner_accounts
 -- ============================================================
 create table if not exists public.businesses (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
-  category_id uuid references public.categories(id),
+  owner_id uuid references public.users(id) on delete set null,
+  category_id uuid references public.categories(id) on delete set null,
   name text not null,
   slug text unique not null,
   description text,
@@ -141,7 +141,7 @@ create table if not exists public.stores (
   description text,
   status text default 'active'
 );
-alter table public.stores add column if not exists owner_id uuid references public.users(id);
+alter table public.stores add column if not exists owner_id uuid references public.users(id) on delete set null;
 alter table public.stores add column if not exists created_at timestamptz not null default now();
 alter table public.stores add column if not exists updated_at timestamptz not null default now();
 create index if not exists idx_stores_owner on public.stores(owner_id);
@@ -152,7 +152,7 @@ create index if not exists idx_stores_status on public.stores(status);
 -- ============================================================
 create table if not exists public.promo_codes (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
+  owner_id uuid references public.users(id) on delete set null,
   business_id uuid references public.businesses(id) on delete cascade,
   slug text unique,
   code text not null,
@@ -173,7 +173,7 @@ create index if not exists idx_promo_codes_status on public.promo_codes(status);
 -- ============================================================
 create table if not exists public.offers (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
+  owner_id uuid references public.users(id) on delete set null,
   business_id uuid references public.businesses(id) on delete cascade,
   slug text unique,
   title text not null,
@@ -193,7 +193,7 @@ create index if not exists idx_offers_status on public.offers(status);
 -- ============================================================
 create table if not exists public.reviews (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
+  owner_id uuid references public.users(id) on delete set null,
   business_id uuid references public.businesses(id) on delete cascade,
   rating smallint not null check (rating between 1 and 5),
   comment text,
@@ -208,7 +208,7 @@ create index if not exists idx_reviews_business on public.reviews(business_id);
 -- ============================================================
 create table if not exists public.analytics (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
+  owner_id uuid references public.users(id) on delete set null,
   business_id uuid references public.businesses(id) on delete cascade,
   metric text not null check (metric in ('view', 'click', 'conversion', 'search', 'promo_click')),
   metadata jsonb not null default '{}'::jsonb,
@@ -225,8 +225,8 @@ create index if not exists idx_analytics_created on public.analytics(created_at)
 -- ============================================================
 create table if not exists public.rentals (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
-  business_id uuid references public.businesses(id),
+  owner_id uuid references public.users(id) on delete set null,
+  business_id uuid references public.businesses(id) on delete set null,
   slug text unique not null,
   name text not null,
   category text not null check (category in ('car', 'yacht', 'vacation-rental', 'experience')),
@@ -259,7 +259,7 @@ create table if not exists public.sportsbooks (
   state_availability text,
   status text default 'active'
 );
-alter table public.sportsbooks add column if not exists owner_id uuid references public.users(id);
+alter table public.sportsbooks add column if not exists owner_id uuid references public.users(id) on delete set null;
 alter table public.sportsbooks add column if not exists created_at timestamptz not null default now();
 alter table public.sportsbooks add column if not exists updated_at timestamptz not null default now();
 
@@ -268,7 +268,7 @@ alter table public.sportsbooks add column if not exists updated_at timestamptz n
 -- ============================================================
 create table if not exists public.api_keys (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
+  owner_id uuid references public.users(id) on delete set null,
   partner_account_id uuid references public.partner_accounts(id) on delete cascade,
   name text not null,
   slug text,
@@ -291,7 +291,7 @@ create index if not exists idx_api_keys_partner on public.api_keys(partner_accou
 -- ============================================================
 create table if not exists public.external_feeds (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
+  owner_id uuid references public.users(id) on delete set null,
   partner_account_id uuid references public.partner_accounts(id) on delete cascade,
   name text not null,
   slug text unique not null,
@@ -312,7 +312,7 @@ create index if not exists idx_external_feeds_schedule on public.external_feeds(
 -- ============================================================
 create table if not exists public.feed_mappings (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
+  owner_id uuid references public.users(id) on delete set null,
   feed_id uuid references public.external_feeds(id) on delete cascade,
   slug text,
   source_field text not null,
@@ -329,7 +329,7 @@ create index if not exists idx_feed_mappings_feed on public.feed_mappings(feed_i
 -- ============================================================
 create table if not exists public.feed_sync_jobs (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
+  owner_id uuid references public.users(id) on delete set null,
   feed_id uuid references public.external_feeds(id) on delete cascade,
   slug text,
   status text not null default 'pending' check (status in ('pending', 'running', 'success', 'failed')),
@@ -352,8 +352,8 @@ create index if not exists idx_feed_sync_jobs_status on public.feed_sync_jobs(st
 -- ============================================================
 create table if not exists public.api_import_logs (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
-  business_id uuid references public.businesses(id),
+  owner_id uuid references public.users(id) on delete set null,
+  business_id uuid references public.businesses(id) on delete set null,
   slug text,
   file_name text not null,
   file_type text not null check (file_type in ('csv', 'json', 'xml', 'excel')),
@@ -374,7 +374,7 @@ create index if not exists idx_api_import_logs_owner on public.api_import_logs(o
 -- ============================================================
 create table if not exists public.webhooks (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid references public.users(id),
+  owner_id uuid references public.users(id) on delete set null,
   partner_account_id uuid references public.partner_accounts(id) on delete cascade,
   slug text,
   url text not null,
@@ -398,30 +398,35 @@ create table if not exists public.webhook_deliveries (
 create index if not exists idx_webhook_deliveries_webhook on public.webhook_deliveries(webhook_id);
 
 -- ============================================================
--- Ownership/status escalation guards. RLS's owner_id = auth.uid() check
--- only gates *which rows* an owner can touch, not *which columns* - a
--- business owner (or a write-scoped partner API key, which uses the
--- service-role client and bypasses RLS entirely) could otherwise set
--- their own business straight to status='approved', or reassign
--- owner_id/business_id. These BEFORE UPDATE triggers silently clamp those
--- fields back to their previous value unless the caller is an admin
+-- Status escalation guard. RLS's owner_id = auth.uid() check only gates
+-- *which rows* an owner can touch, not *which columns* - a business owner
+-- (or a write-scoped partner API key, which uses the service-role client
+-- and bypasses RLS entirely) could otherwise set their own business
+-- straight to status='approved'. This BEFORE UPDATE trigger silently
+-- clamps status back to its previous value unless the caller is an admin
 -- (is_admin() reads public.users.role via auth.uid(), so it is false for
 -- both non-admin end users and for service-role/API connections, which
 -- carry no authenticated uid - exactly the callers that must not be able
 -- to self-approve).
--- ============================================================
+--
+-- Deliberately does NOT also clamp owner_id: businesses_owner_update's
+-- policy has no separate WITH CHECK, so Postgres reuses its USING clause
+-- (owner_id = auth.uid() or is_admin()) as the check on the new row too -
+-- an owner reassigning owner_id to anyone but themselves already fails
+-- that check on its own. Clamping owner_id here as well used to also
+-- fire on the *system's own* `ON DELETE SET NULL` cascade from users -
+-- i.e. when an owner's account was deleted, this trigger was undoing the
+-- cascade and leaving businesses.owner_id pointing at a row that no
+-- longer exists. Verified against a real Postgres instance: deleting a
+-- user with an approved business left owner_id un-nulled until this
+-- clause was removed.
 create or replace function public.protect_business_status()
 returns trigger
 language plpgsql
 as $$
 begin
-  if not public.is_admin() then
-    if new.status is distinct from old.status then
-      new.status := old.status;
-    end if;
-    if new.owner_id is distinct from old.owner_id then
-      new.owner_id := old.owner_id;
-    end if;
+  if not public.is_admin() and new.status is distinct from old.status then
+    new.status := old.status;
   end if;
   return new;
 end;

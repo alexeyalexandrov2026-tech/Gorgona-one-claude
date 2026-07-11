@@ -76,12 +76,14 @@ export default function AdminPage() {
   }
 
   async function setUserRole(id, role) {
-    await supabase.from('users').update({ role }).eq('id', id);
+    const { error } = await supabase.from('users').update({ role }).eq('id', id);
+    if (error) { setMessage(error.message); return; }
     setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, role } : u)));
   }
 
   async function suspendUser(id, status) {
-    await supabase.from('users').update({ status }).eq('id', id);
+    const { error } = await supabase.from('users').update({ status }).eq('id', id);
+    if (error) { setMessage(error.message); return; }
     setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, status } : u)));
   }
 
@@ -96,27 +98,32 @@ export default function AdminPage() {
   }
 
   async function deleteCategory(id) {
-    await supabase.from('categories').delete().eq('id', id);
+    const { error } = await supabase.from('categories').delete().eq('id', id);
+    if (error) { setMessage(error.message); return; }
     setCategories((prev) => prev.filter((c) => c.id !== id));
   }
 
   async function setPromoStatus(id, status) {
-    await supabase.from('promo_codes').update({ status }).eq('id', id);
+    const { error } = await supabase.from('promo_codes').update({ status }).eq('id', id);
+    if (error) { setMessage(error.message); return; }
     setPromoCodes((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
   }
 
   async function deletePromo(id) {
-    await supabase.from('promo_codes').delete().eq('id', id);
+    const { error } = await supabase.from('promo_codes').delete().eq('id', id);
+    if (error) { setMessage(error.message); return; }
     setPromoCodes((prev) => prev.filter((p) => p.id !== id));
   }
 
   async function setPartnerStatus(id, status) {
-    await supabase.from('partner_accounts').update({ status }).eq('id', id);
+    const { error } = await supabase.from('partner_accounts').update({ status }).eq('id', id);
+    if (error) { setMessage(error.message); return; }
     setPartners((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
   }
 
   async function setFeedStatus(id, status) {
-    await supabase.from('external_feeds').update({ status }).eq('id', id);
+    const { error } = await supabase.from('external_feeds').update({ status }).eq('id', id);
+    if (error) { setMessage(error.message); return; }
     setFeeds((prev) => prev.map((f) => (f.id === id ? { ...f, status } : f)));
   }
 
@@ -144,7 +151,8 @@ export default function AdminPage() {
 
   async function deleteFeed(id) {
     if (!confirm('Delete this feed permanently?')) return;
-    await supabase.from('external_feeds').delete().eq('id', id);
+    const { error } = await supabase.from('external_feeds').delete().eq('id', id);
+    if (error) { setMessage(error.message); return; }
     setFeeds((prev) => prev.filter((f) => f.id !== id));
   }
 

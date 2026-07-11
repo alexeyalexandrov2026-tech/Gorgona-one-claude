@@ -254,7 +254,8 @@ export default function DashboardPage() {
   }
 
   async function deletePromoCode(id) {
-    await supabase.from('promo_codes').delete().eq('id', id);
+    const { error } = await supabase.from('promo_codes').delete().eq('id', id);
+    if (error) { setMessage(error.message); return; }
     setPromoCodes((prev) => prev.filter((p) => p.id !== id));
   }
 
@@ -276,7 +277,8 @@ export default function DashboardPage() {
   }
 
   async function deleteOffer(id) {
-    await supabase.from('offers').delete().eq('id', id);
+    const { error } = await supabase.from('offers').delete().eq('id', id);
+    if (error) { setMessage(error.message); return; }
     setOffers((prev) => prev.filter((o) => o.id !== id));
   }
 
