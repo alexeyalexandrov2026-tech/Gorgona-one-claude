@@ -5,10 +5,14 @@ import Link from 'next/link';
 import { useLocale } from '../components/LocaleProvider';
 import { getTranslation } from '../../lib/i18n';
 import { isValidEmail } from '../../lib/auth';
+import { useAuth } from '../components/AuthProvider';
+import { getSupabaseClient, isSupabaseConfigured } from '../../lib/supabaseClient';
 
 export default function PartnerPage() {
   const locale = useLocale();
   const t = getTranslation(locale);
+  const auth = useAuth();
+  const supabase = getSupabaseClient();
 
   const categoryOptions = [
     t.categories.shopping,
@@ -44,9 +48,31 @@ export default function PartnerPage() {
       return;
     }
 
+    if (!isSupabaseConfigured() || !supabase) {
+      setLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      setLoading(false);
+      setSuccess(t.partnerForm.successSubmit);
+      setForm({ companyName: '', website: '', contactEmail: '', category: categoryOptions[0] });
+      return;
+    }
+
+    if (!auth?.session) {
+      setError('Create a free account first, then apply as a partner from this page.');
+      return;
+    }
+
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    const slug = `${form.companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${Date.now().toString(36)}`;
+    const { error: insertError } = await supabase.from('partner_accounts').insert({
+      owner_id: auth.session.id,
+      company_name: form.companyName.trim(),
+      slug,
+      website: form.website.trim(),
+      contact_email: form.contactEmail.trim()
+    });
     setLoading(false);
+    if (insertError) { setError(insertError.message); return; }
     setSuccess(t.partnerForm.successSubmit);
     setForm({ companyName: '', website: '', contactEmail: '', category: categoryOptions[0] });
   }
@@ -61,6 +87,11 @@ export default function PartnerPage() {
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-2xl border border-white/10 bg-black/40 p-6">
             <h2 className="text-xl font-semibold text-white">{t.partnerForm.title}</h2>
+            {isSupabaseConfigured() && !auth?.session && (
+              <p className="mt-2 text-sm text-zinc-400">
+                <Link href="/login" className="text-brand-gold">Create a free account</Link> first, then come back here to submit your application.
+              </p>
+            )}
             <form onSubmit={handleSubmit} noValidate className="mt-4 space-y-3">
               <input
                 value={form.companyName}

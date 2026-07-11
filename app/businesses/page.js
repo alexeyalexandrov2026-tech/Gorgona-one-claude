@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { listBusinesses, listCategories, isSupabaseConfigured } from '../../lib/businesses';
 import { getServerTranslation } from '../../lib/serverLocale';
+import { trackEvent } from '../../lib/analyticsEvents';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,10 @@ export default async function BusinessesPage({ searchParams }) {
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  if (search) {
+    await trackEvent('search', null, { query: search, category, city });
+  }
 
   function pageHref(nextPage) {
     const params = new URLSearchParams({ q: search, category, city, sort, page: String(nextPage) });

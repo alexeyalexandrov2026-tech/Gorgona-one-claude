@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { getBusinessBySlug } from '../../../lib/businesses';
 import { ReviewForm } from './ReviewForm';
+import { WebsiteLink, PromoCodeCard } from './TrackedLinks';
+import { trackEvent } from '../../../lib/analyticsEvents';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +35,8 @@ export default async function BusinessDetailPage({ params }) {
 
   if (!business) return notFound();
 
+  await trackEvent('view', business.id, { source: 'business_detail' });
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
@@ -59,11 +63,7 @@ export default async function BusinessDetailPage({ params }) {
         <h1 className="mt-2 text-3xl font-semibold text-white">{business.name}</h1>
         {business.city && <p className="mt-2 text-zinc-400">{business.city}{business.state ? `, ${business.state}` : ''}</p>}
         <p className="mt-4 max-w-2xl text-zinc-300">{business.description}</p>
-        {business.website && (
-          <a href={business.website} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex rounded-full bg-brand-gold px-5 py-3 font-medium text-black">
-            Visit website
-          </a>
-        )}
+        {business.website && <WebsiteLink businessId={business.id} website={business.website} />}
       </div>
 
       {business.offers?.filter((o) => o.status === 'active').length > 0 && (
@@ -86,10 +86,7 @@ export default async function BusinessDetailPage({ params }) {
           <h2 className="mb-4 text-xl font-semibold text-white">Promo Codes</h2>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {business.promo_codes.filter((p) => p.status === 'active').map((promo) => (
-              <div key={promo.id} className="market-card rounded-2xl p-5">
-                <p className="font-mono text-lg text-brand-gold">{promo.code}</p>
-                <p className="mt-2 text-sm text-zinc-400">{promo.description || promo.discount}</p>
-              </div>
+              <PromoCodeCard key={promo.id} businessId={business.id} promo={promo} />
             ))}
           </div>
         </section>
