@@ -6,6 +6,15 @@ import { allDeals, categories, getDealDescription } from '../../lib/dealsData';
 import { getTranslation } from '../../lib/i18n';
 import { useLocale } from './LocaleProvider';
 
+const POPULAR_SEARCH_LINKS = [
+  { key: 'carRentals', href: '/rentals' },
+  { key: 'yachtRentals', href: '/yachts' },
+  { key: 'sportsbookBonuses', href: '/sportsbook' },
+  { key: 'vacationRentals', href: '/vacation-rentals' },
+  { key: 'miamiExperiences', href: '/experiences' },
+  { key: 'restaurantsNightlife', href: '/restaurants-nightlife' }
+];
+
 function camelizeSlug(slug) {
   return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 }
@@ -25,14 +34,7 @@ export function SearchBar() {
     });
   }, [activeCategory, query, t]);
 
-  const popularSearches = [
-    t.search.popular.carRentals,
-    t.search.popular.yachtRentals,
-    t.search.popular.sportsbookBonuses,
-    t.search.popular.vacationRentals,
-    t.search.popular.miamiExperiences,
-    t.search.popular.restaurantsNightlife
-  ];
+  const popularSearches = POPULAR_SEARCH_LINKS.map((item) => ({ ...item, label: t.search.popular[item.key] }));
 
   return (
     <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-premium sm:p-6">
@@ -54,9 +56,9 @@ export function SearchBar() {
 
       <div className="mt-4 flex flex-wrap gap-2">
         {popularSearches.map((search) => (
-          <button key={search} onClick={() => setQuery(search)} className="rounded-full border border-white/10 px-3 py-2 text-sm text-zinc-300 transition hover:border-brand-gold hover:text-brand-gold">
-            {search}
-          </button>
+          <Link key={search.key} href={search.href} className="rounded-full border border-white/10 px-3 py-2 text-sm text-zinc-300 transition hover:border-brand-gold hover:text-brand-gold">
+            {search.label}
+          </Link>
         ))}
       </div>
 
