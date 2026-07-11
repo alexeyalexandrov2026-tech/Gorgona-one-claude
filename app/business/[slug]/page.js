@@ -21,13 +21,23 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function BusinessDetailPage({ params }) {
-  const { business, configured } = await getBusinessBySlug(params.slug);
+  const { business, configured, error } = await getBusinessBySlug(params.slug);
 
   if (!configured) {
     return (
       <main className="flex-1 py-10">
         <p className="rounded-2xl border border-brand-gold/20 bg-brand-gold/10 p-6 text-zinc-300">
           The business directory is not connected to a database yet.
+        </p>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="flex-1 py-10">
+        <p className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-400">
+          Database error: {error}. This usually means database/bootstrap.sql (or schema.sql) has not been run yet in the Supabase SQL editor.
         </p>
       </main>
     );

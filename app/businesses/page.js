@@ -18,7 +18,7 @@ export default async function BusinessesPage({ searchParams }) {
   const sort = searchParams?.sort || 'newest';
   const page = Math.max(1, parseInt(searchParams?.page || '1', 10) || 1);
 
-  const [{ items: businesses, total, pageSize, configured }, { items: categories }] = await Promise.all([
+  const [{ items: businesses, total, pageSize, configured, error }, { items: categories }] = await Promise.all([
     listBusinesses({ search, category, city, sort, page }),
     listCategories()
   ]);
@@ -62,7 +62,13 @@ export default async function BusinessesPage({ searchParams }) {
         </p>
       )}
 
-      {configured && businesses.length === 0 && (
+      {configured && error && (
+        <p className="mb-8 rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-400">
+          Database error: {error}. This usually means database/bootstrap.sql (or schema.sql) has not been run yet in the Supabase SQL editor.
+        </p>
+      )}
+
+      {configured && !error && businesses.length === 0 && (
         <p className="mb-8 rounded-2xl border border-white/10 bg-white/5 p-6 text-zinc-400">No businesses match your search yet.</p>
       )}
 

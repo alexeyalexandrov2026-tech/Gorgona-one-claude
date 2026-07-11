@@ -9,7 +9,7 @@ export const metadata = {
 };
 
 export default async function CategoriesPage() {
-  const { items: categories, configured } = await listCategories();
+  const { items: categories, configured, error } = await listCategories();
 
   return (
     <main className="flex-1 py-10">
@@ -24,7 +24,13 @@ export default async function CategoriesPage() {
         </p>
       )}
 
-      {configured && categories.length === 0 && (
+      {configured && error && (
+        <p className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-400">
+          Database error: {error}. This usually means database/bootstrap.sql (or schema.sql) has not been run yet in the Supabase SQL editor.
+        </p>
+      )}
+
+      {configured && !error && categories.length === 0 && (
         <p className="rounded-2xl border border-white/10 bg-white/5 p-6 text-zinc-400">No categories have been added yet.</p>
       )}
 

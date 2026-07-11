@@ -14,7 +14,7 @@ export async function generateMetadata({ params }) {
 
 export default async function CategoryDetailPage({ params, searchParams }) {
   const page = Math.max(1, parseInt(searchParams?.page || '1', 10) || 1);
-  const [{ items: categories }, { items: businesses, total, pageSize, configured }] = await Promise.all([
+  const [{ items: categories }, { items: businesses, total, pageSize, configured, error }] = await Promise.all([
     listCategories(),
     listBusinesses({ category: params.slug, sort: searchParams?.sort || 'newest', page })
   ]);
@@ -35,7 +35,13 @@ export default async function CategoryDetailPage({ params, searchParams }) {
         </p>
       )}
 
-      {configured && businesses.length === 0 && (
+      {configured && error && (
+        <p className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-red-400">
+          Database error: {error}. This usually means database/bootstrap.sql (or schema.sql) has not been run yet in the Supabase SQL editor.
+        </p>
+      )}
+
+      {configured && !error && businesses.length === 0 && (
         <p className="rounded-2xl border border-white/10 bg-white/5 p-6 text-zinc-400">No businesses in this category yet.</p>
       )}
 
