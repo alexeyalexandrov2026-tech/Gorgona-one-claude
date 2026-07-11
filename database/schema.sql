@@ -500,6 +500,16 @@ create trigger protect_review_status before update on public.reviews
 -- page. Reverts business_id to its previous value on UPDATE unless the
 -- new business_id actually belongs to the same owner (or the caller is
 -- admin).
+--
+-- Only guards a *reassignment to a specific other business* - a NULL
+-- new.business_id is always let through untouched. rentals.business_id
+-- is nullable and ON DELETE SET NULL; without this exemption, deleting a
+-- business would trigger the same bug just fixed for
+-- protect_business_status/owner_id: this trigger would look up
+-- owner_id for id = NULL (no match), see it doesn't equal the row's
+-- owner_id, and revert the cascade's NULL back to the now-deleted
+-- business's id. Verified against a real Postgres instance before this
+-- exemption was added.
 create or replace function public.protect_content_business_ownership()
 returns trigger
 language plpgsql
@@ -507,7 +517,7 @@ as $$
 declare
   target_owner uuid;
 begin
-  if new.business_id is distinct from old.business_id and not public.is_admin() then
+  if new.business_id is distinct from old.business_id and new.business_id is not null and not public.is_admin() then
     select owner_id into target_owner from public.businesses where id = new.business_id;
     if target_owner is distinct from new.owner_id then
       new.business_id := old.business_id;
