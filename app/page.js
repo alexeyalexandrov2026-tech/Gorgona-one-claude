@@ -1,10 +1,17 @@
+"use client";
+
 import Link from 'next/link';
 import { SearchBar } from './components/SearchBar';
 import { categories, featuredDeals } from '../lib/dealsData';
 import { getTranslation } from '../lib/i18n';
+import { useLocale } from './components/LocaleProvider';
+
+function camelizeSlug(slug) {
+  return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+}
 
 export default function HomePage() {
-  const locale = 'en';
+  const locale = useLocale();
   const t = getTranslation(locale);
 
   return (
@@ -60,7 +67,7 @@ export default function HomePage() {
           {categories.map((category) => (
             <Link key={category.slug} href={`/stores/${category.slug}`} className="market-card rounded-2xl p-5">
               <p className="text-2xl">{category.icon}</p>
-              <p className="mt-3 font-semibold text-white">{category.label}</p>
+              <p className="mt-3 font-semibold text-white">{t.categories[camelizeSlug(category.slug)] || category.label}</p>
               <p className="mt-2 text-sm text-zinc-400">{category.description}</p>
             </Link>
           ))}

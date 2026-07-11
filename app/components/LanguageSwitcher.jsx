@@ -1,30 +1,71 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { SUPPORTED_LANGUAGES } from '../../lib/languages';
+import { useLocaleController } from './LocaleProvider';
 
 export function LanguageSwitcher() {
-  const [locale, setLocale] = useState('en');
+  const controller = useLocaleController();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+  const locale = controller ? controller.locale : 'en';
+  const active = SUPPORTED_LANGUAGES.find((language) => language.code === locale) || SUPPORTED_LANGUAGES[0];
 
   useEffect(() => {
-    const savedLocale = window.localStorage.getItem('gorgona-locale');
-    if (savedLocale) {
-      setLocale(savedLocale);
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpen(false);
+      }
     }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleChange = (value) => {
-    setLocale(value);
-    window.localStorage.setItem('gorgona-locale', value);
-    window.location.reload();
-  };
+  function handleSelect(code) {
+    if (controller) {
+      controller.setLocale(code);
+    }
+    setOpen(false);
+  }
 
   return (
-    <select value={locale} onChange={(event) => handleChange(event.target.value)} className="rounded-full border border-white/10 bg-black/50 px-3 py-2 text-sm text-white outline-none">
-      <option value="en">English</option>
-      <option value="ru">Русский</option>
-      <option value="es" disabled>Español</option>
-      <option value="de" disabled>Deutsch</option>
-      <option value="fr" disabled>Français</option>
-    </select>
+    <div className="relative" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        className="flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-3 py-2 text-sm text-white outline-none transition hover:border-brand-gold"
+      >
+        <span aria-hidden="true">{active.flag}</span>
+        <span className="hidden sm:inline">{active.nativeLabel}</span>
+        <span aria-hidden="true" className="text-xs text-zinc-400">▾</span>
+      </button>
+      {open && (
+        <div
+          role="listbox"
+          className="absolute right-0 top-full z-50 mt-2 max-h-80 w-64 overflow-y-auto rounded-2xl border border-white/10 bg-[#050505] p-2 shadow-premium"
+        >
+          {SUPPORTED_LANGUAGES.map((language) => (
+            <button
+              key={language.code}
+              type="button"
+              role="option"
+              aria-selected={language.code === locale}
+              onClick={() => handleSelect(language.code)}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition ${
+                language.code === locale ? 'bg-brand-gold/10 text-brand-gold' : 'text-zinc-300 hover:bg-white/5 hover:text-brand-gold'
+              }`}
+            >
+              <span aria-hidden="true" className="text-base">{language.flag}</span>
+              <span className="flex flex-col">
+                <span className="font-medium">{language.nativeLabel}</span>
+                <span className="text-xs text-zinc-500">{language.label}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

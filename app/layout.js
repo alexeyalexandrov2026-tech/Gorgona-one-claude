@@ -3,11 +3,26 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { LocaleProvider } from './components/LocaleProvider';
 
+const baseUrl = 'https://gorgona-one.vercel.app';
+
+// Site content is served from a single URL per page (language is chosen via
+// cookie/localStorage, not a URL prefix), so every hreflang variant points
+// at the same canonical URL - a valid pattern for search engines when
+// language is determined client-side rather than through distinct routes.
+const HREFLANG_CODES = ['en-US', 'ru', 'es', 'he-IL', 'zh', 'pt', 'uk', 'ja', 'ko', 'de', 'ar', 'tr', 'fa', 'it', 'fr', 'pl'];
+
 export const metadata = {
   title: 'GORGONA ONE | Global deals, promo codes, and lifestyle offers',
   description: 'Premium marketplace for shopping, restaurants, entertainment, travel, sports, and betting deals.',
   keywords: ['coupons', 'deals', 'discounts', 'sportsbook promos', 'travel offers', 'restaurant deals'],
-  metadataBase: new URL('https://gorgona-one.vercel.app'),
+  metadataBase: new URL(baseUrl),
+  alternates: {
+    canonical: baseUrl,
+    languages: {
+      ...Object.fromEntries(HREFLANG_CODES.map((code) => [code, baseUrl])),
+      'x-default': baseUrl
+    }
+  },
   openGraph: {
     title: 'GORGONA ONE',
     description: 'Discover verified promo codes, premium offers, and hidden deals across the globe.',

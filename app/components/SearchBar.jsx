@@ -4,8 +4,14 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { allDeals, categories } from '../../lib/dealsData';
 import { getTranslation } from '../../lib/i18n';
+import { useLocale } from './LocaleProvider';
 
-export function SearchBar({ locale = 'en' }) {
+function camelizeSlug(slug) {
+  return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+}
+
+export function SearchBar() {
+  const locale = useLocale();
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const t = getTranslation(locale);
@@ -33,7 +39,7 @@ export function SearchBar({ locale = 'en' }) {
         <select value={activeCategory} onChange={(event) => setActiveCategory(event.target.value)} className="rounded-full border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none">
           <option value="all">All categories</option>
           {categories.map((category) => (
-            <option key={category.slug} value={category.slug}>{category.label}</option>
+            <option key={category.slug} value={category.slug}>{t.categories[camelizeSlug(category.slug)] || category.label}</option>
           ))}
         </select>
         <button className="rounded-full bg-brand-gold px-4 py-3 text-sm font-medium text-black">{t.buttons.search}</button>

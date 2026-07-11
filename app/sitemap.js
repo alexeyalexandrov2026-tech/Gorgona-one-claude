@@ -1,4 +1,5 @@
 import { stores, sportsbooks } from '../lib/mockData';
+import { categories, allDeals } from '../lib/dealsData';
 
 export default function sitemap() {
   const baseUrl = 'https://gorgona-one.vercel.app';
@@ -32,5 +33,19 @@ export default function sitemap() {
     priority: 0.7
   }));
 
-  return [...staticRoutes, ...dynamicRoutes];
+  const categoryRoutes = categories.map((category) => ({
+    url: `${baseUrl}/stores/${category.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.7
+  }));
+
+  const dealRoutes = allDeals.map((deal) => ({
+    url: `${baseUrl}/deals/${deal.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.6
+  }));
+
+  return [...staticRoutes, ...dynamicRoutes, ...categoryRoutes, ...dealRoutes];
 }
