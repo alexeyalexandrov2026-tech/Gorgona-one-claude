@@ -3,6 +3,10 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { allDeals, categories, getDealDescription } from '../../lib/dealsData';
+import { getYachts } from '../../lib/yachtsData';
+import { getVacationRentals } from '../../lib/vacationRentalsData';
+import { getExperiences } from '../../lib/experiencesData';
+import { getVenues } from '../../lib/restaurantsNightlifeData';
 import { getTranslation } from '../../lib/i18n';
 import { useLocale } from './LocaleProvider';
 
@@ -19,6 +23,52 @@ function camelizeSlug(slug) {
   return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
+// Non-deal catalogs (yachts, vacation rentals, experiences, restaurants &
+// nightlife) live outside lib/dealsData.js, each with its own item shape and
+// detail route. Normalized here to the fields the results list already
+// renders (name/description/category/href) so they're searchable too,
+// without touching how any of those pages themselves render.
+function buildExtraCatalog(t) {
+  return [
+    ...getYachts().map((item) => ({
+      id: `yacht-${item.id}`,
+      name: item.title,
+      description: item.description,
+      category: t.search.popular.yachtRentals,
+      promoCode: '',
+      discount: item.price,
+      href: `/yachts/${item.slug}`
+    })),
+    ...getVacationRentals().map((item) => ({
+      id: `vacation-rental-${item.id}`,
+      name: item.title,
+      description: item.description,
+      category: t.search.popular.vacationRentals,
+      promoCode: '',
+      discount: item.price,
+      href: `/vacation-rentals/${item.slug}`
+    })),
+    ...getExperiences().map((item) => ({
+      id: `experience-${item.id}`,
+      name: item.title,
+      description: item.description,
+      category: t.search.popular.miamiExperiences,
+      promoCode: '',
+      discount: item.price,
+      href: `/experiences/${item.slug}`
+    })),
+    ...getVenues().map((item) => ({
+      id: `venue-${item.id}`,
+      name: item.name,
+      description: item.description,
+      category: t.search.popular.restaurantsNightlife,
+      promoCode: '',
+      discount: item.location,
+      href: `/restaurants-nightlife/${item.slug}`
+    }))
+  ];
+}
+
 export function SearchBar() {
   const locale = useLocale();
   const [query, setQuery] = useState('');
@@ -27,11 +77,29 @@ export function SearchBar() {
 
   const filteredDeals = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    return allDeals.filter((deal) => {
+    const deals = allDeals.filter((deal) => {
       const matchesQuery = !normalized || [deal.name, deal.category, getDealDescription(deal, t), deal.discount, deal.promoCode].join(' ').toLowerCase().includes(normalized);
       const matchesCategory = activeCategory === 'all' || deal.category === activeCategory;
       return matchesQuery && matchesCategory;
-    });
+    }).map((deal) => ({
+      id: deal.id,
+      name: deal.name,
+      description: getDealDescription(deal, t),
+      category: t.categories[camelizeSlug(deal.category)] || deal.category,
+      promoCode: deal.promoCode,
+      discount: deal.discount,
+      href: `/deals/${deal.slug}`
+    }));
+
+    // The extra catalogs (yachts/vacation rentals/experiences/restaurants)
+    // aren't part of the Stores/Coupons category dropdown, so they only
+    // participate when no specific category filter is active.
+    if (activeCategory !== 'all') {
+      return deals;
+    }
+
+    const extras = buildExtraCatalog(t).filter((item) => !normalized || [item.name, item.category, item.description].join(' ').toLowerCase().includes(normalized));
+    return [...deals, ...extras];
   }, [activeCategory, query, t]);
 
   const popularSearches = POPULAR_SEARCH_LINKS.map((item) => ({ ...item, label: t.search.popular[item.key] }));
@@ -68,16 +136,16 @@ export function SearchBar() {
           <p className="mt-3 text-sm text-zinc-400">{t.search.noResults}</p>
         ) : (
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {filteredDeals.slice(0, 6).map((deal) => (
-              <Link key={deal.id} href={`/deals/${deal.slug}`} className="rounded-2xl border border-white/10 bg-black/40 p-4">
+            {filteredDeals.slice(0, 6).map((item) => (
+              <Link key={item.id} href={item.href} className="rounded-2xl border border-white/10 bg-black/40 p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-semibold text-white">{deal.name}</p>
-                  <span className="rounded-full bg-brand-gold/15 px-2 py-1 text-xs text-brand-gold">{t.categories[camelizeSlug(deal.category)] || deal.category}</span>
+                  <p className="font-semibold text-white">{item.name}</p>
+                  <span className="rounded-full bg-brand-gold/15 px-2 py-1 text-xs text-brand-gold">{item.category}</span>
                 </div>
-                <p className="mt-2 text-sm text-zinc-400">{getDealDescription(deal, t)}</p>
+                <p className="mt-2 text-sm text-zinc-400">{item.description}</p>
                 <div className="mt-3 flex items-center justify-between text-sm text-zinc-500">
-                  <span>{deal.promoCode || t.category.noCodeNeeded}</span>
-                  <span>{deal.discount}</span>
+                  <span>{item.promoCode || t.category.noCodeNeeded}</span>
+                  <span>{item.discount}</span>
                 </div>
               </Link>
             ))}
