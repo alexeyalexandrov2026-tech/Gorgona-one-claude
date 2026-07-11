@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export function RentalGrid({ rentals, emptyMessage }) {
+export function RentalGrid({ rentals, emptyMessage, t }) {
   if (rentals.length === 0) {
     return (
       <div className="market-card rounded-[1.5rem] p-6">
@@ -24,14 +24,14 @@ export function RentalGrid({ rentals, emptyMessage }) {
             </div>
             <p className="mt-4 text-sm text-zinc-400">{item.description}</p>
             <div className="mt-5 grid gap-2 text-sm text-zinc-300">
-              <div className="flex items-center justify-between"><span>Company</span><span className="text-white">{item.company}</span></div>
-              <div className="flex items-center justify-between"><span>Location</span><span className="text-white">{item.location}</span></div>
-              <div className="flex items-center justify-between"><span>Daily</span><span className="text-brand-gold">{item.dailyPrice}</span></div>
-              <div className="flex items-center justify-between"><span>Weekly</span><span className="text-white">{item.weeklyPrice}</span></div>
+              <div className="flex items-center justify-between"><span>{t.rentals.company}</span><span className="text-white">{item.company}</span></div>
+              <div className="flex items-center justify-between"><span>{t.rentals.location}</span><span className="text-white">{item.location}</span></div>
+              <div className="flex items-center justify-between"><span>{t.rentals.daily}</span><span className="text-brand-gold">{item.dailyPrice}</span></div>
+              <div className="flex items-center justify-between"><span>{t.rentals.weekly}</span><span className="text-white">{item.weeklyPrice}</span></div>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href={`/rentals/${item.slug}`} className="market-button">View Details</Link>
-              <Link href="/partner" className="market-button-secondary">Reserve</Link>
+              <Link href={`/rentals/${item.slug}`} className="market-button">{t.common.viewDetails}</Link>
+              <Link href="/partner" className="market-button-secondary">{t.common.reserve}</Link>
             </div>
           </div>
         </article>

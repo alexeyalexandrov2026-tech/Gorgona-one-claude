@@ -2,6 +2,7 @@ import './globals.css';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { LocaleProvider } from './components/LocaleProvider';
+import { LanguageSelectionModal } from './components/LanguageSelectionModal';
 
 export const metadata = {
   title: 'GORGONA ONE | Global deals, promo codes, and lifestyle offers',
@@ -28,6 +29,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className="scroll-smooth">
       <body className="min-h-screen bg-[#050505] text-zinc-100 antialiased">
         <LocaleProvider>
+          <LanguageSelectionModal />
           <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
             <Header />
             {children}

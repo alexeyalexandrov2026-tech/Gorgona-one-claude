@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getSupabaseBrowserClient } from '../../lib/supabase/client';
+import { useTranslations } from '../components/LocaleProvider';
 
 export default function LoginPage() {
   return (
@@ -15,6 +16,7 @@ export default function LoginPage() {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations();
   const [mode, setMode] = useState('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,7 +29,7 @@ function LoginForm() {
     event.preventDefault();
     if (!supabase) {
       setStatus('error');
-      setMessage('Sign-in is not configured yet. Set the Supabase environment variables to enable it.');
+      setMessage(t.auth.notConfigured);
       return;
     }
 
@@ -47,7 +49,7 @@ function LoginForm() {
 
     if (mode === 'signUp') {
       setStatus('success');
-      setMessage('Account created. Check your email to confirm, then sign in.');
+      setMessage(t.auth.accountCreated);
       setMode('signIn');
       return;
     }
@@ -59,16 +61,16 @@ function LoginForm() {
   return (
     <main className="flex flex-1 items-center justify-center py-16">
       <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 shadow-premium">
-        <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">User System</p>
-        <h1 className="mt-2 text-3xl font-semibold text-white">{mode === 'signIn' ? 'Welcome back' : 'Create your account'}</h1>
-        <p className="mt-3 text-zinc-400">Sign in to save coupons, follow favorite stores, and track your offers.</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">{t.auth.userSystem}</p>
+        <h1 className="mt-2 text-3xl font-semibold text-white">{mode === 'signIn' ? t.auth.welcomeBack : t.auth.createAccount}</h1>
+        <p className="mt-3 text-zinc-400">{t.auth.signInSubtitle}</p>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <input
             type="email"
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="Email"
+            placeholder={t.auth.emailPlaceholder}
             className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-white outline-none"
           />
           <input
@@ -77,7 +79,7 @@ function LoginForm() {
             minLength={6}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="Password"
+            placeholder={t.auth.passwordPlaceholder}
             className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-white outline-none"
           />
           <button
@@ -85,7 +87,7 @@ function LoginForm() {
             disabled={status === 'loading'}
             className="w-full rounded-full bg-brand-gold px-4 py-3 font-medium text-black disabled:opacity-60"
           >
-            {status === 'loading' ? 'Please wait…' : mode === 'signIn' ? 'Continue' : 'Sign up'}
+            {status === 'loading' ? t.common.pleaseWait : mode === 'signIn' ? t.auth.continueBtn : t.auth.signUpBtn}
           </button>
         </form>
         {message && (
@@ -100,7 +102,7 @@ function LoginForm() {
           }}
           className="mt-6 text-sm text-zinc-400 hover:text-brand-gold"
         >
-          {mode === 'signIn' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+          {mode === 'signIn' ? t.auth.dontHaveAccount : t.auth.alreadyHaveAccount}
         </button>
       </div>
     </main>

@@ -1,11 +1,22 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from '../components/LocaleProvider';
 
 export function PartnerForm() {
+  const t = useTranslations();
   const [form, setForm] = useState({ companyName: '', website: '', contactEmail: '', category: 'Shopping' });
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
+
+  const categoryOptions = [
+    { value: 'Shopping', label: t.partner.categoryShopping },
+    { value: 'Fashion', label: t.partner.categoryFashion },
+    { value: 'Restaurants', label: t.partner.categoryRestaurants },
+    { value: 'Travel', label: t.partner.categoryTravel },
+    { value: 'Sportsbooks', label: t.partner.categorySportsbooks },
+    { value: 'Services', label: t.partner.categoryServices }
+  ];
 
   function updateField(field) {
     return (event) => setForm((current) => ({ ...current, [field]: event.target.value }));
@@ -26,16 +37,16 @@ export function PartnerForm() {
 
       if (!response.ok) {
         setStatus('error');
-        setMessage(data.error || 'Something went wrong. Please try again.');
+        setMessage(data.error || t.errors.genericError);
         return;
       }
 
       setStatus('success');
-      setMessage("Application received. Our partnerships team will follow up by email.");
+      setMessage(t.partner.successMessage);
       setForm({ companyName: '', website: '', contactEmail: '', category: 'Shopping' });
     } catch {
       setStatus('error');
-      setMessage('Network error. Please try again.');
+      setMessage(t.errors.networkError);
     }
   }
 
@@ -45,13 +56,13 @@ export function PartnerForm() {
         required
         value={form.companyName}
         onChange={updateField('companyName')}
-        placeholder="Company name"
+        placeholder={t.partner.companyPlaceholder}
         className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-white outline-none"
       />
       <input
         value={form.website}
         onChange={updateField('website')}
-        placeholder="Website"
+        placeholder={t.partner.websitePlaceholder}
         className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-white outline-none"
       />
       <input
@@ -59,7 +70,7 @@ export function PartnerForm() {
         required
         value={form.contactEmail}
         onChange={updateField('contactEmail')}
-        placeholder="Contact email"
+        placeholder={t.partner.emailPlaceholder}
         className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-white outline-none"
       />
       <select
@@ -67,19 +78,16 @@ export function PartnerForm() {
         onChange={updateField('category')}
         className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-white outline-none"
       >
-        <option>Shopping</option>
-        <option>Fashion</option>
-        <option>Restaurants</option>
-        <option>Travel</option>
-        <option>Sportsbooks</option>
-        <option>Services</option>
+        {categoryOptions.map((option) => (
+          <option key={option.value} value={option.value}>{option.label}</option>
+        ))}
       </select>
       <button
         type="submit"
         disabled={status === 'loading'}
         className="w-full rounded-full bg-brand-gold px-4 py-3 font-medium text-black disabled:opacity-60"
       >
-        {status === 'loading' ? 'Submitting…' : 'Apply as partner'}
+        {status === 'loading' ? t.partner.submitting : t.partner.applyButton}
       </button>
       {message && (
         <p className={`text-sm ${status === 'error' ? 'text-red-400' : 'text-brand-gold'}`}>{message}</p>

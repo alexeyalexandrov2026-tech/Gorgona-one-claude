@@ -1,14 +1,16 @@
 import { getDealsByCategory } from '../../../lib/data/deals';
 import { SearchBar } from '../../components/SearchBar';
+import { getServerTranslations } from '../../../lib/serverLocale';
 
 export default async function TravelCategoryPage() {
   const deals = await getDealsByCategory('travel');
+  const { t } = await getServerTranslations();
 
   return (
     <main className="flex-1 py-10">
       <div className="mb-8 rounded-3xl border border-white/10 bg-white/5 p-8 shadow-premium">
-        <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">Travel</p>
-        <h1 className="mt-2 text-3xl font-semibold text-white">Travel, stays, flights, and vacation deals</h1>
+        <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">{t.categories.travel}</p>
+        <h1 className="mt-2 text-3xl font-semibold text-white">{t.storesCategoryTagline.travel}</h1>
       </div>
       <div className="mb-8"><SearchBar /></div>
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -17,7 +19,7 @@ export default async function TravelCategoryPage() {
             <h2 className="text-xl font-semibold text-white">{deal.name}</h2>
             <p className="mt-3 text-sm text-zinc-400">{deal.description}</p>
             <div className="mt-4 text-sm text-zinc-400">{deal.discount}</div>
-            <a href={deal.website} className="mt-6 inline-flex text-sm text-brand-gold">Visit Store</a>
+            <a href={deal.website} className="mt-6 inline-flex text-sm text-brand-gold">{t.common.visitStore}</a>
           </article>
         ))}
       </div>
