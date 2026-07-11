@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation';
 import { sportsbooks } from '../../../lib/mockData';
+import { sportsbookDescriptions, getContentText } from '../../../lib/contentTranslations';
+import { getServerTranslation } from '../../../lib/serverLocale';
 
-export function generateStaticParams() {
-  return sportsbooks.map((book) => ({ slug: book.slug }));
-}
+export const dynamic = 'force-dynamic';
 
 export default function SportsbookProfilePage({ params }) {
   const sportsbook = sportsbooks.find((entry) => entry.slug === params.slug);
@@ -12,18 +12,20 @@ export default function SportsbookProfilePage({ params }) {
     notFound();
   }
 
+  const { t, locale } = getServerTranslation();
+
   return (
     <main className="flex-1 py-10">
       <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-premium">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">Sportsbook Profile</p>
+            <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">{t.sportsbookPage.pill} Profile</p>
             <h1 className="mt-2 text-3xl font-semibold text-white">{sportsbook.name}</h1>
-            <p className="mt-3 max-w-2xl text-zinc-400">{sportsbook.description}</p>
+            <p className="mt-3 max-w-2xl text-zinc-400">{getContentText(sportsbookDescriptions, locale, sportsbook.slug, sportsbook.description)}</p>
           </div>
           <div className="rounded-2xl border border-brand-gold/20 bg-brand-gold/10 px-4 py-3">
-            <p className="text-sm text-zinc-400">Category</p>
-            <p className="font-semibold text-white">Sports Betting</p>
+            <p className="text-sm text-zinc-400">{t.category.categoryLabel}</p>
+            <p className="font-semibold text-white">{t.sportsbookPage.pill}</p>
           </div>
         </div>
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.9fr]">
@@ -32,7 +34,7 @@ export default function SportsbookProfilePage({ params }) {
             <div className="mt-4 space-y-4 text-sm text-zinc-400">
               <p><span className="text-white">Website:</span> {sportsbook.website}</p>
               <p><span className="text-white">State availability:</span> {sportsbook.state_availability}</p>
-              <p><span className="text-white">Promo code:</span> {sportsbook.promo_code || 'Empty and ready for future updates'}</p>
+              <p><span className="text-white">{t.kosher.promoCode}:</span> {sportsbook.promo_code || 'Empty and ready for future updates'}</p>
               <p><span className="text-white">Bonus offer:</span> {sportsbook.bonus_offer}</p>
             </div>
           </div>

@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { coupons, stores } from '../../../lib/mockData';
+import { storeDescriptions, couponDescriptions, getContentText } from '../../../lib/contentTranslations';
+import { getServerTranslation } from '../../../lib/serverLocale';
 
-export function generateStaticParams() {
-  return stores.map((store) => ({ slug: store.slug }));
-}
+export const dynamic = 'force-dynamic';
 
 export default function StoreProfilePage({ params }) {
   const store = stores.find((entry) => entry.slug === params.slug);
@@ -13,6 +13,7 @@ export default function StoreProfilePage({ params }) {
     notFound();
   }
 
+  const { t, locale } = getServerTranslation();
   const featuredCoupons = coupons.filter((coupon) => coupon.store_name === store.name);
 
   return (
@@ -22,10 +23,10 @@ export default function StoreProfilePage({ params }) {
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">Store Profile</p>
             <h1 className="mt-2 text-3xl font-semibold text-white">{store.name}</h1>
-            <p className="mt-3 max-w-2xl text-zinc-400">{store.description}</p>
+            <p className="mt-3 max-w-2xl text-zinc-400">{getContentText(storeDescriptions, locale, store.slug, store.description)}</p>
           </div>
           <div className="rounded-2xl border border-brand-gold/20 bg-brand-gold/10 px-4 py-3">
-            <p className="text-sm text-zinc-400">Category</p>
+            <p className="text-sm text-zinc-400">{t.category.categoryLabel}</p>
             <p className="font-semibold text-white">{store.category}</p>
           </div>
         </div>
@@ -36,7 +37,7 @@ export default function StoreProfilePage({ params }) {
               {featuredCoupons.slice(0, 3).map((coupon) => (
                 <div key={coupon.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
                   <p className="font-semibold text-white">{coupon.discount}</p>
-                  <p className="mt-2 text-sm text-zinc-400">{coupon.description}</p>
+                  <p className="mt-2 text-sm text-zinc-400">{getContentText(couponDescriptions, locale, coupon.id, coupon.description)}</p>
                 </div>
               ))}
             </div>

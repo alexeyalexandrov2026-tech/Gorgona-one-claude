@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { allDeals, categories } from '../../lib/dealsData';
+import { allDeals, categories, getDealDescription } from '../../lib/dealsData';
 import { getTranslation } from '../../lib/i18n';
 import { useLocale } from './LocaleProvider';
 
@@ -19,13 +19,20 @@ export function SearchBar() {
   const filteredDeals = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return allDeals.filter((deal) => {
-      const matchesQuery = !normalized || [deal.name, deal.category, deal.description, deal.discount, deal.promoCode].join(' ').toLowerCase().includes(normalized);
+      const matchesQuery = !normalized || [deal.name, deal.category, getDealDescription(deal, t), deal.discount, deal.promoCode].join(' ').toLowerCase().includes(normalized);
       const matchesCategory = activeCategory === 'all' || deal.category === activeCategory;
       return matchesQuery && matchesCategory;
     });
-  }, [activeCategory, query]);
+  }, [activeCategory, query, t]);
 
-  const popularSearches = ['Car rentals', 'Yacht rentals', 'Sportsbook bonuses', 'Vacation rentals', 'Miami experiences', 'Restaurants & nightlife'];
+  const popularSearches = [
+    t.search.popular.carRentals,
+    t.search.popular.yachtRentals,
+    t.search.popular.sportsbookBonuses,
+    t.search.popular.vacationRentals,
+    t.search.popular.miamiExperiences,
+    t.search.popular.restaurantsNightlife
+  ];
 
   return (
     <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-premium sm:p-6">
@@ -37,7 +44,7 @@ export function SearchBar() {
           className="flex-1 rounded-full border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none"
         />
         <select value={activeCategory} onChange={(event) => setActiveCategory(event.target.value)} className="rounded-full border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none">
-          <option value="all">All categories</option>
+          <option value="all">{t.category.allCategories}</option>
           {categories.map((category) => (
             <option key={category.slug} value={category.slug}>{t.categories[camelizeSlug(category.slug)] || category.label}</option>
           ))}
@@ -63,11 +70,11 @@ export function SearchBar() {
               <Link key={deal.id} href={`/deals/${deal.slug}`} className="rounded-2xl border border-white/10 bg-black/40 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-semibold text-white">{deal.name}</p>
-                  <span className="rounded-full bg-brand-gold/15 px-2 py-1 text-xs text-brand-gold">{deal.category}</span>
+                  <span className="rounded-full bg-brand-gold/15 px-2 py-1 text-xs text-brand-gold">{t.categories[camelizeSlug(deal.category)] || deal.category}</span>
                 </div>
-                <p className="mt-2 text-sm text-zinc-400">{deal.description}</p>
+                <p className="mt-2 text-sm text-zinc-400">{getDealDescription(deal, t)}</p>
                 <div className="mt-3 flex items-center justify-between text-sm text-zinc-500">
-                  <span>{deal.promoCode || 'No code needed'}</span>
+                  <span>{deal.promoCode || t.category.noCodeNeeded}</span>
                   <span>{deal.discount}</span>
                 </div>
               </Link>

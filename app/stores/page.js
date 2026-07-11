@@ -29,7 +29,7 @@ export default function StoresPage() {
           <Link key={category.slug} href={`/stores/${category.slug}`} className="market-card rounded-2xl p-4">
             <p className="text-2xl">{category.icon}</p>
             <p className="mt-2 font-semibold text-white">{t.categories[camelizeSlug(category.slug)] || category.label}</p>
-            <p className="mt-2 text-sm text-zinc-400">{category.description}</p>
+            <p className="mt-2 text-sm text-zinc-400">{t.categoryDescriptions[camelizeSlug(category.slug)] || category.description}</p>
           </Link>
         ))}
       </div>
