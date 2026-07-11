@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import { getSupabaseAdmin } from '../../../lib/supabaseServer';
+import { validateWebhookUrl } from '../../../lib/validateWebhookUrl';
 
 const VALID_EVENTS = ['business.created', 'business.updated', 'business.deleted', 'offer.created', 'promo.created'];
 
@@ -31,6 +32,8 @@ export async function POST(request) {
 
   const body = await request.json().catch(() => ({}));
   if (!body.url) return Response.json({ error: 'url is required' }, { status: 422 });
+  const urlError = validateWebhookUrl(body.url);
+  if (urlError) return Response.json({ error: urlError }, { status: 422 });
   const events = Array.isArray(body.events) ? body.events.filter((e) => VALID_EVENTS.includes(e)) : VALID_EVENTS;
 
   const { data: partnerAccount } = await admin.from('partner_accounts').select('id').eq('owner_id', user.id).maybeSingle();

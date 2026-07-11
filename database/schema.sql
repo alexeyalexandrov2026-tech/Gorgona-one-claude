@@ -406,6 +406,45 @@ begin
 end;
 $$;
 
+-- Same class of bug, worse blast radius: users_update_own_or_admin and
+-- users_insert_own below only have a USING/WITH CHECK of `id = auth.uid()`
+-- - Postgres RLS reuses the same expression for both read and write
+-- eligibility when no separate WITH CHECK narrows the *values* being
+-- written, so any signed-in user could otherwise run
+-- `update users set role='admin' where id=auth.uid()` straight from the
+-- browser client and grant themselves full admin access. is_admin() looks
+-- up the caller's own current row via auth.uid(), which for a brand new
+-- self-signup insert doesn't exist yet and correctly evaluates to false.
+create or replace function public.protect_user_role()
+returns trigger
+language plpgsql
+as $$
+begin
+  if tg_op = 'INSERT' then
+    if not public.is_admin() and new.role = 'admin' then
+      new.role := 'customer';
+    end if;
+    if not public.is_admin() and new.status <> 'active' then
+      new.status := 'active';
+    end if;
+  elsif tg_op = 'UPDATE' then
+    if not public.is_admin() then
+      if new.role is distinct from old.role then
+        new.role := old.role;
+      end if;
+      if new.status is distinct from old.status then
+        new.status := old.status;
+      end if;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_user_role on public.users;
+create trigger protect_user_role before insert or update on public.users
+  for each row execute function public.protect_user_role();
+
 drop trigger if exists protect_review_status on public.reviews;
 create trigger protect_review_status before update on public.reviews
   for each row execute function public.protect_review_status();
