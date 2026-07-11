@@ -471,7 +471,17 @@ begin
     end if;
   elsif tg_op = 'UPDATE' then
     if not public.is_admin() then
-      if new.role is distinct from old.role then
+      -- Only guard escalation *to* admin - a signed-in user moving
+      -- between customer and business_owner is a legitimate self-service
+      -- action (see the dashboard's "Become a business owner" button).
+      -- old.role = 'admin' can never reach this branch in the first
+      -- place: RLS restricts a non-admin's UPDATE to their own row
+      -- (id = auth.uid()), and is_admin() reads that same row's current
+      -- role - so if old.role were already 'admin', is_admin() would
+      -- have been true and we would not be here. Verified against a real
+      -- Postgres instance: this clause used to also block the legitimate
+      -- customer -> business_owner transition entirely.
+      if new.role = 'admin' and new.role is distinct from old.role then
         new.role := old.role;
       end if;
       if new.status is distinct from old.status then
