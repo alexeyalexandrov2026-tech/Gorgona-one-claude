@@ -1,8 +1,10 @@
 -- Run after schema.sql. Creates the public storage bucket used for
 -- business logos, banners, and gallery photos (see app/dashboard/page.js).
-insert into storage.buckets (id, name, public)
-values ('business-media', 'business-media', true)
-on conflict (id) do nothing;
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('business-media', 'business-media', true, 8388608, array['image/png','image/jpeg','image/webp','image/gif'])
+on conflict (id) do update set
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
 
 drop policy if exists "Public read business media" on storage.objects;
 create policy "Public read business media" on storage.objects for select
