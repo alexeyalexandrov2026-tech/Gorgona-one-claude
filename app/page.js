@@ -2,7 +2,15 @@
 
 import Link from 'next/link';
 import { SearchBar } from './components/SearchBar';
+import { EventGrid } from './events/EventGrid';
 import { categories, featuredDeals } from '../lib/dealsData';
+import {
+  getFeaturedEvents,
+  getTrendingEvents,
+  getUpcomingEvents,
+  getFeaturedConcerts,
+  getFeaturedSportsEvents
+} from '../lib/eventsData';
 import { getTranslation } from '../lib/i18n';
 import { useLocale } from './components/LocaleProvider';
 
@@ -13,6 +21,11 @@ function camelizeSlug(slug) {
 export default function HomePage() {
   const locale = useLocale();
   const t = getTranslation(locale);
+  const featuredEvents = getFeaturedEvents().slice(0, 3);
+  const trendingEvents = getTrendingEvents().slice(0, 3);
+  const upcomingEvents = getUpcomingEvents(3);
+  const featuredConcerts = getFeaturedConcerts().slice(0, 3);
+  const featuredSportsEvents = getFeaturedSportsEvents().slice(0, 3);
 
   return (
     <main className="flex-1">
@@ -71,6 +84,51 @@ export default function HomePage() {
               <p className="mt-2 text-sm text-zinc-400">{category.description}</p>
             </Link>
           ))}
+        </div>
+      </section>
+
+      <section className="py-6">
+        <div className="market-shell rounded-[2rem] p-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold text-white">{t.events.marketplaceTitle}</h2>
+            <Link href="/events" className="text-sm text-brand-gold">{t.buttons.viewDeals}</Link>
+          </div>
+          <p className="mt-3 max-w-2xl text-zinc-400">{t.events.marketplaceSubtitle}</p>
+
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-white">{t.events.featuredEvents}</h3>
+            <div className="mt-3">
+              <EventGrid events={featuredEvents} emptyMessage={t.events.comingSoon} t={t} />
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold text-white">{t.events.trendingEvents}</h3>
+            <div className="mt-3">
+              <EventGrid events={trendingEvents} emptyMessage={t.events.comingSoon} t={t} />
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold text-white">{t.events.upcomingEvents}</h3>
+            <div className="mt-3">
+              <EventGrid events={upcomingEvents} emptyMessage={t.events.comingSoon} t={t} />
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold text-white">{t.events.featuredSportsEvents}</h3>
+            <div className="mt-3">
+              <EventGrid events={featuredSportsEvents} emptyMessage={t.events.comingSoon} t={t} />
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold text-white">{t.events.featuredConcerts}</h3>
+            <div className="mt-3">
+              <EventGrid events={featuredConcerts} emptyMessage={t.events.comingSoon} t={t} />
+            </div>
+          </div>
         </div>
       </section>
 

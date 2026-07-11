@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { translations } from '../../lib/i18n';
+import { getTranslation } from '../../lib/i18n';
 import { useLocale } from './LocaleProvider';
 
 const navItems = [
@@ -11,12 +11,13 @@ const navItems = [
   { key: 'coupons', href: '/coupons' },
   { key: 'rentals', href: '/rentals' },
   { key: 'sportsbook', href: '/sportsbook' },
+  { key: 'events', href: '/events' },
   { key: 'admin', href: '/admin' }
 ];
 
 export function Header() {
   const locale = useLocale();
-  const t = translations[locale] || translations.en;
+  const t = getTranslation(locale);
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#050505]/90 backdrop-blur-xl">
