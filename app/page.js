@@ -72,6 +72,21 @@ export default function HomePage() {
       </section>
 
       <section className="py-6">
+        <div className="market-shell rounded-[2rem] p-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold text-white">Business Directory</h2>
+            <Link href="/businesses" className="text-sm text-brand-gold">Browse all businesses</Link>
+          </div>
+          <p className="mt-3 max-w-2xl text-zinc-400">Search verified businesses, promo codes, and offers, or browse by category.</p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/businesses" className="market-button">Search Businesses</Link>
+            <Link href="/categories" className="market-button-secondary">Browse Categories</Link>
+            <Link href="/dashboard" className="market-button-secondary border-brand-gold/40 text-brand-gold hover:bg-brand-gold hover:text-black">List Your Business</Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold text-white">Popular categories</h2>
           <Link href="/stores" className="text-sm text-brand-gold">Browse all</Link>
