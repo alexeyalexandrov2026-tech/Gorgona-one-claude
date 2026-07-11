@@ -4,22 +4,47 @@ import { useEffect, useRef, useState } from 'react';
 import { SUPPORTED_LANGUAGES } from '../../lib/languages';
 import { useLocaleController } from './LocaleProvider';
 
+const MENU_WIDTH = 256;
+const VIEWPORT_MARGIN = 12;
+
 export function LanguageSwitcher() {
   const controller = useLocaleController();
   const [open, setOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState(null);
   const menuRef = useRef(null);
+  const buttonRef = useRef(null);
   const locale = controller ? controller.locale : 'en';
   const active = SUPPORTED_LANGUAGES.find((language) => language.code === locale) || SUPPORTED_LANGUAGES[0];
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      if (
+        menuRef.current && !menuRef.current.contains(event.target) &&
+        buttonRef.current && !buttonRef.current.contains(event.target)
+      ) {
         setOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!open || !buttonRef.current) return;
+    function updatePosition() {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const maxLeft = window.innerWidth - MENU_WIDTH - VIEWPORT_MARGIN;
+      const left = Math.max(VIEWPORT_MARGIN, Math.min(rect.right - MENU_WIDTH, maxLeft));
+      setMenuStyle({ position: 'fixed', top: rect.bottom + 8, left, width: MENU_WIDTH });
+    }
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [open]);
 
   function handleSelect(code) {
     if (controller) {
@@ -29,8 +54,9 @@ export function LanguageSwitcher() {
   }
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
@@ -41,10 +67,12 @@ export function LanguageSwitcher() {
         <span className="hidden sm:inline">{active.nativeLabel}</span>
         <span aria-hidden="true" className="text-xs text-zinc-400">▾</span>
       </button>
-      {open && (
+      {open && menuStyle && (
         <div
+          ref={menuRef}
           role="listbox"
-          className="absolute right-0 top-full z-50 mt-2 max-h-80 w-64 overflow-y-auto rounded-2xl border border-white/10 bg-[#050505] p-2 shadow-premium"
+          style={menuStyle}
+          className="z-50 max-h-80 overflow-y-auto rounded-2xl border border-white/10 bg-[#050505] p-2 shadow-premium"
         >
           {SUPPORTED_LANGUAGES.map((language) => (
             <button
