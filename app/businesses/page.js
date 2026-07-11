@@ -58,7 +58,7 @@ export default async function BusinessesPage({ searchParams }) {
 
       {!configured && (
         <p className="mb-8 rounded-2xl border border-brand-gold/20 bg-brand-gold/10 p-6 text-zinc-300">
-          The business directory is not connected to a database yet. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to go live.
+          The business directory is not connected to a database yet. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to go live.
         </p>
       )}
 

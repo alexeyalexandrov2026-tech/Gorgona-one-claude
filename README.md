@@ -27,7 +27,7 @@ Every Supabase-backed feature degrades gracefully (empty/"not connected" states,
    Regenerate `bootstrap.sql` after editing any of the three source files with:
    `cat database/schema.sql database/storage.sql database/seed.sql > database/bootstrap.sql` (it's a plain concatenation, not templated).
 3. Copy `.env.example` to `.env.local` and fill in:
-   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` - from Supabase Settings > API
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` - from Supabase Settings > API
    - `SUPABASE_SERVICE_ROLE_KEY` - server-only, used by API routes/imports/feed sync/webhooks to enforce ownership checks explicitly instead of via RLS
    - `CRON_SECRET` - any long random string; required in `Authorization: Bearer <CRON_SECRET>` when calling `/api/cron/sync`
 4. Run the dev server: `npm run dev`

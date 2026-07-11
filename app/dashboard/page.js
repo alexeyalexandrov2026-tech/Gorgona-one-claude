@@ -286,7 +286,7 @@ export default function DashboardPage() {
     return (
       <main className="flex-1 py-10">
         <p className="rounded-2xl border border-brand-gold/20 bg-brand-gold/10 p-6 text-zinc-300">
-          The business dashboard is not connected to a database yet. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to enable it.
+          The business dashboard is not connected to a database yet. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to enable it.
         </p>
       </main>
     );
