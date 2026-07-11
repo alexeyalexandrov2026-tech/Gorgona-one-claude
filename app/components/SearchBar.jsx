@@ -64,7 +64,11 @@ export function SearchBar() {
               <Link key={deal.id} href={`/deals/${deal.slug}`} className="rounded-2xl border border-white/10 bg-black/40 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <BrandImage src={deal.logo} alt={deal.name} className="h-10 w-10 rounded-xl bg-white/5 object-cover p-1" />
+                    <BrandImage
+                      src={deal.logo}
+                      alt={deal.name}
+                      className={`h-10 w-10 rounded-xl bg-white/5 p-1 ${deal.slug === 'best-buy-shopping' ? 'object-contain' : 'object-cover'}`}
+                    />
                     <p className="font-semibold text-white">{deal.name}</p>
                   </div>
                   <span className="rounded-full bg-brand-gold/15 px-2 py-1 text-xs text-brand-gold">{deal.category}</span>
