@@ -3,6 +3,9 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { LocaleProvider } from './components/LocaleProvider';
 import { LanguageSelectionModal } from './components/LanguageSelectionModal';
+import { getAdminSession } from '../lib/adminAuth';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'GORGONA ONE | Global deals, promo codes, and lifestyle offers',
@@ -24,14 +27,16 @@ export const metadata = {
   }
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const { session, isAdmin } = await getAdminSession();
+
   return (
     <html lang="en" className="scroll-smooth">
       <body className="min-h-screen bg-[#050505] text-zinc-100 antialiased">
         <LocaleProvider>
           <LanguageSelectionModal />
           <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
-            <Header />
+            <Header isAuthenticated={!!session} isAdmin={isAdmin} />
             {children}
             <Footer />
           </div>

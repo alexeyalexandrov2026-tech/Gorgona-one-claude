@@ -13,7 +13,6 @@ export async function Footer() {
           <a href="/affiliate-disclosure" className="transition hover:text-brand-gold">{t.footer.disclosure}</a>
           <a href="/cookie-policy" className="transition hover:text-brand-gold">{t.footer.cookies}</a>
           <a href="/partner-agreement" className="transition hover:text-brand-gold">{t.footer.partnerAgreement}</a>
-          <a href="/admin" className="transition hover:text-brand-gold">{t.footer.admin}</a>
         </div>
       </div>
     </footer>
