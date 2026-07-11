@@ -1,7 +1,8 @@
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 84.8 49.6" style="enable-background:new 0 0 84.8 49.6;" xml:space="preserve">
  <style type="text/css">
   .st0{fill:#FFF000;}
-	.st1{fill:#122028;}
+	.st1{fill:#FFFFFF;}
+	.st2{fill:#122028;}
  </style>
  <g>
   <polygon class="st0" points="67.9,36 84.8,36 84.8,49.6 67.8,49.6 63.6,45.6 63.6,40 	">
@@ -35,7 +36,7 @@
   </path>
   <polygon class="st1" points="56.2,31.6 51.7,24.3 44.8,24.3 52.8,38.1 52.8,45.7 59.7,45.7 59.7,38.1 67.7,24.3 60.8,24.3 	">
   </polygon>
-  <path class="st1" d="M67,42.8c0,0.5-0.4,0.8-0.8,0.8s-0.8-0.4-0.8-0.8c0-0.5,0.4-0.8,0.8-0.8S67,42.3,67,42.8">
+  <path class="st2" d="M67,42.8c0,0.5-0.4,0.8-0.8,0.8s-0.8-0.4-0.8-0.8c0-0.5,0.4-0.8,0.8-0.8S67,42.3,67,42.8">
   </path>
   <path class="st1" d="M67.9,30.5h-0.5v-0.2h1.2v0.2h-0.5v1.5h-0.2V30.5z M68.9,30.3h0.3l0.5,1.3l0.5-1.3h0.3v1.6h-0.2v-1.4l-0.6,1.4
 		h-0.1l-0.6-1.4v1.4h-0.2V30.3z">
