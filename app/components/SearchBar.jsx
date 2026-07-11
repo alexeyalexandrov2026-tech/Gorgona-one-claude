@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { allDeals, categories } from '../../lib/dealsData';
 import { getTranslation } from '../../lib/i18n';
 import { useLocale } from './LocaleProvider';
+import { BrandImage } from './BrandImage';
 
 function camelizeSlug(slug) {
   return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
@@ -62,7 +63,14 @@ export function SearchBar() {
             {filteredDeals.slice(0, 6).map((deal) => (
               <Link key={deal.id} href={`/deals/${deal.slug}`} className="rounded-2xl border border-white/10 bg-black/40 p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-semibold text-white">{deal.name}</p>
+                  <div className="flex items-center gap-3">
+                    <BrandImage
+                      src={deal.logo}
+                      alt={deal.name}
+                      className={`h-10 w-10 rounded-xl bg-white/5 p-1 ${deal.slug === 'best-buy-shopping' ? 'object-contain' : 'object-cover'}`}
+                    />
+                    <p className="font-semibold text-white">{deal.name}</p>
+                  </div>
                   <span className="rounded-full bg-brand-gold/15 px-2 py-1 text-xs text-brand-gold">{deal.category}</span>
                 </div>
                 <p className="mt-2 text-sm text-zinc-400">{deal.description}</p>
