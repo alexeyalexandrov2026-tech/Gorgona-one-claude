@@ -9,12 +9,12 @@ import { useAuth } from './AuthProvider';
 
 const navItems = [
   { key: 'home', href: '/' },
+  { key: 'businesses', href: '/businesses' },
   { key: 'stores', href: '/stores' },
   { key: 'coupons', href: '/coupons' },
   { key: 'rentals', href: '/rentals' },
   { key: 'sportsbook', href: '/sportsbook' },
-  { key: 'events', href: '/events' },
-  { key: 'admin', href: '/admin' }
+  { key: 'events', href: '/events' }
 ];
 
 export function Header() {
@@ -39,13 +39,25 @@ export function Header() {
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           {auth?.session ? (
-            <button
-              type="button"
-              onClick={() => auth.signOut()}
-              className="rounded-full border border-brand-gold/50 px-4 py-2 text-sm font-medium text-brand-gold transition hover:bg-brand-gold hover:text-black"
-            >
-              {t.auth.signOut}
-            </button>
+            <>
+              {(auth.session.role === 'business_owner' || auth.session.role === 'admin') && (
+                <Link href="/dashboard" className="hidden rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-brand-gold hover:text-brand-gold sm:inline-flex">
+                  {t.nav.dashboard}
+                </Link>
+              )}
+              {auth.session.role === 'admin' && (
+                <Link href="/admin" className="hidden rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-brand-gold hover:text-brand-gold sm:inline-flex">
+                  {t.nav.admin}
+                </Link>
+              )}
+              <button
+                type="button"
+                onClick={() => auth.signOut()}
+                className="rounded-full border border-brand-gold/50 px-4 py-2 text-sm font-medium text-brand-gold transition hover:bg-brand-gold hover:text-black"
+              >
+                {t.auth.signOut}
+              </button>
+            </>
           ) : (
             <Link href="/login" className="rounded-full border border-brand-gold/50 px-4 py-2 text-sm font-medium text-brand-gold transition hover:bg-brand-gold hover:text-black">
               {t.auth.signInTab}

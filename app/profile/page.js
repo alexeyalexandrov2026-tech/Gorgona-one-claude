@@ -10,6 +10,10 @@ export default function ProfilePage() {
   const t = getTranslation(locale);
   const auth = useAuth();
 
+  if (auth?.loading) {
+    return <main className="flex-1 py-10"><p className="text-zinc-400">Loading...</p></main>;
+  }
+
   if (auth && !auth.session) {
     return (
       <main className="flex-1 py-10">

@@ -1,28 +1,33 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import { getSession, signOut as authSignOut } from '../../lib/auth';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { getSession, signOut as authSignOut, onAuthStateChange } from '../../lib/auth';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [session, setSessionState] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setSessionState(getSession());
+  const refresh = useCallback(async () => {
+    const next = await getSession();
+    setSessionState(next);
+    setLoading(false);
   }, []);
 
-  function refresh() {
-    setSessionState(getSession());
-  }
+  useEffect(() => {
+    refresh();
+    const unsubscribe = onAuthStateChange(refresh);
+    return unsubscribe;
+  }, [refresh]);
 
-  function signOut() {
-    authSignOut();
+  async function signOut() {
+    await authSignOut();
     setSessionState(null);
   }
 
   return (
-    <AuthContext.Provider value={{ session, refresh, signOut }}>
+    <AuthContext.Provider value={{ session, loading, refresh, signOut }}>
       {children}
     </AuthContext.Provider>
   );

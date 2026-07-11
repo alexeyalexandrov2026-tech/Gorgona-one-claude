@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getTranslation } from '../../lib/i18n';
 import { useLocale } from '../components/LocaleProvider';
@@ -14,7 +15,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   const [tab, setTab] = useState('signin');
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', role: 'customer' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,14 +37,14 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (tab === 'signup') {
-        await signUp(form, t.auth);
-        setSuccess(t.auth.successSignUp);
+        const result = await signUp(form, t.auth);
+        setSuccess(result.pendingVerification ? 'Account created. Check your email to verify your address before signing in.' : t.auth.successSignUp);
       } else {
         await signIn(form, t.auth);
         setSuccess(t.auth.successSignIn);
       }
       auth?.refresh();
-      setTimeout(() => router.push('/profile'), 900);
+      setTimeout(() => router.push(form.role === 'business_owner' && tab === 'signup' ? '/dashboard' : '/profile'), 900);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -84,6 +85,16 @@ export default function LoginPage() {
               placeholder={t.auth.name}
             />
           )}
+          {tab === 'signup' && (
+            <select
+              value={form.role}
+              onChange={(event) => handleChange('role', event.target.value)}
+              className="w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-white outline-none"
+            >
+              <option value="customer">I'm a customer</option>
+              <option value="business_owner">I'm a business owner</option>
+            </select>
+          )}
           <input
             type="email"
             value={form.email}
@@ -118,6 +129,11 @@ export default function LoginPage() {
           >
             {loading ? t.auth.loading : t.auth.continueLabel}
           </button>
+          {tab === 'signin' && (
+            <Link href="/reset-password" className="block text-center text-sm text-zinc-400 transition hover:text-brand-gold">
+              Forgot your password?
+            </Link>
+          )}
         </form>
       </div>
     </main>
