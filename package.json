@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "NEXT_PRIVATE_STANDALONE=true next build && opennextjs-cloudflare build --skipNextBuild",
+    "build": "if [ \"$CF_PAGES\" = \"1\" ]; then NEXT_PRIVATE_STANDALONE=true next build && opennextjs-cloudflare build --skipNextBuild; else next build; fi",
     "start": "next start"
   },
   "dependencies": {
