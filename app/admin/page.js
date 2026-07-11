@@ -20,6 +20,7 @@ export default function AdminPage() {
   const [partners, setPartners] = useState([]);
   const [feeds, setFeeds] = useState([]);
   const [newCategory, setNewCategory] = useState({ name: '', icon: '' });
+  const [newFeed, setNewFeed] = useState({ partner_account_id: '', name: '', url: '', feed_type: 'json', schedule: 'daily' });
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -104,6 +105,34 @@ export default function AdminPage() {
   async function setFeedStatus(id, status) {
     await supabase.from('external_feeds').update({ status }).eq('id', id);
     setFeeds((prev) => prev.map((f) => (f.id === id ? { ...f, status } : f)));
+  }
+
+  async function addFeed(event) {
+    event.preventDefault();
+    if (!newFeed.partner_account_id || !newFeed.name.trim() || !newFeed.url.trim()) {
+      setMessage('Partner, name, and URL are required to add a feed.');
+      return;
+    }
+    const partner = partners.find((p) => p.id === newFeed.partner_account_id);
+    const slug = `${newFeed.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${Date.now().toString(36)}`;
+    const { data, error } = await supabase.from('external_feeds').insert({
+      owner_id: partner?.owner_id,
+      partner_account_id: newFeed.partner_account_id,
+      name: newFeed.name,
+      slug,
+      url: newFeed.url,
+      feed_type: newFeed.feed_type,
+      schedule: newFeed.schedule
+    }).select().single();
+    if (error) { setMessage(error.message); return; }
+    setFeeds((prev) => [data, ...prev]);
+    setNewFeed({ partner_account_id: '', name: '', url: '', feed_type: 'json', schedule: 'daily' });
+  }
+
+  async function deleteFeed(id) {
+    if (!confirm('Delete this feed permanently?')) return;
+    await supabase.from('external_feeds').delete().eq('id', id);
+    setFeeds((prev) => prev.filter((f) => f.id !== id));
   }
 
   if (!isSupabaseConfigured()) {
@@ -233,20 +262,43 @@ export default function AdminPage() {
       )}
 
       {tab === 'feeds' && (
-        <div className="space-y-3">
-          {feeds.map((f) => (
-            <div key={f.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/40 p-4">
-              <div>
-                <p className="font-semibold text-white">{f.name}</p>
-                <p className="text-sm text-zinc-400">{f.feed_type} · {f.schedule} · {f.status} {f.last_synced_at ? `· last sync ${new Date(f.last_synced_at).toLocaleString()}` : ''}</p>
+        <div className="space-y-4">
+          <form onSubmit={addFeed} className="grid gap-3 rounded-2xl border border-white/10 bg-black/40 p-4 md:grid-cols-3">
+            <select value={newFeed.partner_account_id} onChange={(e) => setNewFeed((p) => ({ ...p, partner_account_id: e.target.value }))} className="rounded-xl border border-white/10 bg-black/50 px-4 py-2 text-white outline-none">
+              <option value="">Select partner</option>
+              {partners.map((p) => <option key={p.id} value={p.id}>{p.company_name}</option>)}
+            </select>
+            <input value={newFeed.name} onChange={(e) => setNewFeed((p) => ({ ...p, name: e.target.value }))} placeholder="Feed name" className="rounded-xl border border-white/10 bg-black/50 px-4 py-2 text-white outline-none" />
+            <select value={newFeed.feed_type} onChange={(e) => setNewFeed((p) => ({ ...p, feed_type: e.target.value }))} className="rounded-xl border border-white/10 bg-black/50 px-4 py-2 text-white outline-none">
+              <option value="json">JSON</option>
+              <option value="csv">CSV</option>
+              <option value="xml">XML</option>
+            </select>
+            <input value={newFeed.url} onChange={(e) => setNewFeed((p) => ({ ...p, url: e.target.value }))} placeholder="Feed URL" className="rounded-xl border border-white/10 bg-black/50 px-4 py-2 text-white outline-none md:col-span-2" />
+            <select value={newFeed.schedule} onChange={(e) => setNewFeed((p) => ({ ...p, schedule: e.target.value }))} className="rounded-xl border border-white/10 bg-black/50 px-4 py-2 text-white outline-none">
+              <option value="hourly">Hourly</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="manual">Manual</option>
+            </select>
+            <button type="submit" className="rounded-full bg-brand-gold px-4 py-2 font-medium text-black md:col-span-3">Add feed</button>
+          </form>
+          <div className="space-y-3">
+            {feeds.map((f) => (
+              <div key={f.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/40 p-4">
+                <div>
+                  <p className="font-semibold text-white">{f.name}</p>
+                  <p className="text-sm text-zinc-400">{f.feed_type} · {f.schedule} · {f.status} {f.last_synced_at ? `· last sync ${new Date(f.last_synced_at).toLocaleString()}` : ''}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setFeedStatus(f.id, 'active')} className="rounded-full border border-emerald-500/40 px-3 py-1.5 text-sm text-emerald-400">Activate</button>
+                  <button onClick={() => setFeedStatus(f.id, 'paused')} className="rounded-full border border-white/10 px-3 py-1.5 text-sm text-zinc-300">Pause</button>
+                  <button onClick={() => deleteFeed(f.id)} className="rounded-full border border-red-500/40 px-3 py-1.5 text-sm text-red-400">Delete</button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => setFeedStatus(f.id, 'active')} className="rounded-full border border-emerald-500/40 px-3 py-1.5 text-sm text-emerald-400">Activate</button>
-                <button onClick={() => setFeedStatus(f.id, 'paused')} className="rounded-full border border-white/10 px-3 py-1.5 text-sm text-zinc-300">Pause</button>
-              </div>
-            </div>
-          ))}
-          {feeds.length === 0 && <p className="text-zinc-400">No external feeds configured yet.</p>}
+            ))}
+            {feeds.length === 0 && <p className="text-zinc-400">No external feeds configured yet.</p>}
+          </div>
         </div>
       )}
     </main>

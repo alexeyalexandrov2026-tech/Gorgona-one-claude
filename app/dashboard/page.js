@@ -33,6 +33,13 @@ export default function DashboardPage() {
   const [tab, setTab] = useState('listing');
   const [message, setMessage] = useState('');
   const [uploading, setUploading] = useState('');
+  const [importLogs, setImportLogs] = useState([]);
+  const [importFile, setImportFile] = useState(null);
+  const [importBusy, setImportBusy] = useState(false);
+  const [apiKeys, setApiKeys] = useState([]);
+  const [newApiKey, setNewApiKey] = useState(null);
+  const [webhooks, setWebhooks] = useState([]);
+  const [webhookUrl, setWebhookUrl] = useState('');
 
   const selectedBusiness = useMemo(() => businesses.find((b) => b.id === selectedId) || null, [businesses, selectedId]);
 
@@ -74,6 +81,99 @@ export default function DashboardPage() {
       setAnalytics(counts);
     })();
   }, [supabase, selectedId]);
+
+  async function getAccessToken() {
+    const { data } = await supabase.auth.getSession();
+    return data?.session?.access_token;
+  }
+
+  async function loadImportLogs() {
+    const token = await getAccessToken();
+    if (!token) return;
+    const response = await fetch('/api/import', { headers: { Authorization: `Bearer ${token}` } });
+    const body = await response.json();
+    setImportLogs(body.data || []);
+  }
+
+  async function loadApiKeysAndWebhooks() {
+    const token = await getAccessToken();
+    if (!token) return;
+    const [keysRes, hooksRes] = await Promise.all([
+      fetch('/api/partner/keys', { headers: { Authorization: `Bearer ${token}` } }),
+      fetch('/api/webhooks', { headers: { Authorization: `Bearer ${token}` } })
+    ]);
+    const keysBody = await keysRes.json();
+    const hooksBody = await hooksRes.json();
+    setApiKeys(keysBody.data || []);
+    setWebhooks(hooksBody.data || []);
+  }
+
+  useEffect(() => {
+    if (tab === 'import') loadImportLogs();
+    if (tab === 'developer') loadApiKeysAndWebhooks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+
+  async function submitImport(event) {
+    event.preventDefault();
+    if (!importFile) return;
+    setImportBusy(true);
+    setMessage('');
+    const token = await getAccessToken();
+    const formData = new FormData();
+    formData.append('file', importFile);
+    const response = await fetch('/api/import', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData });
+    const body = await response.json();
+    setImportBusy(false);
+    if (!response.ok) { setMessage(body.error || 'Import failed.'); return; }
+    setMessage(`Imported ${body.data.success_count} of ${body.data.total_rows} rows (${body.data.duplicate_count} duplicates, ${body.data.error_count} errors).`);
+    setImportFile(null);
+    await loadImportLogs();
+    const { data: own } = await supabase.from('businesses').select('*').eq('owner_id', auth.session.id).order('created_at', { ascending: false });
+    setBusinesses(own || []);
+  }
+
+  async function rollbackImport(id) {
+    const token = await getAccessToken();
+    const response = await fetch(`/api/import/${id}/rollback`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    const body = await response.json();
+    if (!response.ok) { setMessage(body.error || 'Rollback failed.'); return; }
+    await loadImportLogs();
+    const { data: own } = await supabase.from('businesses').select('*').eq('owner_id', auth.session.id).order('created_at', { ascending: false });
+    setBusinesses(own || []);
+  }
+
+  async function createApiKey(event) {
+    event.preventDefault();
+    const form = new FormData(event.target);
+    const token = await getAccessToken();
+    const response = await fetch('/api/partner/keys', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: form.get('name'), scopes: form.get('scope') === 'write' ? ['read', 'write'] : ['read'] })
+    });
+    const body = await response.json();
+    if (!response.ok) { setMessage(body.error || 'Could not create key.'); return; }
+    setNewApiKey(body.data.key);
+    await loadApiKeysAndWebhooks();
+    event.target.reset();
+  }
+
+  async function createWebhook(event) {
+    event.preventDefault();
+    if (!webhookUrl.trim()) return;
+    const token = await getAccessToken();
+    const response = await fetch('/api/webhooks', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: webhookUrl.trim() })
+    });
+    const body = await response.json();
+    if (!response.ok) { setMessage(body.error || 'Could not create webhook.'); return; }
+    setMessage(`Webhook created. Secret (shown once): ${body.data.secret}`);
+    setWebhookUrl('');
+    await loadApiKeysAndWebhooks();
+  }
 
   async function becomeBusinessOwner() {
     if (!supabase || !auth?.session) return;
@@ -198,7 +298,7 @@ export default function DashboardPage() {
     );
   }
 
-  const tabs = ['listing', 'media', 'promos', 'offers', 'analytics'];
+  const tabs = ['listing', 'media', 'promos', 'offers', 'analytics', 'import', 'developer'];
 
   return (
     <main className="flex-1 py-10">
@@ -318,6 +418,92 @@ export default function DashboardPage() {
               <p className="mt-1 text-sm capitalize text-zinc-400">{metric.replace('_', ' ')}</p>
             </div>
           ))}
+        </div>
+      )}
+
+      {tab === 'import' && (
+        <div className="space-y-6">
+          <form onSubmit={submitImport} className="grid gap-3 rounded-2xl border border-white/10 bg-black/40 p-6 md:grid-cols-3">
+            <input
+              type="file"
+              accept=".csv,.json,.xml,.xlsx,.xls"
+              onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+              className="text-sm text-zinc-400 md:col-span-2"
+            />
+            <button type="submit" disabled={!importFile || importBusy} className="rounded-full bg-brand-gold px-4 py-3 font-medium text-black disabled:opacity-60">
+              {importBusy ? 'Importing...' : 'Upload and import'}
+            </button>
+            <p className="text-xs text-zinc-500 md:col-span-3">
+              Supports CSV, JSON, XML, and Excel (.xlsx/.xls). Rows are matched to name/description/website/phone/email/address/city/state/country/category
+              columns automatically, deduplicated against your existing listings by name, and imported as pending businesses.
+            </p>
+          </form>
+
+          <div className="space-y-3">
+            {importLogs.map((log) => (
+              <div key={log.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div>
+                  <p className="font-semibold text-white">{log.file_name} <span className="text-xs uppercase text-zinc-500">{log.status}</span></p>
+                  <p className="text-sm text-zinc-400">
+                    {log.success_count} created · {log.duplicate_count} duplicates · {log.error_count} errors · {new Date(log.created_at).toLocaleString()}
+                  </p>
+                </div>
+                {log.status === 'completed' && log.success_count > 0 && (
+                  <button onClick={() => rollbackImport(log.id)} className="rounded-full border border-red-500/40 px-3 py-1.5 text-sm text-red-400">Rollback</button>
+                )}
+              </div>
+            ))}
+            {importLogs.length === 0 && <p className="text-zinc-400">No imports yet.</p>}
+          </div>
+        </div>
+      )}
+
+      {tab === 'developer' && (
+        <div className="space-y-8">
+          <section>
+            <h2 className="mb-3 text-lg font-semibold text-white">API keys</h2>
+            <form onSubmit={createApiKey} className="grid gap-3 rounded-2xl border border-white/10 bg-black/40 p-6 md:grid-cols-3">
+              <input name="name" placeholder="Key name" required className="rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-white outline-none" />
+              <select name="scope" className="rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-white outline-none">
+                <option value="read">Read only</option>
+                <option value="write">Read + write</option>
+              </select>
+              <button type="submit" className="rounded-full bg-brand-gold px-4 py-3 font-medium text-black">Generate key</button>
+            </form>
+            {newApiKey && (
+              <p className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">
+                New key (shown once, copy it now): <span className="font-mono">{newApiKey}</span>
+              </p>
+            )}
+            <div className="mt-4 space-y-2">
+              {apiKeys.map((key) => (
+                <div key={key.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-4">
+                  <div>
+                    <p className="text-white">{key.name} <span className="font-mono text-xs text-zinc-500">{key.key_prefix}...</span></p>
+                    <p className="text-sm text-zinc-400">{(key.scopes || []).join(', ')} · {key.rate_limit_per_minute}/min · {key.status}</p>
+                  </div>
+                </div>
+              ))}
+              {apiKeys.length === 0 && <p className="text-zinc-400">No API keys yet. See <a href="/api-docs" className="text-brand-gold">API documentation</a>.</p>}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-lg font-semibold text-white">Webhooks</h2>
+            <form onSubmit={createWebhook} className="flex flex-wrap gap-3 rounded-2xl border border-white/10 bg-black/40 p-6">
+              <input value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="https://your-endpoint.com/webhook" className="flex-1 rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-white outline-none" />
+              <button type="submit" className="rounded-full bg-brand-gold px-4 py-3 font-medium text-black">Subscribe</button>
+            </form>
+            <div className="mt-4 space-y-2">
+              {webhooks.map((hook) => (
+                <div key={hook.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-white">{hook.url}</p>
+                  <p className="text-sm text-zinc-400">{(hook.events || []).join(', ')} · {hook.status}</p>
+                </div>
+              ))}
+              {webhooks.length === 0 && <p className="text-zinc-400">No webhooks subscribed yet. Events: business.created, business.updated, business.deleted, offer.created, promo.created.</p>}
+            </div>
+          </section>
         </div>
       )}
     </main>

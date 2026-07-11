@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getBusinessBySlug } from '../../../lib/businesses';
+import { ReviewForm } from './ReviewForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,19 +95,21 @@ export default async function BusinessDetailPage({ params }) {
         </section>
       )}
 
-      {business.reviews?.filter((r) => r.status === 'published').length > 0 && (
-        <section>
-          <h2 className="mb-4 text-xl font-semibold text-white">Reviews</h2>
-          <div className="space-y-4">
-            {business.reviews.filter((r) => r.status === 'published').map((review) => (
-              <div key={review.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-brand-gold">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</p>
-                <p className="mt-2 text-sm text-zinc-400">{review.comment}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      <section>
+        <h2 className="mb-4 text-xl font-semibold text-white">Reviews</h2>
+        <div className="space-y-4">
+          {(business.reviews || []).filter((r) => r.status === 'published').map((review) => (
+            <div key={review.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-brand-gold">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</p>
+              <p className="mt-2 text-sm text-zinc-400">{review.comment}</p>
+            </div>
+          ))}
+          {(business.reviews || []).filter((r) => r.status === 'published').length === 0 && (
+            <p className="text-zinc-400">No reviews yet.</p>
+          )}
+        </div>
+        <ReviewForm businessId={business.id} />
+      </section>
     </main>
   );
 }
