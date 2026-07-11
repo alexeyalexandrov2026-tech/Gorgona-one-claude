@@ -1,10 +1,11 @@
 "use client";
 
 import { SUPPORTED_LANGUAGES } from '../../lib/languages';
-import { useLocaleController } from './LocaleProvider';
+import { useLocaleController, useTranslations } from './LocaleProvider';
 
 export function LanguageSwitcher() {
   const controller = useLocaleController();
+  const t = useTranslations();
   const locale = controller ? controller.locale : 'en';
 
   const handleChange = (value) => {
@@ -22,7 +23,7 @@ export function LanguageSwitcher() {
       >
         {SUPPORTED_LANGUAGES.map((language) => (
           <option key={language.code} value={language.code}>
-            {language.nativeLabel}
+            {language.flag} {language.nativeLabel}
           </option>
         ))}
       </select>
@@ -31,7 +32,7 @@ export function LanguageSwitcher() {
         onClick={() => controller && controller.openModal()}
         className="hidden text-sm text-zinc-400 transition hover:text-brand-gold sm:inline"
       >
-        Change Language
+        {t.common.changeLanguage}
       </button>
     </div>
   );

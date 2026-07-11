@@ -1,18 +1,20 @@
 import { getRentalsByCategorySlug } from '../../../lib/rentalsData';
 import { RentalGrid } from '../RentalGrid';
+import { getServerTranslations } from '../../../lib/serverLocale';
 
-export default function YachtRentalsPage() {
+export default async function YachtRentalsPage() {
   const rentals = getRentalsByCategorySlug('yacht-rentals');
+  const { t } = await getServerTranslations();
 
   return (
     <main className="flex-1 py-10">
       <div className="market-shell mb-8 rounded-[2rem] p-8">
-        <p className="market-pill">Luxury Rentals</p>
-        <h1 className="market-title mt-4">Yacht Rentals</h1>
-        <p className="market-subtitle">Private yacht experiences for nightlife, events, and luxury outings.</p>
+        <p className="market-pill">{t.rentals.title}</p>
+        <h1 className="market-title mt-4">{t.rentals.yachtRentalsTitle}</h1>
+        <p className="market-subtitle">{t.rentals.yachtRentalsSubtitle}</p>
       </div>
 
-      <RentalGrid rentals={rentals} emptyMessage="New yacht rental listings are being added. Check back soon." />
+      <RentalGrid rentals={rentals} emptyMessage={t.rentals.checkBackSoon} t={t} />
     </main>
   );
 }

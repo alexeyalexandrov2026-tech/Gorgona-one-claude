@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { translations } from '../../lib/i18n';
-import { useLocale } from './LocaleProvider';
+import { useTranslations } from './LocaleProvider';
 
 const navItems = [
   { key: 'home', href: '/' },
@@ -15,8 +14,7 @@ const navItems = [
 ];
 
 export function Header() {
-  const locale = useLocale();
-  const t = translations[locale] || translations.en;
+  const t = useTranslations();
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#050505]/90 backdrop-blur-xl">
@@ -34,11 +32,10 @@ export function Header() {
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           <Link href="/login" className="rounded-full border border-brand-gold/50 px-4 py-2 text-sm font-medium text-brand-gold transition hover:bg-brand-gold hover:text-black">
-            Sign In
+            {t.nav.login}
           </Link>
         </div>
       </div>
     </header>
   );
 }
-
