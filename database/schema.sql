@@ -5,6 +5,29 @@
 create extension if not exists "pgcrypto";
 
 -- ============================================================
+-- users (profile row mirrors auth.users, adds role)
+--
+-- Created before the current_role()/is_admin() helper functions below,
+-- deliberately: `language sql` functions are planned against their
+-- referenced relations at CREATE FUNCTION time, not deferred to first
+-- call. Defining is_admin() before public.users exists makes the CREATE
+-- FUNCTION itself fail with "relation does not exist" - which then makes
+-- every single RLS policy in this file that references is_admin() fail
+-- to create too, silently leaving the whole database with no RLS at all.
+-- ============================================================
+create table if not exists public.users (
+  id uuid primary key references auth.users(id) on delete cascade,
+  email text not null,
+  name text,
+  role text not null default 'customer' check (role in ('admin', 'business_owner', 'customer')),
+  slug text unique,
+  status text not null default 'active' check (status in ('active', 'suspended')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists idx_users_role on public.users(role);
+
+-- ============================================================
 -- Helper functions used by RLS policies
 -- ============================================================
 create or replace function public.current_role()
@@ -30,21 +53,6 @@ begin
   return new;
 end;
 $$;
-
--- ============================================================
--- users (profile row mirrors auth.users, adds role)
--- ============================================================
-create table if not exists public.users (
-  id uuid primary key references auth.users(id) on delete cascade,
-  email text not null,
-  name text,
-  role text not null default 'customer' check (role in ('admin', 'business_owner', 'customer')),
-  slug text unique,
-  status text not null default 'active' check (status in ('active', 'suspended')),
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-create index if not exists idx_users_role on public.users(role);
 
 -- ============================================================
 -- categories
@@ -116,11 +124,26 @@ create index if not exists idx_businesses_status on public.businesses(status);
 create index if not exists idx_businesses_city on public.businesses(city);
 
 -- ============================================================
--- stores (legacy coupon-marketplace table, extended)
+-- stores (legacy coupon-marketplace table)
+-- The `alter table if exists` calls below silently no-op when this table
+-- doesn't exist yet - which, on a fresh project, it never does, since
+-- nothing previously created it. Defining it here (matching the original
+-- MVP schema this file replaced) so the ALTERs actually apply.
 -- ============================================================
-alter table if exists public.stores add column if not exists owner_id uuid references public.users(id);
-alter table if exists public.stores add column if not exists created_at timestamptz not null default now();
-alter table if exists public.stores add column if not exists updated_at timestamptz not null default now();
+create table if not exists public.stores (
+  id serial primary key,
+  name text not null,
+  slug text unique not null,
+  category text not null,
+  logo text,
+  website text,
+  affiliate_link text,
+  description text,
+  status text default 'active'
+);
+alter table public.stores add column if not exists owner_id uuid references public.users(id);
+alter table public.stores add column if not exists created_at timestamptz not null default now();
+alter table public.stores add column if not exists updated_at timestamptz not null default now();
 create index if not exists idx_stores_owner on public.stores(owner_id);
 create index if not exists idx_stores_status on public.stores(status);
 
@@ -220,11 +243,25 @@ create index if not exists idx_rentals_owner on public.rentals(owner_id);
 create index if not exists idx_rentals_status on public.rentals(status);
 
 -- ============================================================
--- sportsbooks (legacy table, extended)
+-- sportsbooks (legacy table) - see the stores comment above; same
+-- "ALTER on a table nothing ever created" issue applied here too.
 -- ============================================================
-alter table if exists public.sportsbooks add column if not exists owner_id uuid references public.users(id);
-alter table if exists public.sportsbooks add column if not exists created_at timestamptz not null default now();
-alter table if exists public.sportsbooks add column if not exists updated_at timestamptz not null default now();
+create table if not exists public.sportsbooks (
+  id serial primary key,
+  name text not null,
+  slug text unique not null,
+  logo text,
+  description text,
+  website text,
+  affiliate_link text,
+  promo_code text,
+  bonus_offer text,
+  state_availability text,
+  status text default 'active'
+);
+alter table public.sportsbooks add column if not exists owner_id uuid references public.users(id);
+alter table public.sportsbooks add column if not exists created_at timestamptz not null default now();
+alter table public.sportsbooks add column if not exists updated_at timestamptz not null default now();
 
 -- ============================================================
 -- api_keys (partner API access)
@@ -448,6 +485,42 @@ create trigger protect_user_role before insert or update on public.users
 drop trigger if exists protect_review_status on public.reviews;
 create trigger protect_review_status before update on public.reviews
   for each row execute function public.protect_review_status();
+
+-- promo_codes_update/offers_write/rentals_write only constrain owner_id
+-- (an owner can't reassign a row to someone else's owner_id, since the
+-- implicit WITH CHECK re-evaluates that same column on the new row) but
+-- say nothing about business_id - so an owner could UPDATE their own
+-- promo code/offer/review/rental to point business_id at a business they
+-- don't own, injecting their content onto someone else's public listing
+-- page. Reverts business_id to its previous value on UPDATE unless the
+-- new business_id actually belongs to the same owner (or the caller is
+-- admin).
+create or replace function public.protect_content_business_ownership()
+returns trigger
+language plpgsql
+as $$
+declare
+  target_owner uuid;
+begin
+  if new.business_id is distinct from old.business_id and not public.is_admin() then
+    select owner_id into target_owner from public.businesses where id = new.business_id;
+    if target_owner is distinct from new.owner_id then
+      new.business_id := old.business_id;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+do $$
+declare t text;
+begin
+  foreach t in array array['promo_codes', 'offers', 'reviews', 'rentals']
+  loop
+    execute format('drop trigger if exists protect_content_business_ownership on public.%I;', t);
+    execute format('create trigger protect_content_business_ownership before update on public.%I for each row execute function public.protect_content_business_ownership();', t);
+  end loop;
+end $$;
 
 -- ============================================================
 -- updated_at triggers
