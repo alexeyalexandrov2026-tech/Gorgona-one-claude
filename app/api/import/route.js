@@ -72,10 +72,9 @@ export async function POST(request) {
       categoryId = cat?.id || null;
     }
 
-    const { data: inserted, error: insertError } = await admin.from('businesses').insert({
+    const basePayload = {
       owner_id: user.id,
       name: mapped.name,
-      slug,
       description: mapped.description || null,
       website: mapped.website || null,
       phone: mapped.phone || null,
@@ -87,7 +86,17 @@ export async function POST(request) {
       category_id: categoryId,
       source: 'import',
       status: 'pending'
-    }).select('id').single();
+    };
+
+    let { data: inserted, error: insertError } = await admin.from('businesses').insert({ ...basePayload, slug }).select('id').single();
+    if (insertError?.code === '23505') {
+      // The dedup check above only looked at the caller's own businesses -
+      // the slug column is globally unique, so a different owner can
+      // already hold this exact slug. Retry once with a short suffix
+      // instead of failing the whole row.
+      const suffixedSlug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+      ({ data: inserted, error: insertError } = await admin.from('businesses').insert({ ...basePayload, slug: suffixedSlug }).select('id').single());
+    }
 
     if (insertError) {
       errors.push({ row: i + 1, error: insertError.message });

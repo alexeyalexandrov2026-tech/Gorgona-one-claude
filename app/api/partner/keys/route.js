@@ -32,7 +32,17 @@ export async function POST(request) {
 
   const body = await request.json().catch(() => ({}));
   const name = body.name || 'Default key';
-  const scopes = Array.isArray(body.scopes) && body.scopes.length ? body.scopes : ['read'];
+
+  // 'admin' is a total bypass of every ownership check in the partner API
+  // (see hasScope/assertOwnsBusiness in lib/apiAuth.js) - it must only ever
+  // be attached to a key by a real platform admin, never self-requested by
+  // whoever happens to be signed in when they call this endpoint.
+  const { data: profile } = await admin.from('users').select('role').eq('id', user.id).maybeSingle();
+  const isPlatformAdmin = profile?.role === 'admin';
+  const requestedScopes = Array.isArray(body.scopes) ? body.scopes : ['read'];
+  const allowedScopes = isPlatformAdmin ? ['read', 'write', 'admin'] : ['read', 'write'];
+  const scopes = requestedScopes.filter((scope) => allowedScopes.includes(scope));
+  if (scopes.length === 0) scopes.push('read');
 
   let { data: partnerAccount } = await admin.from('partner_accounts').select('id').eq('owner_id', user.id).maybeSingle();
   if (!partnerAccount) {

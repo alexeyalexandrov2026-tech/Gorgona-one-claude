@@ -47,25 +47,32 @@ async function runFeed(admin, feed) {
       const mapped = mapRecordToBusiness(record);
       if (!mapped.name) { failed += 1; errorLog.push({ error: 'Missing name field', record }); continue; }
       const slug = slugify(mapped.name);
-      const payload = {
+      const fields = {
         owner_id: feed.owner_id,
         name: mapped.name,
-        slug,
         description: mapped.description || null,
         website: mapped.website || null,
         phone: mapped.phone || null,
         city: mapped.city || null,
         state: mapped.state || null,
         country: mapped.country || null,
-        source: 'feed',
-        status: 'pending'
+        source: 'feed'
       };
 
       if (existingSlugs.has(slug)) {
-        const { error } = await admin.from('businesses').update(payload).eq('id', existingSlugs.get(slug));
+        // Deliberately does not touch `status` - re-syncing an already
+        // approved business must not silently revert it to pending on
+        // every scheduled run. (The protect_business_status DB trigger
+        // would neutralize an attempt to do that anyway, since this
+        // service-role connection has no authenticated admin identity.)
+        const { error } = await admin.from('businesses').update(fields).eq('id', existingSlugs.get(slug));
         if (error) { failed += 1; errorLog.push({ error: error.message, slug }); } else updated += 1;
       } else {
-        const { data: inserted, error } = await admin.from('businesses').insert(payload).select('id').single();
+        let { data: inserted, error } = await admin.from('businesses').insert({ ...fields, slug, status: 'pending' }).select('id').single();
+        if (error?.code === '23505') {
+          const suffixedSlug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+          ({ data: inserted, error } = await admin.from('businesses').insert({ ...fields, slug: suffixedSlug, status: 'pending' }).select('id').single());
+        }
         if (error) { failed += 1; errorLog.push({ error: error.message, slug }); } else { existingSlugs.set(slug, inserted.id); created += 1; }
       }
     }

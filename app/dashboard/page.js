@@ -196,7 +196,14 @@ export default function DashboardPage() {
       owner_id: auth.session.id,
       status: form.id ? form.status : 'pending'
     };
-    const { data, error } = await supabase.from('businesses').upsert(payload).select().single();
+    let { data, error } = await supabase.from('businesses').upsert(payload).select().single();
+    if (error?.code === '23505' && error.message.includes('slug')) {
+      // Another business (any owner) already has this slug - retry once
+      // with a short random suffix rather than surfacing a raw constraint
+      // error to someone who just typed a common business name.
+      payload.slug = `${payload.slug}-${Math.random().toString(36).slice(2, 6)}`;
+      ({ data, error } = await supabase.from('businesses').upsert(payload).select().single());
+    }
     if (error) { setMessage(error.message); return; }
     setBusinesses((prev) => {
       const exists = prev.some((b) => b.id === data.id);

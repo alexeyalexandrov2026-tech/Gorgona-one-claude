@@ -54,9 +54,15 @@ export default async function BusinessDetailPage({ params }) {
     }
   };
 
+  // A business-supplied field (description, address, etc.) could contain the
+  // literal string `</script>`, which would close this tag early and let
+  // whatever follows in the JSON run as HTML/script in the page. Escaping
+  // `<` keeps the JSON-LD payload inert as markup while remaining valid JSON.
+  const jsonLdHtml = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+
   return (
     <main className="flex-1 py-10">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml }} />
 
       <div className="market-shell mb-8 rounded-[2rem] p-8">
         <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">{business.categories?.name || 'Business'}</p>

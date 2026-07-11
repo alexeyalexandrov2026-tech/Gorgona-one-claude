@@ -57,7 +57,10 @@ export async function POST(request) {
   };
 
   const { data, error: insertError } = await admin.from('businesses').insert(payload).select().single();
-  if (insertError) return Response.json({ error: insertError.message }, { status: 400 });
+  if (insertError) {
+    if (insertError.code === '23505') return Response.json({ error: 'A business with this slug already exists. Pass a different `slug`.' }, { status: 409 });
+    return Response.json({ error: insertError.message }, { status: 400 });
+  }
 
   await dispatchWebhookEvent('business.created', data);
   return Response.json({ data }, { status: 201 });
