@@ -21,44 +21,62 @@ function camelizeSlug(slug) {
 // Featured Deals row data - reuses the same lead image already used for
 // each category's own featured listing (lib/rentalsData.js, lib/yachtsData.js,
 // lib/vacationRentalsData.js) so no new imagery is introduced. Sportsbook
-// Bonuses has no photo catalog of its own, so it reuses the nightlife image
-// already used for E11EVEN in lib/restaurantsNightlifeData.js rather than a
-// brand-specific promotional screenshot.
+// Bonuses reuses the official Hard Rock Bet mark already added to
+// public/images/brands for the Betting section, so this row carries the
+// same purple Hard Rock branding as the reference instead of a generic
+// nightlife photo.
 const FEATURED_DEALS = [
   {
     title: 'Car Rentals',
     value: 'Premium Miami vehicles',
     description: 'High-end cars with concierge pickup and airport delivery.',
-    image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=900&q=80',
+    image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80',
+    href: '/rentals',
     icon: (
-      <path d="M5 17h14M6 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm16 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM3 17v-4l2-5a2 2 0 0 1 2-1.3h10A2 2 0 0 1 19 8l2 5v4" />
+      <>
+        <path d="M18.92 6.01A1.5 1.5 0 0 0 17.5 5h-11c-.66 0-1.24.42-1.45 1.01L3 12v6.5A1.5 1.5 0 0 0 4.5 20H5a1 1 0 0 0 1-1v-.5h12v.5a1 1 0 0 0 1 1h.5a1.5 1.5 0 0 0 1.5-1.5V12l-2.08-5.99ZM5 11l1.5-4.5h11L19 11H5Z" />
+        <circle cx="6.7" cy="15" r="1.4" fill="#000" />
+        <circle cx="17.3" cy="15" r="1.4" fill="#000" />
+      </>
     )
   },
   {
     title: 'Yacht Rentals',
     value: 'Sunset cruising',
     description: 'Private yacht experiences for nightlife, events, and luxury outings.',
-    image: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=80',
+    image: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=1200&q=80',
+    href: '/yachts',
     icon: (
-      <path d="M3 18h18l-2 3H5l-2-3Zm3-2 1-9 5 2 5-2 1 9M11 4v3M9 5h4" />
+      <>
+        <path d="M3.5 15.5h17L18.5 20h-13l-2-4.5Z" />
+        <path d="M10.5 4h1v6.5h4l-3.2-5.3.9-.5 4 6.6a.7.7 0 0 1-.6 1.1H8a.7.7 0 0 1-.6-1l2.2-4.4-.7-.3.9-1.8.7.3V4Z" />
+      </>
     )
   },
   {
     title: 'Sportsbook Bonuses',
     value: 'Top-tier offers',
     description: 'Verified sportsbook promos and referral-only bonuses.',
-    image: 'https://images.unsplash.com/photo-1566737236500-c8ac43014a67?auto=format&fit=crop&w=900&q=80',
+    image: '/images/brands/hard-rock-bet-betting.svg',
+    href: '/sportsbook',
     icon: (
-      <path d="M8 4h8v4a4 4 0 0 1-8 0V4Zm0 0H4v1a3 3 0 0 0 3 3m9-4h4v1a3 3 0 0 1-3 3m-6 5v3m0 0h-2m2 0h2m-2 3v-3" />
+      <path d="M8 3h8v3.5a4 4 0 0 1-8 0V3Zm-2 .5H3v1.8A4.2 4.2 0 0 0 6.8 9.5M18 3.5h3v1.8A4.2 4.2 0 0 1 17.2 9.5M11 14.5h2v3.5h-2zM8 20.5h8l-1.2-2.5H9.2L8 20.5Z" />
     )
   },
   {
     title: 'Vacation Rentals',
     value: 'Luxury stays',
     description: 'Short-term stays, villas, and premium residences in key markets.',
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=900&q=80',
+    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
+    href: '/vacation-rentals',
     icon: (
-      <path d="M4 20V9l5-3v14M4 20h16M9 20V9l5 3v8m0-8 6-3v11M9 12h1M9 15h1" />
+      <>
+        <path d="M5 20V9.5L11 6v14H5Z" />
+        <rect x="6.4" y="11" width="1.6" height="1.6" fill="#000" />
+        <rect x="6.4" y="14" width="1.6" height="1.6" fill="#000" />
+        <path d="M12 20V9l3.5 4.5V20H12Z" />
+        <path d="M11.5 6c1.5-.8 2-2.4 1.7-3.8 1.4.4 2.6 1.7 2.3 3.3-.2 1.2-1.3 1.9-2.3 2.1L11.5 6Z" />
+      </>
     )
   }
 ];
@@ -94,23 +112,31 @@ export default function HomePage() {
             <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">{t.home.featured}</p>
             <div className="mt-6 space-y-4">
               {FEATURED_DEALS.map((item) => (
-                <div key={item.title} className="market-card flex flex-col gap-4 rounded-2xl p-4 sm:flex-row sm:items-center">
-                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-brand-gold/40 text-brand-gold">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7">
-                      {item.icon}
-                    </svg>
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-white">{item.title}</p>
-                    <p className="text-sm text-brand-gold">{item.value}</p>
-                    <p className="mt-1 text-sm text-zinc-400">{item.description}</p>
+                <Link
+                  key={item.title}
+                  href={item.href}
+                  className="market-card group flex flex-col overflow-hidden rounded-2xl sm:flex-row sm:items-stretch"
+                >
+                  <div className="flex flex-1 items-center gap-4 p-5">
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-brand-gold/40 text-brand-gold">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7">
+                        {item.icon}
+                      </svg>
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-white">{item.title}</p>
+                      <p className="text-sm text-brand-gold">{item.value}</p>
+                      <p className="mt-1 text-sm text-zinc-400">{item.description}</p>
+                    </div>
                   </div>
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="h-32 w-full shrink-0 rounded-2xl object-cover sm:h-20 sm:w-36 lg:h-24 lg:w-44"
-                  />
-                </div>
+                  <div className="p-2 pt-0 sm:w-2/5 sm:shrink-0 sm:p-2 sm:pl-0">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="h-40 w-full rounded-xl object-cover transition duration-300 group-hover:scale-[1.03] sm:h-full sm:min-h-[150px]"
+                    />
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
