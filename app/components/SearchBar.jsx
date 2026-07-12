@@ -23,6 +23,11 @@ function camelizeSlug(slug) {
   return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
+// Temporarily held out of the Search Results preview only - pending
+// replacement brands. Left in lib/dealsData.js and every other section
+// (Stores, Coupons, etc.) untouched.
+const HIDDEN_FROM_SEARCH_RESULTS = ['Walmart', 'Target', 'Costco'];
+
 // Non-deal catalogs (yachts, vacation rentals, experiences, restaurants &
 // nightlife) live outside lib/dealsData.js, each with its own item shape and
 // detail route. Normalized here to the fields the results list already
@@ -94,12 +99,14 @@ export function SearchBar() {
     // The extra catalogs (yachts/vacation rentals/experiences/restaurants)
     // aren't part of the Stores/Coupons category dropdown, so they only
     // participate when no specific category filter is active.
-    if (activeCategory !== 'all') {
-      return deals;
-    }
+    const combined = activeCategory !== 'all'
+      ? deals
+      : [...deals, ...buildExtraCatalog(t).filter((item) => !normalized || [item.name, item.category, item.description].join(' ').toLowerCase().includes(normalized))];
 
-    const extras = buildExtraCatalog(t).filter((item) => !normalized || [item.name, item.category, item.description].join(' ').toLowerCase().includes(normalized));
-    return [...deals, ...extras];
+    // Fixed top-6 window first, then hide pending-replacement brands from
+    // it - so their slots stay empty instead of being backfilled by the
+    // next result in line. Every other section still shows these brands.
+    return combined.slice(0, 6).filter((item) => !HIDDEN_FROM_SEARCH_RESULTS.includes(item.name));
   }, [activeCategory, query, t]);
 
   const popularSearches = POPULAR_SEARCH_LINKS.map((item) => ({ ...item, label: t.search.popular[item.key] }));
