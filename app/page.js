@@ -21,10 +21,11 @@ function camelizeSlug(slug) {
 // Featured Deals row data - reuses the same lead image already used for
 // each category's own featured listing (lib/rentalsData.js, lib/yachtsData.js,
 // lib/vacationRentalsData.js) so no new imagery is introduced. Sportsbook
-// Bonuses reuses the official Hard Rock Bet mark already added to
-// public/images/brands for the Betting section, so this row carries the
-// same purple Hard Rock branding as the reference instead of a generic
-// nightlife photo.
+// Bonuses uses a dedicated Hard Rock Bet promo image
+// (public/images/featured/sportsbook-bonuses-hard-rock-bet.png) that is
+// only referenced here - it does not touch public/images/brands, which
+// still serves the sportsbook directory, profile cards, deals grid, and
+// Search Results.
 const FEATURED_DEALS = [
   {
     title: 'Car Rentals',
@@ -57,7 +58,7 @@ const FEATURED_DEALS = [
     title: 'Sportsbook Bonuses',
     value: 'Top-tier offers',
     description: 'Verified sportsbook promos and referral-only bonuses.',
-    image: '/images/brands/hard-rock-bet-betting.svg',
+    image: '/images/featured/sportsbook-bonuses-hard-rock-bet.png',
     href: '/sportsbook',
     icon: (
       <path d="M8 3h8v3.5a4 4 0 0 1-8 0V3Zm-2 .5H3v1.8A4.2 4.2 0 0 0 6.8 9.5M18 3.5h3v1.8A4.2 4.2 0 0 1 17.2 9.5M11 14.5h2v3.5h-2zM8 20.5h8l-1.2-2.5H9.2L8 20.5Z" />
