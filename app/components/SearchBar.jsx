@@ -39,6 +39,10 @@ function buildKxcDeal(t) {
     id: 'kxc-shopping',
     name,
     logo: '/images/brands/kinetix-casual-luxury.svg',
+    // KXC's mark is dark text - it needs the white backing plate to read
+    // on the dark cards. Amazon/Best Buy/Newegg's marks already include
+    // their own light/reversed colorway, so they sit directly on the card.
+    logoOnSolid: true,
     description: t.category.dealDescriptionTemplate.replace('{name}', name).replace('{category}', category),
     category,
     promoCode: '',
@@ -46,6 +50,16 @@ function buildKxcDeal(t) {
     href: KXC_AFFILIATE_LINK
   };
 }
+
+// Logos for the Search Results preview only (the same brand's card in
+// Stores/Coupons/etc. is untouched). Keyed by deal name so it only applies
+// to these specific cards, not every brand that happens to pass through
+// this component.
+const SEARCH_RESULT_LOGOS = {
+  Amazon: '/images/brands/amazon-shopping.svg',
+  'Best Buy': '/images/brands/best-buy-shopping.svg',
+  Newegg: '/images/brands/newegg-shopping.svg'
+};
 
 // Non-deal catalogs (yachts, vacation rentals, experiences, restaurants &
 // nightlife) live outside lib/dealsData.js, each with its own item shape and
@@ -108,6 +122,7 @@ export function SearchBar() {
     }).map((deal) => ({
       id: deal.id,
       name: deal.name,
+      logo: SEARCH_RESULT_LOGOS[deal.name],
       description: getDealDescription(deal, t),
       category: t.categories[camelizeSlug(deal.category)] || deal.category,
       promoCode: deal.promoCode,
@@ -169,20 +184,24 @@ export function SearchBar() {
         ) : (
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {filteredDeals.slice(0, 6).map((item) => (
-              <Link key={item.id} href={item.href} className="rounded-2xl border border-white/10 bg-black/40 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    {item.logo && (
-                      <img src={item.logo} alt={item.name} className="h-10 w-16 shrink-0 rounded-lg bg-white object-contain p-1.5" />
-                    )}
-                    <p className="font-semibold text-white">{item.name}</p>
+              <Link key={item.id} href={item.href} className="flex h-full items-stretch gap-4 rounded-2xl border border-white/10 bg-black/40 p-4">
+                {item.logo && (
+                  <div className={`flex w-28 shrink-0 items-center justify-center rounded-xl ${item.logoOnSolid ? 'bg-white p-3' : 'p-1'}`}>
+                    <img src={item.logo} alt={item.name} className="max-h-24 w-full object-contain" />
                   </div>
-                  <span className="rounded-full bg-brand-gold/15 px-2 py-1 text-xs text-brand-gold">{item.category}</span>
-                </div>
-                <p className="mt-2 text-sm text-zinc-400">{item.description}</p>
-                <div className="mt-3 flex items-center justify-between text-sm text-zinc-500">
-                  <span>{item.promoCode || t.category.noCodeNeeded}</span>
-                  <span>{item.discount}</span>
+                )}
+                <div className="flex min-w-0 flex-1 flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-semibold text-white">{item.name}</p>
+                      <span className="rounded-full bg-brand-gold/15 px-2 py-1 text-xs text-brand-gold">{item.category}</span>
+                    </div>
+                    <p className="mt-2 text-sm text-zinc-400">{item.description}</p>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-sm text-zinc-500">
+                    <span>{item.promoCode || t.category.noCodeNeeded}</span>
+                    <span>{item.discount}</span>
+                  </div>
                 </div>
               </Link>
             ))}
