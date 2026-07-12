@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { VENUE_CATEGORIES, getVenuesByCategory } from '../../lib/restaurantsNightlifeData';
+import { restaurantsNightlifeDescriptions, getContentText } from '../../lib/contentTranslations';
 import { getServerTranslation } from '../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
@@ -7,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export default function RestaurantsNightlifePage({ searchParams }) {
   const activeCategory = searchParams?.category === 'restaurant' || searchParams?.category === 'nightlife' ? searchParams.category : 'all';
   const venues = getVenuesByCategory(activeCategory);
-  const { t } = getServerTranslation();
+  const { t, locale } = getServerTranslation();
 
   return (
     <main className="flex-1 py-10">
@@ -46,7 +47,7 @@ export default function RestaurantsNightlifePage({ searchParams }) {
                 </div>
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">★ {venue.rating}</span>
               </div>
-              <p className="mt-4 text-sm text-zinc-400">{venue.description}</p>
+              <p className="mt-4 text-sm text-zinc-400">{getContentText(restaurantsNightlifeDescriptions, locale, venue.id, venue.description)}</p>
               <div className="mt-5 flex items-center justify-between text-sm text-zinc-300">
                 <span>{t.restaurantsNightlife.location}</span>
                 <span className="text-white">{venue.location}</span>

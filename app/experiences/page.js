@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { getExperiences } from '../../lib/experiencesData';
+import { experienceDescriptions, getContentText } from '../../lib/contentTranslations';
 import { getServerTranslation } from '../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
 
 export default function ExperiencesPage() {
   const experiences = getExperiences();
-  const { t } = getServerTranslation();
+  const { t, locale } = getServerTranslation();
 
   return (
     <main className="flex-1 py-10">
@@ -28,7 +29,7 @@ export default function ExperiencesPage() {
                 </div>
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">{item.duration}</span>
               </div>
-              <p className="mt-4 text-sm text-zinc-400">{item.description}</p>
+              <p className="mt-4 text-sm text-zinc-400">{getContentText(experienceDescriptions, locale, item.id, item.description)}</p>
               <div className="mt-5 grid gap-2 text-sm text-zinc-300">
                 <div className="flex items-center justify-between"><span>{t.experiences.location}</span><span className="text-white">{item.location}</span></div>
                 <div className="flex items-center justify-between"><span>{t.experiences.duration}</span><span className="text-white">{item.duration}</span></div>

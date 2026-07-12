@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { getYachts } from '../../lib/yachtsData';
+import { yachtDescriptions, getContentText } from '../../lib/contentTranslations';
 import { getServerTranslation } from '../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
 
 export default function YachtsPage() {
   const yachts = getYachts();
-  const { t } = getServerTranslation();
+  const { t, locale } = getServerTranslation();
 
   return (
     <main className="flex-1 py-10">
@@ -28,7 +29,7 @@ export default function YachtsPage() {
                 </div>
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">{item.capacity} {t.yachts.guests}</span>
               </div>
-              <p className="mt-4 text-sm text-zinc-400">{item.description}</p>
+              <p className="mt-4 text-sm text-zinc-400">{getContentText(yachtDescriptions, locale, item.id, item.description)}</p>
               <div className="mt-5 grid gap-2 text-sm text-zinc-300">
                 <div className="flex items-center justify-between"><span>{t.yachts.company}</span><span className="text-white">{item.company}</span></div>
                 <div className="flex items-center justify-between"><span>{t.yachts.location}</span><span className="text-white">{item.location}</span></div>

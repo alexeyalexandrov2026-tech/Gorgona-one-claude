@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getVenueBySlug } from '../../../lib/restaurantsNightlifeData';
+import { restaurantsNightlifeDescriptions, getContentText } from '../../../lib/contentTranslations';
 import { getServerTranslation } from '../../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
@@ -11,7 +12,7 @@ export default function VenueDetailPage({ params }) {
     notFound();
   }
 
-  const { t } = getServerTranslation();
+  const { t, locale } = getServerTranslation();
 
   return (
     <main className="flex-1 py-10">
@@ -20,7 +21,7 @@ export default function VenueDetailPage({ params }) {
         <div className="p-8">
           <p className="market-pill">{venue.category === 'restaurant' ? t.restaurantsNightlife.restaurants : t.restaurantsNightlife.nightlife}</p>
           <h1 className="market-title mt-4">{venue.name}</h1>
-          <p className="market-subtitle">{venue.description}</p>
+          <p className="market-subtitle">{getContentText(restaurantsNightlifeDescriptions, locale, venue.id, venue.description)}</p>
           <div className="mt-8 market-card rounded-[1.5rem] p-6">
             <div className="grid gap-4 text-sm text-zinc-300 sm:grid-cols-2">
               <div><p className="text-zinc-500">{t.restaurantsNightlife.location}</p><p className="mt-1 text-white">{venue.location}</p></div>
