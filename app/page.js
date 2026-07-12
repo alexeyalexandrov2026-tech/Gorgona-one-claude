@@ -32,16 +32,16 @@ export default function HomePage() {
       <section className="grid items-center gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
         <div>
           <p className="market-pill mb-4">
-            Global deals • Promo codes • Lifestyle offers
+            {t.home.pill}
           </p>
           <h1 className="market-title text-4xl sm:text-5xl lg:text-6xl">
             {t.home.heroTitle}
           </h1>
           <p className="market-subtitle text-xl">{t.home.heroSubtitle}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/stores" className="market-button">Explore Marketplace</Link>
-            <Link href="/coupons" className="market-button-secondary">Browse Deals</Link>
-            <Link href="/partner" className="market-button-secondary border-brand-gold/40 text-brand-gold hover:bg-brand-gold hover:text-black">Join as Partner</Link>
+            <Link href="/stores" className="market-button">{t.home.explore}</Link>
+            <Link href="/coupons" className="market-button-secondary">{t.home.browseDeals}</Link>
+            <Link href="/partner" className="market-button-secondary border-brand-gold/40 text-brand-gold hover:bg-brand-gold hover:text-black">{t.home.joinPartner}</Link>
           </div>
         </div>
         <div className="market-shell rounded-[2rem] border-brand-gold/20 bg-gradient-to-br from-brand-gold/15 to-black p-6">
@@ -49,10 +49,10 @@ export default function HomePage() {
             <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">{t.home.featured}</p>
             <div className="mt-6 space-y-3">
               {[
-                { title: 'Car Rentals', value: 'Premium Miami vehicles', description: 'High-end cars with concierge pickup and airport delivery.' },
-                { title: 'Yacht Rentals', value: 'Sunset cruising', description: 'Private yacht experiences for nightlife, events, and luxury outings.' },
-                { title: 'Sportsbook Bonuses', value: 'Top-tier offers', description: 'Verified sportsbook promos and referral-only bonuses.' },
-                { title: 'Vacation Rentals', value: 'Luxury stays', description: 'Short-term stays, villas, and premium residences in key markets.' }
+                { title: t.home.carTitle, value: t.home.carValue, description: t.home.carDesc },
+                { title: t.home.yachtTitle, value: t.home.yachtValue, description: t.home.yachtDesc },
+                { title: t.home.sportsTitle, value: t.home.sportsValue, description: t.home.sportsDesc },
+                { title: t.home.vacationTitle, value: t.home.vacationValue, description: t.home.vacationDesc }
               ].map((item) => (
                 <div key={item.title} className="market-card rounded-2xl p-4">
                   <div className="flex items-center justify-between">
@@ -73,15 +73,15 @@ export default function HomePage() {
 
       <section className="py-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-white">Popular categories</h2>
-          <Link href="/stores" className="text-sm text-brand-gold">Browse all</Link>
+          <h2 className="text-2xl font-semibold text-white">{t.home.popularCategories}</h2>
+          <Link href="/stores" className="text-sm text-brand-gold">{t.home.browseAll}</Link>
         </div>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {categories.map((category) => (
             <Link key={category.slug} href={`/stores/${category.slug}`} className="market-card rounded-2xl p-5">
               <p className="text-2xl">{category.icon}</p>
               <p className="mt-3 font-semibold text-white">{t.categories[camelizeSlug(category.slug)] || category.label}</p>
-              <p className="mt-2 text-sm text-zinc-400">{category.description}</p>
+              <p className="mt-2 text-sm text-zinc-400">{t.categoryDescriptions[camelizeSlug(category.slug)] || category.description}</p>
             </Link>
           ))}
         </div>
@@ -134,21 +134,21 @@ export default function HomePage() {
 
       <section className="py-6">
         <div className="market-shell rounded-[2rem] bg-gradient-to-br from-black to-zinc-900 p-8">
-          <h2 className="text-2xl font-semibold text-white">Featured experiences and premium leads</h2>
-          <p className="mt-3 max-w-2xl text-zinc-400">The homepage now surfaces transport, travel, nightlife, and luxury experiences before generic shopping offers.</p>
+          <h2 className="text-2xl font-semibold text-white">{t.home.expTitle}</h2>
+          <p className="mt-3 max-w-2xl text-zinc-400">{t.home.expSubtitle}</p>
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {[
-              { title: 'Car Rentals', description: 'Luxury cars and premium experiences', href: '/rentals' },
-              { title: 'Yacht Rentals', description: 'Private charters and nightlife-ready boats', href: '/yachts' },
-              { title: 'Sportsbook Bonuses', description: 'Verified affiliate-ready offers', href: '/sportsbook' },
-              { title: 'Vacation Rentals', description: 'High-end stays and short-term luxury homes', href: '/vacation-rentals' },
-              { title: 'Miami Experiences', description: 'Private dining, nightlife, and premium events', href: '/experiences' },
-              { title: 'Restaurants & Nightlife', description: 'Dining, lounges, and late-night experiences', href: '/restaurants-nightlife' }
+              { title: t.home.carTitle, description: t.home.expCarDesc, href: '/rentals' },
+              { title: t.home.yachtTitle, description: t.home.expYachtDesc, href: '/yachts' },
+              { title: t.home.sportsTitle, description: t.home.expSportsDesc, href: '/sportsbook' },
+              { title: t.home.vacationTitle, description: t.home.expVacationDesc, href: '/vacation-rentals' },
+              { title: t.home.expMiamiTitle, description: t.home.expMiamiDesc, href: '/experiences' },
+              { title: t.home.expRestaurantsTitle, description: t.home.expRestaurantsDesc, href: '/restaurants-nightlife' }
             ].map((item) => (
               <div key={item.title} className="market-card rounded-2xl p-4">
                 <p className="font-semibold text-white">{item.title}</p>
                 <p className="mt-2 text-sm text-zinc-400">{item.description}</p>
-                <Link href={item.href} className="mt-4 inline-flex text-sm text-brand-gold">View section</Link>
+                <Link href={item.href} className="mt-4 inline-flex text-sm text-brand-gold">{t.home.viewSection}</Link>
               </div>
             ))}
           </div>
@@ -158,10 +158,10 @@ export default function HomePage() {
       <section className="py-6">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {[
-            { title: 'User accounts', body: 'Register, save favorites, track promo codes, and manage profile activity.', href: '/login' },
-            { title: 'Partner portal', body: 'Apply as a merchant, publish offers, manage multiple locations, and track performance.', href: '/partner' },
-            { title: 'Admin control', body: 'Approve partners, manage offers, monitor analytics, and keep content compliant.', href: '/admin' },
-            { title: 'Legal framework', body: 'Terms, privacy, affiliate disclosure, and cookie policy pages ready for rollout.', href: '/terms' }
+            { title: t.home.userAccTitle, body: t.home.userAccBody, href: '/login' },
+            { title: t.home.partnerTitle, body: t.home.partnerBody, href: '/partner' },
+            { title: t.home.adminTitle, body: t.home.adminBody, href: '/admin' },
+            { title: t.home.legalTitle, body: t.home.legalBody, href: '/terms' }
           ].map((item) => (
             <Link key={item.title} href={item.href} className="market-card rounded-2xl p-5">
               <p className="font-semibold text-white">{item.title}</p>
