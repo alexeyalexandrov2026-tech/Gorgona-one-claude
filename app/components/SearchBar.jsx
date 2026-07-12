@@ -26,7 +26,7 @@ function camelizeSlug(slug) {
 // Temporarily held out of the Search Results preview only - pending
 // replacement brands. Left in lib/dealsData.js and every other section
 // (Stores, Coupons, etc.) untouched.
-const HIDDEN_FROM_SEARCH_RESULTS = ['Walmart', 'Target', 'Costco', 'Newegg'];
+const HIDDEN_FROM_SEARCH_RESULTS = ['Target', 'Newegg'];
 
 // Fills one of the slots freed up above with the new KXC partner card.
 // Scoped to the Search Results preview only, same as the hidden list.
