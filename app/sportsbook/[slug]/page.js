@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { sportsbooks } from '../../../lib/mockData';
 import { sportsbookDescriptions, getContentText } from '../../../lib/contentTranslations';
 import { getServerTranslation } from '../../../lib/serverLocale';
@@ -11,8 +12,8 @@ const SPORTSBOOK_LOGOS = {
   draftkings: '/images/brands/draftkings-betting.svg',
   fanduel: '/images/brands/fanduel-betting.svg',
   betmgm: '/images/brands/betmgm-betting.svg',
-  'caesars-sportsbook': '/images/brands/caesars-sportsbook-betting.svg',
-  'fanatics-sportsbook': '/images/brands/fanatics-sportsbook-betting.svg',
+  'caesars': '/images/brands/caesars-sportsbook-betting.svg',
+  'fanatics': '/images/brands/fanatics-sportsbook-betting.svg',
   bet365: '/images/brands/bet365-betting.svg',
   betrivers: '/images/brands/betrivers-betting.svg',
   'espn-bet': '/images/brands/espn-bet-betting.svg',
@@ -58,6 +59,12 @@ export default function SportsbookProfilePage({ params }) {
               <p><span className="text-white">{t.kosher.promoCode}:</span> {sportsbook.promo_code || 'Empty and ready for future updates'}</p>
               <p><span className="text-white">Bonus offer:</span> {sportsbook.bonus_offer}</p>
             </div>
+            <Link
+              href={sportsbook.website}
+              className="market-button mt-6 inline-flex"
+            >
+              Visit Official Website
+            </Link>
           </div>
           <div className="rounded-2xl border border-white/10 bg-black/40 p-6">
             <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">Responsible Gambling</p>
@@ -67,6 +74,13 @@ export default function SportsbookProfilePage({ params }) {
               <p className="mt-2 text-sm text-zinc-400">All offers are subject to regional availability and official operator terms.</p>
             </div>
           </div>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-dashed border-brand-gold/30 bg-black/20 p-6">
+          <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">Affiliate Program</p>
+          <p className="mt-3 text-sm text-zinc-400">
+            This section is reserved for {sportsbook.name}'s affiliate tracking link and exclusive promo terms. The button above currently points to the operator's official website - affiliate links will be added here once approved.
+          </p>
         </div>
       </div>
     </main>

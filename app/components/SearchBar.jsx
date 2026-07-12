@@ -90,6 +90,23 @@ const SEARCH_RESULT_LOGOS = {
   'Bally Bet': '/images/brands/bally-bet-betting.svg'
 };
 
+// Sends every sportsbook's Search Results card to its dedicated profile
+// page (lib/mockData.js `sportsbooks`) instead of the generic /deals/
+// detail route used by every other brand - keyed by the dealsData betting
+// brand name, which doesn't always match the mockData sportsbook slug.
+const SPORTSBOOK_PROFILE_SLUGS = {
+  'Hard Rock Bet': 'hard-rock-bet',
+  Bet365: 'bet365',
+  DraftKings: 'draftkings',
+  FanDuel: 'fanduel',
+  BetMGM: 'betmgm',
+  'Caesars Sportsbook': 'caesars',
+  'Fanatics Sportsbook': 'fanatics',
+  Betrivers: 'betrivers',
+  'ESPN BET': 'espn-bet',
+  'Bally Bet': 'bally-bet'
+};
+
 // Non-deal catalogs (yachts, vacation rentals, experiences, restaurants &
 // nightlife) live outside lib/dealsData.js, each with its own item shape and
 // detail route. Normalized here to the fields the results list already
@@ -156,7 +173,7 @@ export function SearchBar() {
       category: t.categories[camelizeSlug(deal.category)] || deal.category,
       promoCode: deal.promoCode,
       discount: deal.discount,
-      href: `/deals/${deal.slug}`
+      href: SPORTSBOOK_PROFILE_SLUGS[deal.name] ? `/sportsbook/${SPORTSBOOK_PROFILE_SLUGS[deal.name]}` : `/deals/${deal.slug}`
     }));
 
     // The extra catalogs (yachts/vacation rentals/experiences/restaurants)
