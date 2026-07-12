@@ -26,7 +26,7 @@ function camelizeSlug(slug) {
 // Temporarily held out of the Search Results preview only - pending
 // replacement brands. Left in lib/dealsData.js and every other section
 // (Stores, Coupons, etc.) untouched.
-const HIDDEN_FROM_SEARCH_RESULTS = ['Walmart', 'Target', 'Costco'];
+const HIDDEN_FROM_SEARCH_RESULTS = ['Walmart', 'Target', 'Costco', 'Newegg'];
 
 // Fills one of the slots freed up above with the new KXC partner card.
 // Scoped to the Search Results preview only, same as the hidden list.
@@ -48,6 +48,25 @@ function buildKxcDeal(t) {
     promoCode: '',
     discount: 'New season styles',
     href: KXC_AFFILIATE_LINK
+  };
+}
+
+// Fills the slot freed up by hiding Newegg above. Scoped to the Search
+// Results preview only, same as the hidden list.
+const RENTCARS_AFFILIATE_LINK = 'https://click.linksynergy.com/fs-bin/click?id=BsBQ7p%2fMcbE&offerid=1791245.3&type=3&subid=0';
+
+function buildRentcarsDeal(t) {
+  const category = t.categories.shopping;
+  const name = 'Rentcars.com';
+  return {
+    id: 'rentcars-shopping',
+    name,
+    logo: '/images/brands/rentcars-shopping.svg',
+    description: t.category.dealDescriptionTemplate.replace('{name}', name).replace('{category}', category),
+    category,
+    promoCode: '',
+    discount: 'Worldwide car rental deals',
+    href: RENTCARS_AFFILIATE_LINK
   };
 }
 
@@ -156,7 +175,13 @@ export function SearchBar() {
     const kxcMatches = (activeCategory === 'all' || activeCategory === 'shopping')
       && (!normalized || [kxc.name, kxc.category, kxc.description, kxc.discount].join(' ').toLowerCase().includes(normalized));
 
-    return kxcMatches ? [...windowed, kxc].slice(0, 6) : windowed;
+    const rentcars = buildRentcarsDeal(t);
+    const rentcarsMatches = (activeCategory === 'all' || activeCategory === 'shopping')
+      && (!normalized || [rentcars.name, rentcars.category, rentcars.description, rentcars.discount].join(' ').toLowerCase().includes(normalized));
+
+    const withKxc = kxcMatches ? [...windowed, kxc] : windowed;
+    const withRentcars = rentcarsMatches ? [...withKxc, rentcars] : withKxc;
+    return withRentcars.slice(0, 6);
   }, [activeCategory, query, t]);
 
   const popularSearches = POPULAR_SEARCH_LINKS.map((item) => ({ ...item, label: t.search.popular[item.key] }));
