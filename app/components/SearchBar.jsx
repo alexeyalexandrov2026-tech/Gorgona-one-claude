@@ -28,6 +28,25 @@ function camelizeSlug(slug) {
 // (Stores, Coupons, etc.) untouched.
 const HIDDEN_FROM_SEARCH_RESULTS = ['Walmart', 'Target', 'Costco'];
 
+// Fills one of the slots freed up above with the new KXC partner card.
+// Scoped to the Search Results preview only, same as the hidden list.
+const KXC_AFFILIATE_LINK = 'https://www.awin1.com/cread.php?awinmid=53985&awinaffid=2982101&ued=https%3A%2F%2Fkxclothing.com%2F';
+
+function buildKxcDeal(t) {
+  const category = t.categories.shopping;
+  const name = 'Kinetix Casual Luxury (KXC)';
+  return {
+    id: 'kxc-shopping',
+    name,
+    logo: '/images/brands/kinetix-casual-luxury.svg',
+    description: t.category.dealDescriptionTemplate.replace('{name}', name).replace('{category}', category),
+    category,
+    promoCode: '',
+    discount: 'New season styles',
+    href: KXC_AFFILIATE_LINK
+  };
+}
+
 // Non-deal catalogs (yachts, vacation rentals, experiences, restaurants &
 // nightlife) live outside lib/dealsData.js, each with its own item shape and
 // detail route. Normalized here to the fields the results list already
@@ -106,7 +125,13 @@ export function SearchBar() {
     // Fixed top-6 window first, then hide pending-replacement brands from
     // it - so their slots stay empty instead of being backfilled by the
     // next result in line. Every other section still shows these brands.
-    return combined.slice(0, 6).filter((item) => !HIDDEN_FROM_SEARCH_RESULTS.includes(item.name));
+    const windowed = combined.slice(0, 6).filter((item) => !HIDDEN_FROM_SEARCH_RESULTS.includes(item.name));
+
+    const kxc = buildKxcDeal(t);
+    const kxcMatches = (activeCategory === 'all' || activeCategory === 'shopping')
+      && (!normalized || [kxc.name, kxc.category, kxc.description, kxc.discount].join(' ').toLowerCase().includes(normalized));
+
+    return kxcMatches ? [...windowed, kxc].slice(0, 6) : windowed;
   }, [activeCategory, query, t]);
 
   const popularSearches = POPULAR_SEARCH_LINKS.map((item) => ({ ...item, label: t.search.popular[item.key] }));
@@ -146,7 +171,12 @@ export function SearchBar() {
             {filteredDeals.slice(0, 6).map((item) => (
               <Link key={item.id} href={item.href} className="rounded-2xl border border-white/10 bg-black/40 p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-semibold text-white">{item.name}</p>
+                  <div className="flex items-center gap-3">
+                    {item.logo && (
+                      <img src={item.logo} alt={item.name} className="h-10 w-16 shrink-0 rounded-lg bg-white object-contain p-1.5" />
+                    )}
+                    <p className="font-semibold text-white">{item.name}</p>
+                  </div>
                   <span className="rounded-full bg-brand-gold/15 px-2 py-1 text-xs text-brand-gold">{item.category}</span>
                 </div>
                 <p className="mt-2 text-sm text-zinc-400">{item.description}</p>
