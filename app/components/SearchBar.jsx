@@ -23,6 +23,90 @@ function camelizeSlug(slug) {
   return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
+// Temporarily held out of the Search Results preview only - pending
+// replacement brands. Left in lib/dealsData.js and every other section
+// (Stores, Coupons, etc.) untouched.
+const HIDDEN_FROM_SEARCH_RESULTS = ['Walmart', 'Target', 'Costco', 'Newegg'];
+
+// Fills one of the slots freed up above with the new KXC partner card.
+// Scoped to the Search Results preview only, same as the hidden list.
+const KXC_AFFILIATE_LINK = 'https://www.awin1.com/cread.php?awinmid=53985&awinaffid=2982101&ued=https%3A%2F%2Fkxclothing.com%2F';
+
+function buildKxcDeal(t) {
+  const category = t.categories.shopping;
+  const name = 'Kinetix Casual Luxury (KXC)';
+  return {
+    id: 'kxc-shopping',
+    name,
+    logo: '/images/brands/kinetix-casual-luxury.svg',
+    // KXC's mark is dark text - it needs the white backing plate to read
+    // on the dark cards. Amazon/Best Buy/Newegg's marks already include
+    // their own light/reversed colorway, so they sit directly on the card.
+    logoOnSolid: true,
+    description: t.category.dealDescriptionTemplate.replace('{name}', name).replace('{category}', category),
+    category,
+    promoCode: '',
+    discount: 'New season styles',
+    href: KXC_AFFILIATE_LINK
+  };
+}
+
+// Fills the slot freed up by hiding Newegg above. Scoped to the Search
+// Results preview only, same as the hidden list.
+const RENTCARS_AFFILIATE_LINK = 'https://click.linksynergy.com/fs-bin/click?id=BsBQ7p%2fMcbE&offerid=1791245.3&type=3&subid=0';
+
+function buildRentcarsDeal(t) {
+  const category = t.categories.shopping;
+  const name = 'Rentcars.com';
+  return {
+    id: 'rentcars-shopping',
+    name,
+    logo: '/images/brands/rentcars-shopping.svg',
+    description: t.category.dealDescriptionTemplate.replace('{name}', name).replace('{category}', category),
+    category,
+    promoCode: '',
+    discount: 'Worldwide car rental deals',
+    href: RENTCARS_AFFILIATE_LINK
+  };
+}
+
+// Logos for the Search Results preview only (the same brand's card in
+// Stores/Coupons/etc. is untouched). Keyed by deal name so it only applies
+// to these specific cards, not every brand that happens to pass through
+// this component.
+const SEARCH_RESULT_LOGOS = {
+  Amazon: '/images/brands/amazon-shopping.svg',
+  'Best Buy': '/images/brands/best-buy-shopping.svg',
+  Newegg: '/images/brands/newegg-shopping.svg',
+  'Hard Rock Bet': '/images/brands/hard-rock-bet-betting.svg',
+  Bet365: '/images/brands/bet365-betting.svg',
+  DraftKings: '/images/brands/draftkings-betting.svg',
+  FanDuel: '/images/brands/fanduel-betting.svg',
+  BetMGM: '/images/brands/betmgm-betting.svg',
+  'Caesars Sportsbook': '/images/brands/caesars-sportsbook-betting.svg',
+  'Fanatics Sportsbook': '/images/brands/fanatics-sportsbook-betting.svg',
+  Betrivers: '/images/brands/betrivers-betting.svg',
+  'ESPN BET': '/images/brands/espn-bet-betting.svg',
+  'Bally Bet': '/images/brands/bally-bet-betting.svg'
+};
+
+// Sends every sportsbook's Search Results card to its dedicated profile
+// page (lib/mockData.js `sportsbooks`) instead of the generic /deals/
+// detail route used by every other brand - keyed by the dealsData betting
+// brand name, which doesn't always match the mockData sportsbook slug.
+const SPORTSBOOK_PROFILE_SLUGS = {
+  'Hard Rock Bet': 'hard-rock-bet',
+  Bet365: 'bet365',
+  DraftKings: 'draftkings',
+  FanDuel: 'fanduel',
+  BetMGM: 'betmgm',
+  'Caesars Sportsbook': 'caesars',
+  'Fanatics Sportsbook': 'fanatics',
+  Betrivers: 'betrivers',
+  'ESPN BET': 'espn-bet',
+  'Bally Bet': 'bally-bet'
+};
+
 // Non-deal catalogs (yachts, vacation rentals, experiences, restaurants &
 // nightlife) live outside lib/dealsData.js, each with its own item shape and
 // detail route. Normalized here to the fields the results list already
@@ -84,22 +168,37 @@ export function SearchBar() {
     }).map((deal) => ({
       id: deal.id,
       name: deal.name,
+      logo: SEARCH_RESULT_LOGOS[deal.name],
       description: getDealDescription(deal, t),
       category: t.categories[camelizeSlug(deal.category)] || deal.category,
       promoCode: deal.promoCode,
       discount: deal.discount,
-      href: `/deals/${deal.slug}`
+      href: SPORTSBOOK_PROFILE_SLUGS[deal.name] ? `/sportsbook/${SPORTSBOOK_PROFILE_SLUGS[deal.name]}` : `/deals/${deal.slug}`
     }));
 
     // The extra catalogs (yachts/vacation rentals/experiences/restaurants)
     // aren't part of the Stores/Coupons category dropdown, so they only
     // participate when no specific category filter is active.
-    if (activeCategory !== 'all') {
-      return deals;
-    }
+    const combined = activeCategory !== 'all'
+      ? deals
+      : [...deals, ...buildExtraCatalog(t).filter((item) => !normalized || [item.name, item.category, item.description].join(' ').toLowerCase().includes(normalized))];
 
-    const extras = buildExtraCatalog(t).filter((item) => !normalized || [item.name, item.category, item.description].join(' ').toLowerCase().includes(normalized));
-    return [...deals, ...extras];
+    // Fixed top-6 window first, then hide pending-replacement brands from
+    // it - so their slots stay empty instead of being backfilled by the
+    // next result in line. Every other section still shows these brands.
+    const windowed = combined.slice(0, 6).filter((item) => !HIDDEN_FROM_SEARCH_RESULTS.includes(item.name));
+
+    const kxc = buildKxcDeal(t);
+    const kxcMatches = (activeCategory === 'all' || activeCategory === 'shopping')
+      && (!normalized || [kxc.name, kxc.category, kxc.description, kxc.discount].join(' ').toLowerCase().includes(normalized));
+
+    const rentcars = buildRentcarsDeal(t);
+    const rentcarsMatches = (activeCategory === 'all' || activeCategory === 'shopping')
+      && (!normalized || [rentcars.name, rentcars.category, rentcars.description, rentcars.discount].join(' ').toLowerCase().includes(normalized));
+
+    const withKxc = kxcMatches ? [...windowed, kxc] : windowed;
+    const withRentcars = rentcarsMatches ? [...withKxc, rentcars] : withKxc;
+    return withRentcars.slice(0, 6);
   }, [activeCategory, query, t]);
 
   const popularSearches = POPULAR_SEARCH_LINKS.map((item) => ({ ...item, label: t.search.popular[item.key] }));
@@ -137,15 +236,24 @@ export function SearchBar() {
         ) : (
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {filteredDeals.slice(0, 6).map((item) => (
-              <Link key={item.id} href={item.href} className="rounded-2xl border border-white/10 bg-black/40 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="font-semibold text-white">{item.name}</p>
-                  <span className="rounded-full bg-brand-gold/15 px-2 py-1 text-xs text-brand-gold">{item.category}</span>
-                </div>
-                <p className="mt-2 text-sm text-zinc-400">{item.description}</p>
-                <div className="mt-3 flex items-center justify-between text-sm text-zinc-500">
-                  <span>{item.promoCode || t.category.noCodeNeeded}</span>
-                  <span>{item.discount}</span>
+              <Link key={item.id} href={item.href} className="flex h-full items-stretch gap-4 rounded-2xl border border-white/10 bg-black/40 p-4">
+                {item.logo && (
+                  <div className={`flex w-28 shrink-0 items-center justify-center rounded-xl ${item.logoOnSolid ? 'bg-white p-3' : 'p-1'}`}>
+                    <img src={item.logo} alt={item.name} className="max-h-24 w-full object-contain" />
+                  </div>
+                )}
+                <div className="flex min-w-0 flex-1 flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-semibold text-white">{item.name}</p>
+                      <span className="rounded-full bg-brand-gold/15 px-2 py-1 text-xs text-brand-gold">{item.category}</span>
+                    </div>
+                    <p className="mt-2 text-sm text-zinc-400">{item.description}</p>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-sm text-zinc-500">
+                    <span>{item.promoCode || t.category.noCodeNeeded}</span>
+                    <span>{item.discount}</span>
+                  </div>
                 </div>
               </Link>
             ))}

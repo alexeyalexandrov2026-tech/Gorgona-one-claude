@@ -39,7 +39,7 @@ export default async function EventDetailPage({ params }) {
       <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-premium">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Logo slug={league?.slug || event.teams?.[0]} alt={league?.name || event.artist || event.name} className="h-14 w-14 rounded-2xl bg-white/5 object-cover p-2" />
+            <Logo slug={league?.slug || event.teams?.[0]} alt={league?.name || event.artist || event.name} className="h-14 w-14 rounded-2xl bg-white/5 object-contain p-2" />
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">{t.events.categoryLabels[category?.slug] || category?.label}</p>
               <h1 className="mt-2 text-3xl font-semibold text-white">{event.name}</h1>
