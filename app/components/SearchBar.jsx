@@ -58,7 +58,17 @@ function buildKxcDeal(t) {
 const SEARCH_RESULT_LOGOS = {
   Amazon: '/images/brands/amazon-shopping.svg',
   'Best Buy': '/images/brands/best-buy-shopping.svg',
-  Newegg: '/images/brands/newegg-shopping.svg'
+  Newegg: '/images/brands/newegg-shopping.svg',
+  'Hard Rock Bet': '/images/brands/hard-rock-bet-betting.svg',
+  Bet365: '/images/brands/bet365-betting.svg',
+  DraftKings: '/images/brands/draftkings-betting.svg',
+  FanDuel: '/images/brands/fanduel-betting.svg',
+  BetMGM: '/images/brands/betmgm-betting.svg',
+  'Caesars Sportsbook': '/images/brands/caesars-sportsbook-betting.svg',
+  'Fanatics Sportsbook': '/images/brands/fanatics-sportsbook-betting.svg',
+  Betrivers: '/images/brands/betrivers-betting.svg',
+  'ESPN BET': '/images/brands/espn-bet-betting.svg',
+  'Bally Bet': '/images/brands/bally-bet-betting.svg'
 };
 
 // Non-deal catalogs (yachts, vacation rentals, experiences, restaurants &

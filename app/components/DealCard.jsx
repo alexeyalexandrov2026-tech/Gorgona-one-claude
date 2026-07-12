@@ -13,7 +13,7 @@ export function DealCard({ deal, t }) {
   return (
     <article className="market-card rounded-[1.5rem] p-6">
       <div className="flex items-center justify-between gap-3">
-        <BrandImage src={deal.logo} alt={deal.name} className="h-12 w-12 rounded-2xl object-cover" />
+        <BrandImage src={deal.logo} alt={deal.name} className="h-12 w-12 rounded-2xl object-contain" />
         <span className="rounded-full bg-brand-gold/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-brand-gold">{t.categories[camelizeSlug(deal.category)] || deal.category}</span>
       </div>
       <h2 className="mt-6 text-xl font-semibold text-white">{deal.name}</h2>

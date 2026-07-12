@@ -5,6 +5,20 @@ import { getServerTranslation } from '../../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
 
+// Same mapping as /sportsbook - see that file for details.
+const SPORTSBOOK_LOGOS = {
+  'hard-rock-bet': '/images/brands/hard-rock-bet-betting.svg',
+  draftkings: '/images/brands/draftkings-betting.svg',
+  fanduel: '/images/brands/fanduel-betting.svg',
+  betmgm: '/images/brands/betmgm-betting.svg',
+  'caesars-sportsbook': '/images/brands/caesars-sportsbook-betting.svg',
+  'fanatics-sportsbook': '/images/brands/fanatics-sportsbook-betting.svg',
+  bet365: '/images/brands/bet365-betting.svg',
+  betrivers: '/images/brands/betrivers-betting.svg',
+  'espn-bet': '/images/brands/espn-bet-betting.svg',
+  'bally-bet': '/images/brands/bally-bet-betting.svg'
+};
+
 export default function SportsbookProfilePage({ params }) {
   const sportsbook = sportsbooks.find((entry) => entry.slug === params.slug);
 
@@ -18,10 +32,17 @@ export default function SportsbookProfilePage({ params }) {
     <main className="flex-1 py-10">
       <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-premium">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">{t.sportsbookPage.pill} Profile</p>
-            <h1 className="mt-2 text-3xl font-semibold text-white">{sportsbook.name}</h1>
-            <p className="mt-3 max-w-2xl text-zinc-400">{getContentText(sportsbookDescriptions, locale, sportsbook.slug, sportsbook.description)}</p>
+          <div className="flex items-center gap-4">
+            {SPORTSBOOK_LOGOS[sportsbook.slug] && (
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-brand-gold/15">
+                <img src={SPORTSBOOK_LOGOS[sportsbook.slug]} alt={sportsbook.name} className="h-full w-full object-contain" />
+              </div>
+            )}
+            <div>
+              <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">{t.sportsbookPage.pill} Profile</p>
+              <h1 className="mt-2 text-3xl font-semibold text-white">{sportsbook.name}</h1>
+              <p className="mt-3 max-w-2xl text-zinc-400">{getContentText(sportsbookDescriptions, locale, sportsbook.slug, sportsbook.description)}</p>
+            </div>
           </div>
           <div className="rounded-2xl border border-brand-gold/20 bg-brand-gold/10 px-4 py-3">
             <p className="text-sm text-zinc-400">{t.category.categoryLabel}</p>
