@@ -21,7 +21,7 @@ export function EventGrid({ events, emptyMessage, t }) {
         return (
           <article key={event.id} className="market-card rounded-[1.5rem] p-6">
             <div className="flex items-center justify-between gap-3">
-              <Logo slug={logoSlug} alt={league?.name || event.artist || event.name} className="h-12 w-12 rounded-2xl object-cover bg-white/5 p-1" />
+              <Logo slug={logoSlug} alt={league?.name || event.artist || event.name} className="h-12 w-12 rounded-2xl object-contain bg-white/5 p-1" />
               <span className="rounded-full bg-brand-gold/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-brand-gold">
                 {t.events.categoryLabels[category?.slug] || category?.label}
               </span>
