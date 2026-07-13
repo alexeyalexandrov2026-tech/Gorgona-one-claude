@@ -112,4 +112,42 @@ a {
     color: var(--brand-gold);
     background: rgba(212, 175, 55, 0.08);
   }
+
+  /* Sportsbook directory card banner: each brand supplies its own
+     --sb-gradient (the base radial background) and --sb-glow (a soft
+     radial highlight tucked behind the logo mark) as inline custom
+     properties; the diagonal light-streak texture and bottom vignette
+     are shared so every brand reads as the same integrated material
+     instead of a logo image sitting on top of a background. */
+  .sportsbook-banner {
+    position: relative;
+    overflow: hidden;
+    background: var(--sb-gradient);
+  }
+
+  .sportsbook-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.07) 0px, rgba(255, 255, 255, 0.07) 3px, transparent 3px, transparent 22px),
+      repeating-linear-gradient(65deg, rgba(255, 255, 255, 0.04) 0px, rgba(255, 255, 255, 0.04) 2px, transparent 2px, transparent 34px);
+    mix-blend-mode: overlay;
+    opacity: 0.55;
+  }
+
+  .sportsbook-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(55% 50% at 42% 38%, var(--sb-glow), transparent 62%),
+      radial-gradient(130% 110% at 50% 108%, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.78) 100%);
+  }
+
+  .sportsbook-banner img {
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 40px var(--sb-glow));
+  }
 }
