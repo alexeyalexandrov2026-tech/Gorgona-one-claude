@@ -169,29 +169,6 @@ export default function HomePage() {
       </section>
 
       <section className="py-6">
-        <div className="market-shell rounded-[2rem] bg-gradient-to-br from-black to-zinc-900 p-8">
-          <h2 className="text-2xl font-semibold text-white">Featured experiences and premium leads</h2>
-          <p className="mt-3 max-w-2xl text-zinc-400">The homepage now surfaces transport, travel, nightlife, and luxury experiences before generic shopping offers.</p>
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {[
-              { title: 'Car Rentals', description: 'Luxury cars and premium experiences', href: '/rentals' },
-              { title: 'Yacht Rentals', description: 'Private charters and nightlife-ready boats', href: '/yachts' },
-              { title: 'Sportsbook Bonuses', description: 'Verified affiliate-ready offers', href: '/sportsbook' },
-              { title: 'Vacation Rentals', description: 'High-end stays and short-term luxury homes', href: '/vacation-rentals' },
-              { title: 'Miami Experiences', description: 'Private dining, nightlife, and premium events', href: '/experiences' },
-              { title: 'Restaurants & Nightlife', description: 'Dining, lounges, and late-night experiences', href: '/restaurants-nightlife' }
-            ].map((item) => (
-              <div key={item.title} className="market-card rounded-2xl p-4">
-                <p className="font-semibold text-white">{item.title}</p>
-                <p className="mt-2 text-sm text-zinc-400">{item.description}</p>
-                <Link href={item.href} className="mt-4 inline-flex text-sm text-brand-gold">View section</Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-6">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {[
             { title: 'User accounts', body: 'Register, save favorites, track promo codes, and manage profile activity.', href: '/login' },
