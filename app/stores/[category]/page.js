@@ -1,10 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { categories, getDealsByCategory } from '../../../lib/dealsData';
-import { sportsbooks } from '../../../lib/mockData';
 import { SearchBar } from '../../components/SearchBar';
 import { DealCard } from '../../components/DealCard';
-import { SportsbookCard } from '../../components/SportsbookCard';
 import { getServerTranslation } from '../../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
@@ -33,13 +31,11 @@ export default function CategoryPage({ params }) {
     notFound();
   }
 
-  const { t, locale } = getServerTranslation();
+  const { t } = getServerTranslation();
   const label = t.categories[camelizeSlug(category.slug)] || category.label;
   const deals = getDealsByCategory(params.category);
-  // Betting uses the approved Sportsbook card design (full-bleed logo
-  // banner, clickable through to /sportsbook/{slug}) and its own slugs
-  // from lib/mockData.js, instead of the generic DealCard grid every
-  // other category still uses.
+  // Sportsbook companies are removed from the Stores section - they stay
+  // available in full on their own dedicated /sportsbook directory.
   const isBetting = params.category === 'betting';
 
   return (
@@ -63,13 +59,9 @@ export default function CategoryPage({ params }) {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {isBetting
-          ? sportsbooks.map((book) => (
-              <SportsbookCard key={book.id} book={book} t={t} locale={locale} />
-            ))
-          : deals.map((deal) => (
-              <DealCard key={deal.id} deal={deal} t={t} />
-            ))}
+        {!isBetting && deals.map((deal) => (
+          <DealCard key={deal.id} deal={deal} t={t} />
+        ))}
       </div>
     </main>
   );

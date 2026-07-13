@@ -35,7 +35,7 @@ export default function StoresPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {featuredDeals.map((deal) => (
+        {featuredDeals.filter((deal) => deal.category !== 'betting').map((deal) => (
           <DealCard key={deal.id} deal={deal} t={t} />
         ))}
       </div>
