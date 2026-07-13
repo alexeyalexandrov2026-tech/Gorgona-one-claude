@@ -10,6 +10,10 @@ function camelizeSlug(slug) {
   return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
+// These stay fully in lib/dealsData.js (and keep their /deals/{slug} page)
+// but are no longer listed in the Stores section itself.
+const HIDDEN_FROM_STORES = ['Beit Yosef Grocery', 'Kosher Market Co.', 'Shalom Bistro', 'Mizrahi Grill', 'Disney+', 'DoorDash', 'Uber Eats'];
+
 export default function StoresPage() {
   const { t } = getServerTranslation();
 
@@ -35,7 +39,7 @@ export default function StoresPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {featuredDeals.filter((deal) => deal.category !== 'betting').map((deal) => (
+        {featuredDeals.filter((deal) => deal.category !== 'betting' && !HIDDEN_FROM_STORES.includes(deal.name)).map((deal) => (
           <DealCard key={deal.id} deal={deal} t={t} />
         ))}
       </div>

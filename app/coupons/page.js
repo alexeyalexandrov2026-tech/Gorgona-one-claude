@@ -5,6 +5,11 @@ import { getServerTranslation } from '../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
 
+// Stores is the primary directory now, so every brand there is a
+// duplicate here and is left out - except these three, which are kept
+// visible in Coupons on purpose even though they're no longer in Stores.
+const COUPONS_VISIBLE = ['Disney+', 'DoorDash', 'Uber Eats'];
+
 export default function CouponsPage() {
   const { t } = getServerTranslation();
 
@@ -20,7 +25,7 @@ export default function CouponsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {allDeals.slice(0, 24).map((deal) => (
+        {allDeals.filter((deal) => COUPONS_VISIBLE.includes(deal.name)).map((deal) => (
           <DealCard key={deal.id} deal={deal} t={t} />
         ))}
       </div>

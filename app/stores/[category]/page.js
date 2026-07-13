@@ -11,6 +11,10 @@ function camelizeSlug(slug) {
   return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
+// These stay fully in lib/dealsData.js (and keep their /deals/{slug} page)
+// but are no longer listed in the Stores section itself.
+const HIDDEN_FROM_STORES = ['Beit Yosef Grocery', 'Kosher Market Co.', 'Shalom Bistro', 'Mizrahi Grill', 'Disney+', 'DoorDash', 'Uber Eats'];
+
 export async function generateMetadata({ params }) {
   const category = categories.find((entry) => entry.slug === params.category);
   if (!category) {
@@ -33,7 +37,7 @@ export default function CategoryPage({ params }) {
 
   const { t } = getServerTranslation();
   const label = t.categories[camelizeSlug(category.slug)] || category.label;
-  const deals = getDealsByCategory(params.category);
+  const deals = getDealsByCategory(params.category).filter((deal) => !HIDDEN_FROM_STORES.includes(deal.name));
   // Sportsbook companies are removed from the Stores section - they stay
   // available in full on their own dedicated /sportsbook directory.
   const isBetting = params.category === 'betting';
