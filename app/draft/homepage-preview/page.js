@@ -120,22 +120,18 @@ function PalmTree({ baseX, baseY, trunkHeight, scale = 1, lean = -10 }) {
 }
 
 const BUILDINGS = [
-  { x: 20, y: 300, w: 34, h: 160, top: 'flat' },
-  { x: 60, y: 260, w: 26, h: 200, top: 'flat' },
-  { x: 92, y: 320, w: 30, h: 140, top: 'flat' },
-  { x: 128, y: 230, w: 40, h: 230, top: 'setback' },
-  { x: 174, y: 280, w: 28, h: 180, top: 'flat' },
-  { x: 208, y: 160, w: 46, h: 300, top: 'spire' },
-  { x: 260, y: 250, w: 30, h: 210, top: 'flat' },
-  { x: 296, y: 120, w: 52, h: 340, top: 'crown' },
-  { x: 354, y: 260, w: 32, h: 200, top: 'flat' },
-  { x: 392, y: 195, w: 42, h: 265, top: 'setback' },
-  { x: 440, y: 270, w: 26, h: 190, top: 'flat' },
-  { x: 472, y: 175, w: 44, h: 285, top: 'crown' },
-  { x: 522, y: 250, w: 28, h: 210, top: 'flat' },
-  { x: 556, y: 300, w: 34, h: 160, top: 'flat' },
-  { x: 596, y: 240, w: 30, h: 220, top: 'setback' },
-  { x: 632, y: 290, w: 26, h: 170, top: 'flat' }
+  { x: 0, y: 440, w: 22, h: 110, top: 'flat' },
+  { x: 24, y: 410, w: 18, h: 140, top: 'flat' },
+  { x: 44, y: 450, w: 20, h: 100, top: 'flat' },
+  { x: 66, y: 390, w: 26, h: 160, top: 'setback' },
+  { x: 94, y: 425, w: 18, h: 125, top: 'flat' },
+  { x: 114, y: 355, w: 30, h: 195, top: 'spire' },
+  { x: 146, y: 415, w: 20, h: 135, top: 'flat' },
+  { x: 168, y: 320, w: 34, h: 230, top: 'crown' },
+  { x: 204, y: 405, w: 22, h: 145, top: 'flat' },
+  { x: 228, y: 365, w: 28, h: 185, top: 'setback' },
+  { x: 258, y: 420, w: 18, h: 130, top: 'flat' },
+  { x: 278, y: 375, w: 26, h: 175, top: 'flat' }
 ];
 
 function Building({ x, y, w, h, top }) {
@@ -174,34 +170,36 @@ function SkylineIllustration() {
   return (
     <svg viewBox="0 0 700 560" preserveAspectRatio="xMidYMax slice" className="absolute inset-0 h-full w-full">
       <defs>
-        <linearGradient id="dp-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#08050a" />
-          <stop offset="45%" stopColor="#1c1004" />
-          <stop offset="78%" stopColor="#4a2c05" />
-          <stop offset="100%" stopColor="#6b3f06" />
-        </linearGradient>
+        <radialGradient id="dp-glow" cx="12%" cy="78%" r="55%">
+          <stop offset="0%" stopColor="#6b3f06" />
+          <stop offset="35%" stopColor="#3a2308" />
+          <stop offset="70%" stopColor="#140c03" />
+          <stop offset="100%" stopColor="#050505" />
+        </radialGradient>
         <linearGradient id="dp-water" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#3a2308" />
           <stop offset="100%" stopColor="#050505" />
         </linearGradient>
         <linearGradient id="dp-fade" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#050505" stopOpacity="0.1" />
-          <stop offset="55%" stopColor="#050505" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="#050505" stopOpacity="0.97" />
+          <stop offset="0%" stopColor="#050505" stopOpacity="0" />
+          <stop offset="34%" stopColor="#050505" stopOpacity="0.35" />
+          <stop offset="62%" stopColor="#050505" stopOpacity="0.88" />
+          <stop offset="100%" stopColor="#050505" stopOpacity="1" />
         </linearGradient>
       </defs>
-      <rect x="0" y="0" width="700" height="560" fill="url(#dp-sky)" />
+      <rect x="0" y="0" width="700" height="560" fill="#050505" />
+      <rect x="0" y="0" width="700" height="560" fill="url(#dp-glow)" />
       {BUILDINGS.map((b, i) => <Building key={i} {...b} />)}
-      <rect x="0" y="440" width="700" height="120" fill="url(#dp-water)" />
-      <rect x="0" y="440" width="700" height="3" fill="#d4af37" opacity="0.4" />
-      <g opacity="0.22" transform="translate(0,460) scale(1,-1)">
+      <rect x="0" y="550" width="300" height="10" fill="url(#dp-water)" />
+      <rect x="0" y="550" width="300" height="2" fill="#d4af37" opacity="0.4" />
+      <g opacity="0.2" transform="translate(0,552) scale(1,-1)">
         {BUILDINGS.filter((_, i) => i % 2 === 0).map((b, i) => (
-          <rect key={i} x={b.x} y={-(b.h * 0.6)} width={b.w} height={b.h * 0.6} fill="#d4af37" />
+          <rect key={i} x={b.x} y={-(b.h * 0.5)} width={b.w} height={b.h * 0.5} fill="#d4af37" />
         ))}
       </g>
-      <PalmTree baseX={72} baseY={565} trunkHeight={250} scale={1.25} lean={-16} />
-      <PalmTree baseX={158} baseY={565} trunkHeight={175} scale={0.9} lean={12} />
-      <PalmTree baseX={20} baseY={568} trunkHeight={120} scale={0.6} lean={-22} />
+      <PalmTree baseX={30} baseY={565} trunkHeight={330} scale={1.5} lean={-10} />
+      <PalmTree baseX={125} baseY={565} trunkHeight={250} scale={1.05} lean={16} />
+      <PalmTree baseX={-10} baseY={568} trunkHeight={170} scale={0.7} lean={-24} />
       <rect x="0" y="0" width="700" height="560" fill="url(#dp-fade)" />
     </svg>
   );
@@ -222,7 +220,7 @@ export default function HomepagePreviewDraft() {
       <section className="market-shell relative overflow-hidden rounded-[2rem] border-brand-gold/20">
         <SkylineIllustration />
 
-        <div className="relative z-10 min-h-[420px] px-6 py-14 sm:px-10 sm:py-16 lg:min-h-[560px] lg:px-16 lg:py-24">
+        <div className="relative z-10 min-h-[400px] px-6 py-12 sm:px-10 sm:py-14 lg:min-h-[480px] lg:px-16 lg:py-16">
           <p className="market-pill mb-5">Global deals • Promo codes • Lifestyle offers</p>
           <h1 className="market-title text-3xl sm:text-4xl lg:text-5xl">
             Premium deals for every lifestyle{' '}
