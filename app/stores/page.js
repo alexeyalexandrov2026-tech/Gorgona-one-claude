@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { categories, featuredDeals } from '../../lib/dealsData';
 import { SearchBar } from '../components/SearchBar';
-import { DealCard } from '../components/DealCard';
+import { StoreCard } from '../components/StoreCard';
 import { getServerTranslation } from '../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
@@ -65,7 +65,7 @@ export default function StoresPage() {
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {[ROWE_AND_TAYLOR_DEAL, ...featuredDeals.filter((deal) => deal.category !== 'betting' && !HIDDEN_FROM_STORES.includes(deal.name) && !HIDDEN_DUPLICATE_IDS.includes(deal.id))].map((deal) => (
-          <DealCard key={deal.id} deal={deal} t={t} />
+          <StoreCard key={deal.id} deal={deal} t={t} />
         ))}
       </div>
     </main>

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { categories, getDealsByCategory } from '../../../lib/dealsData';
 import { SearchBar } from '../../components/SearchBar';
-import { DealCard } from '../../components/DealCard';
+import { StoreCard } from '../../components/StoreCard';
 import { getServerTranslation } from '../../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
@@ -64,7 +64,7 @@ export default function CategoryPage({ params }) {
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {!isBetting && deals.map((deal) => (
-          <DealCard key={deal.id} deal={deal} t={t} />
+          <StoreCard key={deal.id} deal={deal} t={t} />
         ))}
       </div>
     </main>
