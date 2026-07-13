@@ -62,7 +62,7 @@ export default function CategoryPage({ params }) {
         ))}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2">
         {!isBetting && deals.map((deal) => (
           <StoreCard key={deal.id} deal={deal} t={t} />
         ))}

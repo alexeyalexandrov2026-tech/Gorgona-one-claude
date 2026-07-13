@@ -63,7 +63,7 @@ export default function StoresPage() {
         ))}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2">
         {[ROWE_AND_TAYLOR_DEAL, ...featuredDeals.filter((deal) => deal.category !== 'betting' && !HIDDEN_FROM_STORES.includes(deal.name) && !HIDDEN_DUPLICATE_IDS.includes(deal.id))].map((deal) => (
           <StoreCard key={deal.id} deal={deal} t={t} />
         ))}
