@@ -14,6 +14,12 @@ function camelizeSlug(slug) {
 // but are no longer listed in the Stores section itself.
 const HIDDEN_FROM_STORES = ['Beit Yosef Grocery', 'Kosher Market Co.', 'Shalom Bistro', 'Mizrahi Grill', 'Disney+', 'DoorDash', 'Uber Eats'];
 
+// Nike and Adidas are each featured in two categories (fashion and sport),
+// which puts both brands on this page twice. Only the fashion entries are
+// kept here; the sport-category ones (which land at the bottom of this
+// grid) are hidden - they're unaffected on /stores/sport itself.
+const HIDDEN_DUPLICATE_IDS = ['sport-1', 'sport-2'];
+
 export default function StoresPage() {
   const { t } = getServerTranslation();
 
@@ -39,7 +45,7 @@ export default function StoresPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {featuredDeals.filter((deal) => deal.category !== 'betting' && !HIDDEN_FROM_STORES.includes(deal.name)).map((deal) => (
+        {featuredDeals.filter((deal) => deal.category !== 'betting' && !HIDDEN_FROM_STORES.includes(deal.name) && !HIDDEN_DUPLICATE_IDS.includes(deal.id)).map((deal) => (
           <DealCard key={deal.id} deal={deal} t={t} />
         ))}
       </div>
