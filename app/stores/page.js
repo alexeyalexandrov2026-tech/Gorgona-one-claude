@@ -20,6 +20,25 @@ const HIDDEN_FROM_STORES = ['Beit Yosef Grocery', 'Kosher Market Co.', 'Shalom B
 // grid) are hidden - they're unaffected on /stores/sport itself.
 const HIDDEN_DUPLICATE_IDS = ['sport-1', 'sport-2'];
 
+// New store, Stores-only: kept out of lib/dealsData.js entirely so it never
+// reaches allDeals/featuredDeals (and therefore Coupons, search, or any
+// other consumer of that catalog) - it only exists on this page, pinned to
+// the front of the grid.
+const ROWE_AND_TAYLOR_DEAL = {
+  id: 'rowe-and-taylor-featured',
+  name: 'Rowe & Taylor',
+  slug: 'rowe-and-taylor',
+  category: 'fashion',
+  logo: '/images/brands/rowe-and-taylor.svg',
+  image: '/images/brands/rowe-and-taylor.svg',
+  promoCode: '',
+  discount: 'Suits that outperform their price.',
+  expirationDate: '2026-12-31',
+  affiliateLink: 'https://click.linksynergy.com/fs-bin/click?id=BsBQ7p%2fMcbE&offerid=1949696.3&type=3&subid=0',
+  website: 'https://click.linksynergy.com/fs-bin/click?id=BsBQ7p%2fMcbE&offerid=1949696.3&type=3&subid=0',
+  featured: true
+};
+
 export default function StoresPage() {
   const { t } = getServerTranslation();
 
@@ -45,7 +64,7 @@ export default function StoresPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {featuredDeals.filter((deal) => deal.category !== 'betting' && !HIDDEN_FROM_STORES.includes(deal.name) && !HIDDEN_DUPLICATE_IDS.includes(deal.id)).map((deal) => (
+        {[ROWE_AND_TAYLOR_DEAL, ...featuredDeals.filter((deal) => deal.category !== 'betting' && !HIDDEN_FROM_STORES.includes(deal.name) && !HIDDEN_DUPLICATE_IDS.includes(deal.id))].map((deal) => (
           <DealCard key={deal.id} deal={deal} t={t} />
         ))}
       </div>
