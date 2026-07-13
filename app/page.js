@@ -25,6 +25,8 @@ const FEATURED_DEALS = [
     description: 'High-end cars with concierge pickup and airport delivery.',
     image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80',
     href: '/rentals',
+    accent: '#d4af37',
+    glow: 'rgba(212, 175, 55, 0.4)',
     icon: (
       <>
         <path d="M18.92 6.01A1.5 1.5 0 0 0 17.5 5h-11c-.66 0-1.24.42-1.45 1.01L3 12v6.5A1.5 1.5 0 0 0 4.5 20H5a1 1 0 0 0 1-1v-.5h12v.5a1 1 0 0 0 1 1h.5a1.5 1.5 0 0 0 1.5-1.5V12l-2.08-5.99ZM5 11l1.5-4.5h11L19 11H5Z" />
@@ -39,6 +41,8 @@ const FEATURED_DEALS = [
     description: 'Private yacht experiences for nightlife, events, and luxury outings.',
     image: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=1200&q=80',
     href: '/yachts',
+    accent: '#38bdf8',
+    glow: 'rgba(56, 189, 248, 0.4)',
     icon: (
       <>
         <path d="M3.5 15.5h17L18.5 20h-13l-2-4.5Z" />
@@ -52,6 +56,8 @@ const FEATURED_DEALS = [
     description: 'Verified sportsbook promos and referral-only bonuses.',
     image: '/images/featured/sportsbook-bonuses-hard-rock-bet.png',
     href: '/sportsbook',
+    accent: '#a855f7',
+    glow: 'rgba(168, 85, 247, 0.4)',
     icon: (
       <path d="M8 3h8v3.5a4 4 0 0 1-8 0V3Zm-2 .5H3v1.8A4.2 4.2 0 0 0 6.8 9.5M18 3.5h3v1.8A4.2 4.2 0 0 1 17.2 9.5M11 14.5h2v3.5h-2zM8 20.5h8l-1.2-2.5H9.2L8 20.5Z" />
     )
@@ -62,6 +68,8 @@ const FEATURED_DEALS = [
     description: 'Short-term stays, villas, and premium residences in key markets.',
     image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
     href: '/vacation-rentals',
+    accent: '#d4af37',
+    glow: 'rgba(212, 175, 55, 0.4)',
     icon: (
       <>
         <path d="M5 20V9.5L11 6v14H5Z" />
@@ -80,54 +88,63 @@ export default function HomePage() {
 
   return (
     <main className="flex-1">
-      <section className="grid items-center gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
-        <div>
-          <p className="market-pill mb-4">
-            Global deals • Promo codes • Lifestyle offers
-          </p>
-          <h1 className="market-title text-4xl sm:text-5xl lg:text-6xl">
-            {t.home.heroTitle}
-          </h1>
-          <p className="market-subtitle text-xl">{t.home.heroSubtitle}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/stores" className="market-button">Explore Marketplace</Link>
-            <Link href="/coupons" className="market-button-secondary">Browse Deals</Link>
-            <Link href="/partner" className="market-button-secondary border-brand-gold/40 text-brand-gold hover:bg-brand-gold hover:text-black">Join as Partner</Link>
-          </div>
+      <section className="py-16 lg:py-20">
+        <p className="market-pill mb-4">
+          Global deals • Promo codes • Lifestyle offers
+        </p>
+        <h1 className="market-title text-4xl sm:text-5xl lg:text-6xl">
+          {t.home.heroTitle}
+        </h1>
+        <p className="market-subtitle text-xl">{t.home.heroSubtitle}</p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link href="/stores" className="market-button">Explore Marketplace</Link>
+          <Link href="/coupons" className="market-button-secondary">Browse Deals</Link>
+          <Link href="/partner" className="market-button-secondary border-brand-gold/40 text-brand-gold hover:bg-brand-gold hover:text-black">Join as Partner</Link>
         </div>
-        <div className="market-shell rounded-[2rem] border-brand-gold/20 bg-gradient-to-br from-brand-gold/15 to-black p-6">
-          <div className="rounded-2xl border border-white/10 bg-black/70 p-6">
-            <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">{t.home.featured}</p>
-            <div className="mt-6 space-y-4">
-              {FEATURED_DEALS.map((item) => (
-                <Link
-                  key={item.title}
-                  href={item.href}
-                  className="market-card group flex flex-col overflow-hidden rounded-2xl sm:flex-row sm:items-stretch"
+      </section>
+
+      <section className="py-6">
+        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-gold">{t.home.featured}</p>
+        <div className="mt-6 space-y-5">
+          {FEATURED_DEALS.map((item) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              className="featured-deal-card group relative flex flex-col overflow-hidden rounded-2xl sm:flex-row sm:items-stretch"
+              style={{ '--fd-accent': item.accent, '--fd-glow': item.glow }}
+            >
+              <div className="flex flex-1 items-center gap-5 px-6 py-7 sm:px-8">
+                <span
+                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2"
+                  style={{ borderColor: item.accent, color: item.accent }}
                 >
-                  <div className="flex flex-1 items-center gap-4 p-5">
-                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-brand-gold/40 text-brand-gold">
-                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7">
-                        {item.icon}
-                      </svg>
-                    </span>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-white">{item.title}</p>
-                      <p className="text-sm text-brand-gold">{item.value}</p>
-                      <p className="mt-1 text-sm text-zinc-400">{item.description}</p>
-                    </div>
-                  </div>
-                  <div className="p-2 pt-0 sm:w-2/5 sm:shrink-0 sm:p-2 sm:pl-0">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="h-40 w-full rounded-xl object-cover transition duration-300 group-hover:scale-[1.03] sm:h-full sm:min-h-[150px]"
-                    />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7">
+                    {item.icon}
+                  </svg>
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xl font-bold text-white sm:text-2xl">{item.title}</p>
+                  <p className="mt-1 text-base font-medium sm:text-lg" style={{ color: item.accent }}>{item.value}</p>
+                  <p className="mt-2 max-w-md text-sm text-zinc-400">{item.description}</p>
+                </div>
+              </div>
+              <div className="relative h-40 w-full shrink-0 sm:h-auto sm:w-[42%]">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.05]"
+                />
+              </div>
+              <span
+                className="absolute right-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-black/60 backdrop-blur sm:flex"
+                style={{ borderColor: item.accent, color: item.accent }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -148,29 +165,6 @@ export default function HomePage() {
               <p className="mt-2 text-sm text-zinc-400">{category.description}</p>
             </Link>
           ))}
-        </div>
-      </section>
-
-      <section className="py-6">
-        <div className="market-shell rounded-[2rem] bg-gradient-to-br from-black to-zinc-900 p-8">
-          <h2 className="text-2xl font-semibold text-white">Featured experiences and premium leads</h2>
-          <p className="mt-3 max-w-2xl text-zinc-400">The homepage now surfaces transport, travel, nightlife, and luxury experiences before generic shopping offers.</p>
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {[
-              { title: 'Car Rentals', description: 'Luxury cars and premium experiences', href: '/rentals' },
-              { title: 'Yacht Rentals', description: 'Private charters and nightlife-ready boats', href: '/yachts' },
-              { title: 'Sportsbook Bonuses', description: 'Verified affiliate-ready offers', href: '/sportsbook' },
-              { title: 'Vacation Rentals', description: 'High-end stays and short-term luxury homes', href: '/vacation-rentals' },
-              { title: 'Miami Experiences', description: 'Private dining, nightlife, and premium events', href: '/experiences' },
-              { title: 'Restaurants & Nightlife', description: 'Dining, lounges, and late-night experiences', href: '/restaurants-nightlife' }
-            ].map((item) => (
-              <div key={item.title} className="market-card rounded-2xl p-4">
-                <p className="font-semibold text-white">{item.title}</p>
-                <p className="mt-2 text-sm text-zinc-400">{item.description}</p>
-                <Link href={item.href} className="mt-4 inline-flex text-sm text-brand-gold">View section</Link>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
