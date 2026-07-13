@@ -222,7 +222,7 @@ export default function HomepagePreviewDraft() {
       <section className="market-shell relative overflow-hidden rounded-[2rem] border-brand-gold/20">
         <SkylineIllustration />
 
-        <div className="relative z-10 px-6 py-14 sm:px-10 lg:px-16 lg:py-20">
+        <div className="relative z-10 min-h-[420px] px-6 py-14 sm:px-10 sm:py-16 lg:min-h-[560px] lg:px-16 lg:py-24">
           <p className="market-pill mb-5">Global deals • Promo codes • Lifestyle offers</p>
           <h1 className="market-title text-3xl sm:text-4xl lg:text-5xl">
             Premium deals for every lifestyle{' '}
@@ -268,7 +268,7 @@ export default function HomepagePreviewDraft() {
             <Link
               key={item.title}
               href={item.href}
-              className="featured-deal-card group relative flex flex-col overflow-hidden rounded-2xl sm:flex-row sm:items-stretch"
+              className="featured-deal-card group relative flex flex-col overflow-hidden rounded-2xl sm:h-52 sm:flex-row sm:items-stretch"
               style={{ '--fd-accent': item.accent, '--fd-glow': item.glow }}
             >
               <div className="flex flex-1 items-center gap-5 px-6 py-7 sm:px-8">
@@ -283,10 +283,10 @@ export default function HomepagePreviewDraft() {
                 <div className="min-w-0">
                   <p className="text-xl font-bold text-white sm:text-2xl">{item.title}</p>
                   <p className="mt-1 text-base font-medium sm:text-lg" style={{ color: item.accent }}>{item.value}</p>
-                  <p className="mt-2 max-w-md text-sm text-zinc-400">{item.description}</p>
+                  <p className="mt-2 line-clamp-2 max-w-md text-sm text-zinc-400">{item.description}</p>
                 </div>
               </div>
-              <div className="relative h-40 w-full shrink-0 sm:h-auto sm:w-[42%]">
+              <div className="relative h-40 w-full shrink-0 sm:h-full sm:w-[42%]">
                 <img
                   src={item.image}
                   alt={item.title}
