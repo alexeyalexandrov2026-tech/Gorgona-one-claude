@@ -36,6 +36,11 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'GORGONA ONE',
     description: 'Unlock hidden deals with verified coupons and premium offers.'
+  },
+  verification: {
+    other: {
+      verification: 'c64feafe15fa67c649d4f21448b3438a'
+    }
   }
 };
 
