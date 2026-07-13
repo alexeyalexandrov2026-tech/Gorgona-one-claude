@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { SearchBar } from '../../components/SearchBar';
 import { categories } from '../../../lib/dealsData';
@@ -18,42 +17,155 @@ const TRUST_BADGES = [
   { title: 'All in one place', detail: 'Save time & money', icon: <path d="M20 7h-3.2a3 3 0 0 0-9.6 0H4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h.5v8a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1v-8h.5a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1ZM12 4a2 2 0 0 1 1.87 1.3h-3.74A2 2 0 0 1 12 4Z" /> }
 ];
 
-const COMPACT_DEALS = [
-  { title: 'Yacht Rentals', value: 'Sunset cruising', href: '/yachts', accent: '#38bdf8' },
-  { title: 'Sportsbook Bonuses', value: 'Top-tier offers', href: '/sportsbook', accent: '#a855f7' },
-  { title: 'Vacation Rentals', value: 'Luxury stays', href: '/vacation-rentals', accent: '#d4af37' }
+// Featured Deals row data - reuses the same lead image already used for
+// each category's own featured listing, matching the approved homepage
+// layout (app/page.js) card for card: icon, title, value, description,
+// full-bleed image, and accent-colored chevron.
+const FEATURED_DEALS = [
+  {
+    title: 'Car Rentals',
+    value: 'Premium Miami vehicles',
+    description: 'High-end cars with concierge pickup and airport delivery.',
+    image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80',
+    href: '/rentals',
+    accent: '#d4af37',
+    glow: 'rgba(212, 175, 55, 0.4)',
+    icon: (
+      <>
+        <path d="M18.92 6.01A1.5 1.5 0 0 0 17.5 5h-11c-.66 0-1.24.42-1.45 1.01L3 12v6.5A1.5 1.5 0 0 0 4.5 20H5a1 1 0 0 0 1-1v-.5h12v.5a1 1 0 0 0 1 1h.5a1.5 1.5 0 0 0 1.5-1.5V12l-2.08-5.99ZM5 11l1.5-4.5h11L19 11H5Z" />
+        <circle cx="6.7" cy="15" r="1.4" fill="#000" />
+        <circle cx="17.3" cy="15" r="1.4" fill="#000" />
+      </>
+    )
+  },
+  {
+    title: 'Yacht Rentals',
+    value: 'Sunset cruising',
+    description: 'Private yacht experiences for nightlife, events, and luxury outings.',
+    image: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=1200&q=80',
+    href: '/yachts',
+    accent: '#38bdf8',
+    glow: 'rgba(56, 189, 248, 0.4)',
+    icon: (
+      <>
+        <path d="M3.5 15.5h17L18.5 20h-13l-2-4.5Z" />
+        <path d="M10.5 4h1v6.5h4l-3.2-5.3.9-.5 4 6.6a.7.7 0 0 1-.6 1.1H8a.7.7 0 0 1-.6-1l2.2-4.4-.7-.3.9-1.8.7.3V4Z" />
+      </>
+    )
+  },
+  {
+    title: 'Sportsbook Bonuses',
+    value: 'Top-tier offers',
+    description: 'Verified sportsbook promos and referral-only bonuses.',
+    image: '/images/featured/sportsbook-bonuses-hard-rock-bet.png',
+    href: '/sportsbook',
+    accent: '#a855f7',
+    glow: 'rgba(168, 85, 247, 0.4)',
+    icon: (
+      <path d="M8 3h8v3.5a4 4 0 0 1-8 0V3Zm-2 .5H3v1.8A4.2 4.2 0 0 0 6.8 9.5M18 3.5h3v1.8A4.2 4.2 0 0 1 17.2 9.5M11 14.5h2v3.5h-2zM8 20.5h8l-1.2-2.5H9.2L8 20.5Z" />
+    )
+  },
+  {
+    title: 'Vacation Rentals',
+    value: 'Luxury stays',
+    description: 'Short-term stays, villas, and premium residences in key markets.',
+    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
+    href: '/vacation-rentals',
+    accent: '#d4af37',
+    glow: 'rgba(212, 175, 55, 0.4)',
+    icon: (
+      <>
+        <path d="M5 20V9.5L11 6v14H5Z" />
+        <rect x="6.4" y="11" width="1.6" height="1.6" fill="#000" />
+        <rect x="6.4" y="14" width="1.6" height="1.6" fill="#000" />
+        <path d="M12 20V9l3.5 4.5V20H12Z" />
+        <path d="M11.5 6c1.5-.8 2-2.4 1.7-3.8 1.4.4 2.6 1.7 2.3 3.3-.2 1.2-1.3 1.9-2.3 2.1L11.5 6Z" />
+      </>
+    )
+  }
 ];
 
 function palmFrond(cx, cy, angleDeg, length, width) {
   const angle = (angleDeg * Math.PI) / 180;
   const tipX = cx + Math.cos(angle) * length;
   const tipY = cy + Math.sin(angle) * length;
-  const midX = cx + Math.cos(angle) * length * 0.55;
-  const midY = cy + Math.sin(angle) * length * 0.55;
+  const midX = cx + Math.cos(angle) * length * 0.52;
+  const midY = cy + Math.sin(angle) * length * 0.52;
   const perp = angle + Math.PI / 2;
   const perpX = Math.cos(perp) * width;
   const perpY = Math.sin(perp) * width;
   return `M ${cx} ${cy} Q ${midX + perpX} ${midY + perpY} ${tipX} ${tipY} Q ${midX - perpX} ${midY - perpY} ${cx} ${cy} Z`;
 }
 
-const PALM_ANGLES = [-165, -140, -110, -80, -50, -20, 5, -195];
+const PALM_ANGLES = [-175, -150, -125, -100, -75, -50, -25, -5, 15, -195];
 
-function PalmTree({ baseX, baseY, trunkHeight, scale = 1, lean = -8 }) {
+function PalmTree({ baseX, baseY, trunkHeight, scale = 1, lean = -10 }) {
   const topX = baseX + Math.sin((lean * Math.PI) / 180) * trunkHeight;
   const topY = baseY - trunkHeight;
   return (
     <g>
       <path
-        d={`M ${baseX - 7} ${baseY} Q ${baseX + lean * 1.2} ${baseY - trunkHeight * 0.55} ${topX} ${topY}`}
+        d={`M ${baseX - 8} ${baseY} Q ${baseX + lean * 1.3} ${baseY - trunkHeight * 0.55} ${topX} ${topY}`}
         stroke="#050403"
-        strokeWidth={9 * scale}
+        strokeWidth={10 * scale}
         fill="none"
         strokeLinecap="round"
       />
       {PALM_ANGLES.map((angle, i) => (
-        <path key={i} d={palmFrond(topX, topY, angle, 95 * scale, 14 * scale)} fill="#050403" />
+        <path key={i} d={palmFrond(topX, topY, angle, 105 * scale, 15 * scale)} fill="#050403" />
       ))}
-      <circle cx={topX} cy={topY} r={7 * scale} fill="#050403" />
+      <circle cx={topX} cy={topY} r={8 * scale} fill="#050403" />
+    </g>
+  );
+}
+
+const BUILDINGS = [
+  { x: 20, y: 300, w: 34, h: 160, top: 'flat' },
+  { x: 60, y: 260, w: 26, h: 200, top: 'flat' },
+  { x: 92, y: 320, w: 30, h: 140, top: 'flat' },
+  { x: 128, y: 230, w: 40, h: 230, top: 'setback' },
+  { x: 174, y: 280, w: 28, h: 180, top: 'flat' },
+  { x: 208, y: 160, w: 46, h: 300, top: 'spire' },
+  { x: 260, y: 250, w: 30, h: 210, top: 'flat' },
+  { x: 296, y: 120, w: 52, h: 340, top: 'crown' },
+  { x: 354, y: 260, w: 32, h: 200, top: 'flat' },
+  { x: 392, y: 195, w: 42, h: 265, top: 'setback' },
+  { x: 440, y: 270, w: 26, h: 190, top: 'flat' },
+  { x: 472, y: 175, w: 44, h: 285, top: 'crown' },
+  { x: 522, y: 250, w: 28, h: 210, top: 'flat' },
+  { x: 556, y: 300, w: 34, h: 160, top: 'flat' },
+  { x: 596, y: 240, w: 30, h: 220, top: 'setback' },
+  { x: 632, y: 290, w: 26, h: 170, top: 'flat' }
+];
+
+function Building({ x, y, w, h, top }) {
+  const windows = [];
+  const rows = Math.max(3, Math.floor(h / 22));
+  const cols = Math.max(2, Math.floor(w / 12));
+  for (let r = 0; r < rows; r += 1) {
+    for (let c = 0; c < cols; c += 1) {
+      if ((r + c) % 3 === 0) continue;
+      const lit = r < 2 || (r + c) % 4 === 1;
+      windows.push(
+        <rect
+          key={`${r}-${c}`}
+          x={x + 4 + c * (w / cols)}
+          y={y + 10 + r * 21}
+          width="3.5"
+          height="6"
+          fill="#d4af37"
+          opacity={lit ? 0.2 + ((r * c) % 4) * 0.14 : 0.05}
+        />
+      );
+    }
+  }
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} fill="#0c0904" />
+      {top === 'crown' && <rect x={x} y={y} width={w} height={16} fill="#d4af37" opacity="0.45" />}
+      {top === 'setback' && <rect x={x + w * 0.2} y={y - 18} width={w * 0.6} height={18} fill="#0c0904" />}
+      {top === 'spire' && <rect x={x + w / 2 - 1.5} y={y - 40} width="3" height="40" fill="#d4af37" opacity="0.6" />}
+      {windows}
     </g>
   );
 }
@@ -63,115 +175,34 @@ function SkylineIllustration() {
     <svg viewBox="0 0 700 560" preserveAspectRatio="xMidYMax slice" className="absolute inset-0 h-full w-full">
       <defs>
         <linearGradient id="dp-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#0a0704" />
-          <stop offset="55%" stopColor="#1a1006" />
-          <stop offset="100%" stopColor="#3a2408" />
+          <stop offset="0%" stopColor="#08050a" />
+          <stop offset="45%" stopColor="#1c1004" />
+          <stop offset="78%" stopColor="#4a2c05" />
+          <stop offset="100%" stopColor="#6b3f06" />
         </linearGradient>
         <linearGradient id="dp-water" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#241605" />
+          <stop offset="0%" stopColor="#3a2308" />
           <stop offset="100%" stopColor="#050505" />
         </linearGradient>
-      </defs>
-      <rect x="0" y="0" width="700" height="560" fill="url(#dp-sky)" />
-      {[
-        [40, 300, 34, 160], [80, 260, 26, 200], [112, 320, 30, 140],
-        [148, 230, 40, 230], [194, 280, 28, 180], [228, 200, 46, 260],
-        [280, 250, 30, 210], [316, 180, 50, 280], [372, 260, 32, 200],
-        [410, 220, 40, 240], [456, 270, 26, 190], [488, 190, 44, 270],
-        [538, 250, 28, 210], [572, 300, 34, 160], [612, 260, 26, 200]
-      ].map(([x, y, w, h], i) => (
-        <g key={i}>
-          <rect x={x} y={y} width={w} height={h} fill="#0c0904" />
-          {Array.from({ length: Math.max(2, Math.floor(h / 26)) }).map((_, r) =>
-            Array.from({ length: Math.max(1, Math.floor(w / 14)) }).map((_, c) => (
-              (r + c) % 3 !== 0 ? (
-                <rect
-                  key={`${r}-${c}`}
-                  x={x + 4 + c * 13}
-                  y={y + 8 + r * 24}
-                  width="4"
-                  height="6"
-                  fill="#d4af37"
-                  opacity={0.15 + ((r * c) % 4) * 0.12}
-                />
-              ) : null
-            ))
-          )}
-        </g>
-      ))}
-      <rect x="0" y="440" width="700" height="120" fill="url(#dp-water)" />
-      <rect x="0" y="440" width="700" height="3" fill="#d4af37" opacity="0.35" />
-      <g opacity="0.22" transform="translate(0,460) scale(1,-1)">
-        {[
-          [40, -140, 34, 160], [148, -110, 40, 230], [228, -80, 46, 260],
-          [316, -60, 50, 280], [410, -100, 40, 240], [488, -70, 44, 270]
-        ].map(([x, y, w, h], i) => (
-          <rect key={i} x={x} y={y} width={w} height={h} fill="#d4af37" />
-        ))}
-      </g>
-      <PalmTree baseX={70} baseY={562} trunkHeight={230} scale={1.15} lean={-14} />
-      <PalmTree baseX={150} baseY={562} trunkHeight={165} scale={0.85} lean={10} />
-      <rect x="0" y="0" width="700" height="560" fill="url(#dp-fade)" />
-      <defs>
         <linearGradient id="dp-fade" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#050505" stopOpacity="0.15" />
-          <stop offset="58%" stopColor="#050505" stopOpacity="0.55" />
+          <stop offset="0%" stopColor="#050505" stopOpacity="0.1" />
+          <stop offset="55%" stopColor="#050505" stopOpacity="0.5" />
           <stop offset="100%" stopColor="#050505" stopOpacity="0.97" />
         </linearGradient>
       </defs>
-    </svg>
-  );
-}
-
-function AbstractIllustration() {
-  return (
-    <div className="absolute inset-0">
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(60% 55% at 15% 30%, rgba(212,175,55,0.42), transparent 60%),' +
-            'radial-gradient(45% 40% at 35% 80%, rgba(212,175,55,0.26), transparent 65%),' +
-            'radial-gradient(70% 60% at 0% 100%, rgba(255,255,255,0.08), transparent 60%),' +
-            '#050505'
-        }}
-      />
-      <div
-        className="absolute inset-0 opacity-60"
-        style={{
-          background:
-            'repeating-linear-gradient(115deg, rgba(212,175,55,0.09) 0px, rgba(212,175,55,0.09) 2px, transparent 2px, transparent 26px)'
-        }}
-      />
-      <div className="absolute left-[6%] top-[14%] h-48 w-48 rounded-full bg-brand-gold/35 blur-3xl" />
-      <div className="absolute left-[20%] top-[52%] h-64 w-64 rounded-full bg-brand-gold/22 blur-3xl" />
-      <div className="absolute left-[0%] bottom-[4%] h-36 w-72 rounded-full bg-white/8 blur-3xl" />
-      <svg viewBox="0 0 700 560" preserveAspectRatio="xMidYMax slice" className="absolute inset-0 h-full w-full opacity-70">
-        <path d="M0 480 C 120 420 220 460 340 400 S 560 340 700 380" stroke="#d4af37" strokeWidth="1.5" fill="none" opacity="0.5" />
-        <path d="M0 520 C 140 470 260 500 380 450 S 580 400 700 430" stroke="#d4af37" strokeWidth="1" fill="none" opacity="0.3" />
-      </svg>
-      <div
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(90deg, rgba(5,5,5,0.15) 0%, rgba(5,5,5,0.55) 58%, rgba(5,5,5,0.97) 100%)'
-        }}
-      />
-    </div>
-  );
-}
-
-const FLORIDA_PATH = 'M12 58 L18 46 L70 32 L118 40 L134 44 C142 46 148 52 150 60 C154 76 148 90 156 104 C166 122 172 140 170 160 C168 182 178 200 174 222 C170 246 176 268 166 290 C160 304 150 316 140 322 C132 326 126 320 124 310 C122 296 128 282 120 272 C112 262 100 266 94 278 C88 290 76 296 66 288 C58 282 60 270 52 262 C42 252 30 250 24 236 C18 222 26 208 18 194 C10 180 6 164 12 148 C18 132 8 118 12 102 C16 88 8 74 12 58 Z';
-
-function FloridaMap() {
-  return (
-    <svg viewBox="0 0 190 340" className="h-full w-full">
-      <path d={FLORIDA_PATH} fill="#d4af37" fillOpacity="0.08" stroke="#d4af37" strokeOpacity="0.6" strokeWidth="1.75" strokeLinejoin="round" />
-      <circle cx="150" cy="60" r="1.6" fill="#d4af37" opacity="0.7" />
-      <circle cx="134" cy="300" r="5" fill="#d4af37" />
-      <circle cx="134" cy="300" r="5" fill="none" stroke="#d4af37" strokeOpacity="0.6">
-        <animate attributeName="r" values="6;18;6" dur="2.4s" repeatCount="indefinite" />
-        <animate attributeName="opacity" values="0.7;0;0.7" dur="2.4s" repeatCount="indefinite" />
-      </circle>
+      <rect x="0" y="0" width="700" height="560" fill="url(#dp-sky)" />
+      {BUILDINGS.map((b, i) => <Building key={i} {...b} />)}
+      <rect x="0" y="440" width="700" height="120" fill="url(#dp-water)" />
+      <rect x="0" y="440" width="700" height="3" fill="#d4af37" opacity="0.4" />
+      <g opacity="0.22" transform="translate(0,460) scale(1,-1)">
+        {BUILDINGS.filter((_, i) => i % 2 === 0).map((b, i) => (
+          <rect key={i} x={b.x} y={-(b.h * 0.6)} width={b.w} height={b.h * 0.6} fill="#d4af37" />
+        ))}
+      </g>
+      <PalmTree baseX={72} baseY={565} trunkHeight={250} scale={1.25} lean={-16} />
+      <PalmTree baseX={158} baseY={565} trunkHeight={175} scale={0.9} lean={12} />
+      <PalmTree baseX={20} baseY={568} trunkHeight={120} scale={0.6} lean={-22} />
+      <rect x="0" y="0" width="700" height="560" fill="url(#dp-fade)" />
     </svg>
   );
 }
@@ -179,35 +210,17 @@ function FloridaMap() {
 export default function HomepagePreviewDraft() {
   const locale = useLocale();
   const t = getTranslation(locale);
-  const [variant, setVariant] = useState('skyline');
 
   return (
     <main className="flex-1">
-      <div className="sticky top-0 z-50 -mx-4 mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-brand-gold/30 bg-black/90 px-4 py-3 backdrop-blur sm:-mx-6 lg:-mx-8 lg:px-8">
+      <div className="sticky top-0 z-50 -mx-4 mb-6 border-b border-brand-gold/30 bg-black/90 px-4 py-3 text-center backdrop-blur sm:-mx-6 lg:-mx-8 lg:px-8">
         <p className="text-xs uppercase tracking-[0.2em] text-brand-gold">
           Draft preview — not the live homepage
         </p>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-400">Hero visual:</span>
-          <button
-            type="button"
-            onClick={() => setVariant('skyline')}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${variant === 'skyline' ? 'border-brand-gold bg-brand-gold text-black' : 'border-white/20 text-zinc-300 hover:border-brand-gold/50'}`}
-          >
-            A · Skyline
-          </button>
-          <button
-            type="button"
-            onClick={() => setVariant('abstract')}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${variant === 'abstract' ? 'border-brand-gold bg-brand-gold text-black' : 'border-white/20 text-zinc-300 hover:border-brand-gold/50'}`}
-          >
-            B · Abstract
-          </button>
-        </div>
       </div>
 
       <section className="market-shell relative overflow-hidden rounded-[2rem] border-brand-gold/20">
-        {variant === 'skyline' ? <SkylineIllustration /> : <AbstractIllustration />}
+        <SkylineIllustration />
 
         <div className="relative z-10 px-6 py-14 sm:px-10 lg:px-16 lg:py-20">
           <p className="market-pill mb-5">Global deals • Promo codes • Lifestyle offers</p>
@@ -248,41 +261,48 @@ export default function HomepagePreviewDraft() {
         </div>
       </section>
 
-      <section className="py-10">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-gold">Featured Deals</p>
-        <div className="market-shell mt-6 flex flex-col overflow-hidden rounded-[2rem] border-brand-gold/20 lg:flex-row lg:items-stretch">
-          <div className="flex items-center justify-center bg-black/60 p-6 lg:w-2/5">
-            <div className="flex w-full max-w-[220px] flex-col items-center text-center">
-              <div className="h-64 w-full">
-                <FloridaMap />
-              </div>
-              <p className="mt-3 text-sm font-bold uppercase tracking-[0.2em] text-brand-gold">Miami</p>
-              <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">Florida</p>
-            </div>
-          </div>
-          <div className="flex flex-1 flex-col justify-center gap-4 border-t border-white/10 p-6 lg:border-l lg:border-t-0 lg:p-8">
-            {COMPACT_DEALS.map((item) => (
-              <Link
-                key={item.title}
-                href={item.href}
-                className="featured-deal-card group flex items-center justify-between rounded-xl px-5 py-4"
-                style={{ '--fd-accent': item.accent, '--fd-glow': `${item.accent}66` }}
-              >
-                <div className="min-w-0">
-                  <p className="font-semibold text-white">{item.title}</p>
-                  <p className="text-sm" style={{ color: item.accent }}>{item.value}</p>
-                </div>
+      <section className="py-6">
+        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-gold">{t.home.featured}</p>
+        <div className="mt-6 space-y-5">
+          {FEATURED_DEALS.map((item) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              className="featured-deal-card group relative flex flex-col overflow-hidden rounded-2xl sm:flex-row sm:items-stretch"
+              style={{ '--fd-accent': item.accent, '--fd-glow': item.glow }}
+            >
+              <div className="flex flex-1 items-center gap-5 px-6 py-7 sm:px-8">
                 <span
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border bg-black/60"
+                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2"
                   style={{ borderColor: item.accent, color: item.accent }}
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                    <path d="M9 6l6 6-6 6" />
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7">
+                    {item.icon}
                   </svg>
                 </span>
-              </Link>
-            ))}
-          </div>
+                <div className="min-w-0">
+                  <p className="text-xl font-bold text-white sm:text-2xl">{item.title}</p>
+                  <p className="mt-1 text-base font-medium sm:text-lg" style={{ color: item.accent }}>{item.value}</p>
+                  <p className="mt-2 max-w-md text-sm text-zinc-400">{item.description}</p>
+                </div>
+              </div>
+              <div className="relative h-40 w-full shrink-0 sm:h-auto sm:w-[42%]">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.05]"
+                />
+              </div>
+              <span
+                className="absolute right-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-black/60 backdrop-blur sm:flex"
+                style={{ borderColor: item.accent, color: item.accent }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 
