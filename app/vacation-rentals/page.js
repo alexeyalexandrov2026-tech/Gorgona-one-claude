@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getVacationRentals } from '../../lib/vacationRentalsData';
 import { getServerTranslation } from '../../lib/serverLocale';
+import { SectionHero } from '../components/SectionHero';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,14 +10,15 @@ export default function VacationRentalsPage() {
   const { t } = getServerTranslation();
 
   return (
-    <main className="flex-1 py-10">
-      <div className="market-shell mb-8 rounded-[2rem] p-8">
-        <p className="market-pill">{t.vacationRentals.pill}</p>
-        <h1 className="market-title mt-4">{t.vacationRentals.title}</h1>
-        <p className="market-subtitle">{t.vacationRentals.subtitle}</p>
-      </div>
+    <main className="flex-1 theme-villa">
+      <SectionHero
+        eyebrow={t.vacationRentals.pill}
+        title={t.vacationRentals.title}
+        subtitle={t.vacationRentals.subtitle}
+        image="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=2400&q=80"
+      />
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-6 py-8 md:grid-cols-2 xl:grid-cols-3">
         {properties.map((item) => (
           <article key={item.id} className="market-card overflow-hidden rounded-[1.5rem]">
             <img src={item.image} alt={item.title} className="h-48 w-full object-cover" />

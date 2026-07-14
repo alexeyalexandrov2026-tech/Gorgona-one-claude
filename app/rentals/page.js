@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getRentals } from '../../lib/rentalsData';
 import { rentalDescriptions, getContentText } from '../../lib/contentTranslations';
 import { getServerTranslation } from '../../lib/serverLocale';
+import { SectionHero } from '../components/SectionHero';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,14 +11,16 @@ export default function RentalsPage() {
   const { t, locale } = getServerTranslation();
 
   return (
-    <main className="flex-1 py-10">
-      <div className="market-shell mb-8 rounded-[2rem] p-8">
-        <p className="market-pill">{t.rentals.pill}</p>
-        <h1 className="market-title mt-4">{t.rentals.title}</h1>
-        <p className="market-subtitle">{t.rentals.subtitle}</p>
-      </div>
+    <main className="flex-1 theme-car">
+      <SectionHero
+        eyebrow={t.rentals.pill}
+        kicker="BMW browsing · Ferrari cinematic detail"
+        title={t.rentals.title}
+        subtitle={t.rentals.subtitle}
+        image="https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=2400&q=80"
+      />
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-6 py-8 md:grid-cols-2 xl:grid-cols-3">
         {rentals.map((item) => (
           <article key={item.id} className="market-card overflow-hidden rounded-[1.5rem]">
             <img src={item.image} alt={item.title} className="h-48 w-full object-cover" />

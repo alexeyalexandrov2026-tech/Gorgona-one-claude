@@ -3,7 +3,7 @@ import { categories, allDeals } from '../lib/dealsData';
 import { EVENT_CATEGORIES, LEAGUES, getAllEvents } from '../lib/eventsData';
 
 export default function sitemap() {
-  const baseUrl = 'https://gorgona-one.vercel.app';
+  const baseUrl = 'https://gorgona-one.com';
   const routes = [
     '',
     '/stores',

@@ -5,6 +5,6 @@ export default function robots() {
       allow: '/',
       disallow: ['/admin']
     },
-    sitemap: 'https://gorgona-one.vercel.app/sitemap.xml'
+    sitemap: 'https://gorgona-one.com/sitemap.xml'
   };
 }

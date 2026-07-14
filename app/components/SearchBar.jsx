@@ -26,7 +26,12 @@ function camelizeSlug(slug) {
 // Temporarily held out of the Search Results preview only - pending
 // replacement brands. Left in lib/dealsData.js and every other section
 // (Stores, Coupons, etc.) untouched.
-const HIDDEN_FROM_SEARCH_RESULTS = ['Target', 'Newegg', 'Macy’s', 'Nordstrom'];
+// Best Buy: replaced in this preview by the Ovago card below (Best Buy
+// stays fully intact in Stores and everywhere else). Ovago: added here too
+// since it's a real lib/dealsData.js travel entry now - hiding it from this
+// capped 6-item window avoids it duplicating the dedicated card below;
+// its real listing still renders in full on /stores/travel.
+const HIDDEN_FROM_SEARCH_RESULTS = ['Target', 'Newegg', 'Macy’s', 'Nordstrom', 'Best Buy', 'Ovago'];
 
 // Fills one of the slots freed up above with the new KXC partner card.
 // Scoped to the Search Results preview only, same as the hidden list.
@@ -67,6 +72,28 @@ function buildRentcarsDeal(t) {
     promoCode: '',
     discount: 'Worldwide car rental deals',
     href: RENTCARS_AFFILIATE_LINK
+  };
+}
+
+// Fills the Search Results slot freed up by hiding Best Buy above. Scoped to
+// the Search Results preview only, same as the hidden list. Links to
+// Ovago's own profile page (below), which hosts its real deals and their
+// individual affiliate links, rather than a single generic href here.
+function buildOvagoDeal(t) {
+  const category = t.categories.travel;
+  const name = 'Ovago';
+  return {
+    id: 'ovago-travel',
+    name,
+    logo: '/images/brands/ovago-travel.svg',
+    // Ovago's mark is dark on transparent, same situation as KXC above - it
+    // needs the white backing plate to read on the dark cards.
+    logoOnSolid: true,
+    description: t.category.dealDescriptionTemplate.replace('{name}', name).replace('{category}', category),
+    category,
+    promoCode: '',
+    discount: 'Flight deals and discounts',
+    href: '/travel/ovago'
   };
 }
 
@@ -196,9 +223,14 @@ export function SearchBar() {
     const rentcarsMatches = (activeCategory === 'all' || activeCategory === 'shopping')
       && (!normalized || [rentcars.name, rentcars.category, rentcars.description, rentcars.discount].join(' ').toLowerCase().includes(normalized));
 
+    const ovago = buildOvagoDeal(t);
+    const ovagoMatches = activeCategory === 'all'
+      && (!normalized || [ovago.name, ovago.category, ovago.description, ovago.discount].join(' ').toLowerCase().includes(normalized));
+
     const withKxc = kxcMatches ? [...windowed, kxc] : windowed;
     const withRentcars = rentcarsMatches ? [...withKxc, rentcars] : withKxc;
-    return withRentcars.slice(0, 6);
+    const withOvago = ovagoMatches ? [...withRentcars, ovago] : withRentcars;
+    return withOvago.slice(0, 6);
   }, [activeCategory, query, t]);
 
   const popularSearches = POPULAR_SEARCH_LINKS.map((item) => ({ ...item, label: t.search.popular[item.key] }));
