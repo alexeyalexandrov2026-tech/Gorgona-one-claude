@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { categories, featuredDeals } from '../../lib/dealsData';
 import { SearchBar } from '../components/SearchBar';
 import { StoreCard } from '../components/StoreCard';
+import { SectionHero } from '../components/SectionHero';
 import { getServerTranslation } from '../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
@@ -43,13 +44,15 @@ export default function StoresPage() {
   const { t } = getServerTranslation();
 
   return (
-    <main className="flex-1 py-10">
-      <div className="market-shell mb-8 rounded-[2rem] p-8">
-        <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">{t.category.storesDirectory}</p>
-        <h1 className="mt-2 text-3xl font-semibold text-white">{t.category.exploreStores}</h1>
-      </div>
+    <main className="flex-1 theme-shopping">
+      <SectionHero
+        eyebrow={t.category.storesDirectory}
+        title={t.category.exploreStores}
+        kicker="Editorial discovery · Fashion · Technology · Lifestyle"
+        image="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=2400&q=80"
+      />
 
-      <div className="mb-8">
+      <div className="mb-8 mt-8">
         <SearchBar />
       </div>
 

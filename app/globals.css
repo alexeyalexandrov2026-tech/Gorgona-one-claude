@@ -163,3 +163,237 @@ a {
     transform: translateY(-2px);
   }
 }
+
+/* ============================================================
+   GORGONA ONE — unified luxury design system
+   One cinematic dark ecosystem; each section carries its own
+   accent + typographic signature migrated from its reference.
+   ============================================================ */
+
+@layer utilities {
+  /* Break a block out of the centered max-w-7xl shell to full viewport width */
+  .full-bleed {
+    width: 100vw;
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@layer components {
+  /* ---- Shared luxury primitives ---- */
+  .lux-section {
+    --lux-accent: #d4af37;
+    --lux-accent-soft: rgba(212, 175, 55, 0.14);
+  }
+
+  .lux-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.62rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.34em;
+    color: var(--lux-accent);
+  }
+
+  .lux-eyebrow::before {
+    content: '';
+    width: 1.75rem;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.6;
+  }
+
+  .lux-display {
+    font-family: var(--font-display), sans-serif;
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: #fff;
+  }
+
+  .lux-kicker {
+    font-family: var(--font-display), sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #fff;
+  }
+
+  .lux-lede {
+    max-width: 42rem;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: rgb(212 212 216);
+  }
+
+  .lux-hairline {
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+  }
+
+  .lux-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-radius: 9999px;
+    background: var(--lux-accent);
+    padding: 0.85rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #050505;
+    transition: transform 200ms ease, box-shadow 200ms ease, opacity 200ms ease;
+  }
+
+  .lux-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 40px -12px var(--lux-accent);
+  }
+
+  .lux-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 0.85rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #fff;
+    transition: border-color 200ms ease, color 200ms ease, background-color 200ms ease;
+  }
+
+  .lux-btn-ghost:hover {
+    border-color: var(--lux-accent);
+    color: var(--lux-accent);
+    background: var(--lux-accent-soft);
+  }
+
+  /* Premium experience tile used on the homepage section grid */
+  .lux-tile {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 1.5rem;
+    background: rgba(9, 9, 9, 0.6);
+    transition: border-color 320ms ease, transform 320ms ease;
+  }
+
+  .lux-tile:hover {
+    border-color: color-mix(in srgb, var(--lux-accent) 55%, transparent);
+    transform: translateY(-4px);
+  }
+
+  .lux-tile__media {
+    position: absolute;
+    inset: 0;
+    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .lux-tile:hover .lux-tile__media {
+    transform: scale(1.06);
+  }
+
+  .lux-tile__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.55) 62%, rgba(0, 0, 0, 0.92) 100%);
+  }
+
+  .lux-tile__glow {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    background: radial-gradient(60% 55% at 30% 20%, var(--lux-accent-soft), transparent 70%);
+    transition: opacity 400ms ease;
+  }
+
+  .lux-tile:hover .lux-tile__glow {
+    opacity: 1;
+  }
+
+  /* ---- Section accent themes ---- */
+  .theme-home {
+    --lux-accent: #e8552b;
+    --lux-accent-soft: rgba(232, 85, 43, 0.16);
+  }
+
+  .theme-travel {
+    --lux-accent: #af50ff;
+    --lux-accent-soft: rgba(175, 80, 255, 0.16);
+  }
+
+  .theme-shopping {
+    --lux-accent: #e7ecea;
+    --lux-accent-soft: rgba(231, 236, 234, 0.12);
+  }
+
+  .theme-villa {
+    --lux-accent: #f9f5f2;
+    --lux-accent-soft: rgba(249, 245, 242, 0.1);
+  }
+
+  .theme-yacht {
+    --lux-accent: #7dd3fc;
+    --lux-accent-soft: rgba(3, 30, 37, 0.55);
+  }
+
+  .theme-car {
+    --lux-accent: #e6e6e6;
+    --lux-accent-soft: rgba(241, 241, 241, 0.1);
+  }
+
+  .theme-ferrari {
+    --lux-accent: #da291c;
+    --lux-accent-soft: rgba(218, 41, 28, 0.16);
+  }
+
+  .theme-sportsbook {
+    --lux-accent: #a855f7;
+    --lux-accent-soft: rgba(168, 85, 247, 0.16);
+  }
+
+  .theme-events {
+    --lux-accent: #d4af37;
+    --lux-accent-soft: rgba(212, 175, 55, 0.14);
+  }
+
+  .theme-concierge {
+    --lux-accent: #d4af37;
+    --lux-accent-soft: rgba(212, 175, 55, 0.14);
+  }
+
+  /* Editorial full-bleed hero shell (used across section landings) */
+  .lux-hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .lux-hero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+  }
+
+  .lux-hero__grain {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.5;
+    background:
+      radial-gradient(120% 120% at 50% 0%, transparent 55%, rgba(0, 0, 0, 0.85) 100%),
+      radial-gradient(60% 50% at 20% 15%, var(--lux-accent-soft), transparent 60%);
+  }
+
+  /* Ferrari-style uppercase editorial caption */
+  .lux-caption-upper {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.24em;
+    font-size: 0.7rem;
+    color: var(--lux-accent);
+  }
+}

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { sportsbooks } from '../../lib/mockData';
 import { sportsbookDescriptions, getContentText } from '../../lib/contentTranslations';
 import { getServerTranslation } from '../../lib/serverLocale';
+import { SectionHero } from '../components/SectionHero';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,13 +79,14 @@ export default function SportsbookPage() {
   const { t, locale } = getServerTranslation();
 
   return (
-    <main className="flex-1 py-10">
-      <div className="mb-8">
-        <p className="text-sm uppercase tracking-[0.3em] text-brand-gold">{t.sportsbookPage.pill}</p>
-        <h1 className="mt-2 text-3xl font-semibold text-white">{t.sportsbookPage.title}</h1>
-        <p className="mt-3 max-w-2xl text-zinc-400">{t.sportsbookPage.subtitle}</p>
-      </div>
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+    <main className="flex-1 theme-sportsbook">
+      <SectionHero
+        eyebrow={t.sportsbookPage.pill}
+        title={t.sportsbookPage.title}
+        subtitle={t.sportsbookPage.subtitle}
+        image="https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=2400&q=80"
+      />
+      <div className="grid gap-6 py-8 md:grid-cols-2 xl:grid-cols-3">
         {sportsbooks.map((book) => {
           const style = SPORTSBOOK_BANNER_STYLES[book.slug];
           return (

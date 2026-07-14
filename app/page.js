@@ -1,8 +1,11 @@
 "use client";
 
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { SearchBar } from './components/SearchBar';
-import { categories, featuredDeals } from '../lib/dealsData';
+import { Reveal, Stagger, StaggerItem, RiseMask, Parallax } from './components/Motion';
+import { categories } from '../lib/dealsData';
+import { ecosystem } from '../lib/ecosystemData';
 import { getTranslation } from '../lib/i18n';
 import { useLocale } from './components/LocaleProvider';
 
@@ -10,178 +13,172 @@ function camelizeSlug(slug) {
   return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
-// Featured Deals row data - reuses the same lead image already used for
-// each category's own featured listing (lib/rentalsData.js, lib/yachtsData.js,
-// lib/vacationRentalsData.js) so no new imagery is introduced. Sportsbook
-// Bonuses uses a dedicated Hard Rock Bet promo image
-// (public/images/featured/sportsbook-bonuses-hard-rock-bet.png) that is
-// only referenced here - it does not touch public/images/brands, which
-// still serves the sportsbook directory, profile cards, deals grid, and
-// Search Results.
-const FEATURED_DEALS = [
-  {
-    title: 'Car Rentals',
-    value: 'Premium Miami vehicles',
-    description: 'High-end cars with concierge pickup and airport delivery.',
-    image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80',
-    href: '/rentals',
-    accent: '#d4af37',
-    glow: 'rgba(212, 175, 55, 0.4)',
-    icon: (
-      <>
-        <path d="M18.92 6.01A1.5 1.5 0 0 0 17.5 5h-11c-.66 0-1.24.42-1.45 1.01L3 12v6.5A1.5 1.5 0 0 0 4.5 20H5a1 1 0 0 0 1-1v-.5h12v.5a1 1 0 0 0 1 1h.5a1.5 1.5 0 0 0 1.5-1.5V12l-2.08-5.99ZM5 11l1.5-4.5h11L19 11H5Z" />
-        <circle cx="6.7" cy="15" r="1.4" fill="#000" />
-        <circle cx="17.3" cy="15" r="1.4" fill="#000" />
-      </>
-    )
-  },
-  {
-    title: 'Yacht Rentals',
-    value: 'Sunset cruising',
-    description: 'Private yacht experiences for nightlife, events, and luxury outings.',
-    image: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=1200&q=80',
-    href: '/yachts',
-    accent: '#38bdf8',
-    glow: 'rgba(56, 189, 248, 0.4)',
-    icon: (
-      <>
-        <path d="M3.5 15.5h17L18.5 20h-13l-2-4.5Z" />
-        <path d="M10.5 4h1v6.5h4l-3.2-5.3.9-.5 4 6.6a.7.7 0 0 1-.6 1.1H8a.7.7 0 0 1-.6-1l2.2-4.4-.7-.3.9-1.8.7.3V4Z" />
-      </>
-    )
-  },
-  {
-    title: 'Sportsbook Bonuses',
-    value: 'Top-tier offers',
-    description: 'Verified sportsbook promos and referral-only bonuses.',
-    image: '/images/featured/sportsbook-bonuses-hard-rock-bet.png',
-    href: '/sportsbook',
-    accent: '#a855f7',
-    glow: 'rgba(168, 85, 247, 0.4)',
-    icon: (
-      <path d="M8 3h8v3.5a4 4 0 0 1-8 0V3Zm-2 .5H3v1.8A4.2 4.2 0 0 0 6.8 9.5M18 3.5h3v1.8A4.2 4.2 0 0 1 17.2 9.5M11 14.5h2v3.5h-2zM8 20.5h8l-1.2-2.5H9.2L8 20.5Z" />
-    )
-  },
-  {
-    title: 'Vacation Rentals',
-    value: 'Luxury stays',
-    description: 'Short-term stays, villas, and premium residences in key markets.',
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
-    href: '/vacation-rentals',
-    accent: '#d4af37',
-    glow: 'rgba(212, 175, 55, 0.4)',
-    icon: (
-      <>
-        <path d="M5 20V9.5L11 6v14H5Z" />
-        <rect x="6.4" y="11" width="1.6" height="1.6" fill="#000" />
-        <rect x="6.4" y="14" width="1.6" height="1.6" fill="#000" />
-        <path d="M12 20V9l3.5 4.5V20H12Z" />
-        <path d="M11.5 6c1.5-.8 2-2.4 1.7-3.8 1.4.4 2.6 1.7 2.3 3.3-.2 1.2-1.3 1.9-2.3 2.1L11.5 6Z" />
-      </>
-    )
-  }
-];
+const ArrowIcon = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </svg>
+);
 
 export default function HomePage() {
   const locale = useLocale();
   const t = getTranslation(locale);
 
   return (
-    <main className="flex-1">
-      <section className="py-16 lg:py-20">
-        <p className="market-pill mb-4">
-          Global deals • Promo codes • Lifestyle offers
-        </p>
-        <h1 className="market-title text-4xl sm:text-5xl lg:text-6xl">
-          {t.home.heroTitle}
-        </h1>
-        <p className="market-subtitle text-xl">{t.home.heroSubtitle}</p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/stores" className="market-button">Explore Marketplace</Link>
-          <Link href="/coupons" className="market-button-secondary">Browse Deals</Link>
-          <Link href="/partner" className="market-button-secondary border-brand-gold/40 text-brand-gold hover:bg-brand-gold hover:text-black">Join as Partner</Link>
+    <main className="flex-1 theme-home">
+      {/* ===== Cinematic hero — Planhat editorial foundation ===== */}
+      <section className="lux-hero full-bleed -mt-[60px] flex min-h-[92vh] items-end">
+        <div className="lux-hero__bg">
+          <Parallax distance={80} className="h-full">
+            <img
+              src="https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=2400&q=80"
+              alt=""
+              className="h-[115%] w-full object-cover"
+            />
+          </Parallax>
         </div>
-      </section>
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/70 via-black/45 to-[#050505]" />
+        <div className="lux-hero__grain" />
 
-      <section className="py-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand-gold">{t.home.featured}</p>
-        <div className="mt-6 space-y-5">
-          {FEATURED_DEALS.map((item) => (
-            <Link
-              key={item.title}
-              href={item.href}
-              className="featured-deal-card group relative flex flex-col overflow-hidden rounded-2xl sm:flex-row sm:items-stretch"
-              style={{ '--fd-accent': item.accent, '--fd-glow': item.glow }}
+        <div className="mx-auto w-full max-w-7xl px-4 pb-24 pt-40 sm:px-6 lg:px-8">
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="lux-eyebrow"
+          >
+            Global deals · Promo codes · Lifestyle offers
+          </motion.p>
+
+          <h1 className="lux-display mt-6 text-[15vw] leading-[0.88] sm:text-7xl lg:text-8xl">
+            <RiseMask delay={0.05}>GORGONA</RiseMask>
+            <RiseMask delay={0.15} className="text-brand-gold">ONE</RiseMask>
+          </h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="lux-lede mt-8 text-lg sm:text-xl"
+          >
+            {t.home.heroSubtitle}
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.42, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-10 flex flex-wrap gap-3"
+          >
+            <Link href="/stores" className="lux-btn">Explore Marketplace <ArrowIcon className="h-4 w-4" /></Link>
+            <Link href="/coupons" className="lux-btn-ghost">Browse Deals</Link>
+            <Link href="/concierge" className="lux-btn-ghost">Ask the Concierge</Link>
+          </motion.div>
+
+          <div className="mt-16 flex items-center gap-3 text-zinc-500">
+            <span className="font-mono text-[0.65rem] uppercase tracking-[0.3em]">Scroll to explore</span>
+            <motion.span
+              animate={{ y: [0, 6, 0] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+              className="text-brand-gold"
             >
-              <div className="flex flex-1 items-center gap-5 px-6 py-7 sm:px-8">
-                <span
-                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2"
-                  style={{ borderColor: item.accent, color: item.accent }}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7">
-                    {item.icon}
-                  </svg>
-                </span>
-                <div className="min-w-0">
-                  <p className="text-xl font-bold text-white sm:text-2xl">{item.title}</p>
-                  <p className="mt-1 text-base font-medium sm:text-lg" style={{ color: item.accent }}>{item.value}</p>
-                  <p className="mt-2 max-w-md text-sm text-zinc-400">{item.description}</p>
+              <ArrowIcon className="h-4 w-4 rotate-90" />
+            </motion.span>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== The ecosystem — eight worlds ===== */}
+      <section className="py-20 lg:py-28">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div>
+            <p className="lux-eyebrow">The Ecosystem</p>
+            <h2 className="lux-display mt-5 max-w-2xl text-4xl sm:text-5xl">
+              Eight worlds. One membership.
+            </h2>
+          </div>
+          <p className="lux-lede text-base md:text-right">
+            Travel, shopping, stays, yachts, cars, sportsbooks, events and an AI concierge — every experience wrapped in
+            a single luxury design language.
+          </p>
+        </div>
+
+        <Stagger className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" gap={0.07}>
+          {ecosystem.map((item) => (
+            <StaggerItem key={item.id} className={item.theme}>
+              <Link href={item.href} className="lux-tile group flex h-[300px] flex-col justify-end p-6">
+                <div className="lux-tile__media">
+                  <img src={item.image} alt={item.label} className="h-full w-full object-cover" />
                 </div>
-              </div>
-              <div className="relative h-40 w-full shrink-0 sm:h-auto sm:w-[42%]">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.05]"
-                />
-              </div>
-              <span
-                className="absolute right-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border bg-black/60 backdrop-blur sm:flex"
-                style={{ borderColor: item.accent, color: item.accent }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <path d="M9 6l6 6-6 6" />
-                </svg>
-              </span>
-            </Link>
+                <div className="lux-tile__scrim" />
+                <div className="lux-tile__glow" />
+                <div className="relative">
+                  <p className="lux-caption-upper">{item.tagline}</p>
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <h3 className="font-display text-xl font-semibold tracking-tight text-white">{item.label}</h3>
+                    <ArrowIcon className="h-5 w-5 shrink-0 text-white/70 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white" />
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-zinc-300/90">{item.description}</p>
+                </div>
+              </Link>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </section>
 
+      {/* ===== Search ===== */}
       <section className="py-6">
-        <SearchBar />
+        <Reveal>
+          <SearchBar />
+        </Reveal>
       </section>
 
-      <section className="py-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-white">Popular categories</h2>
-          <Link href="/stores" className="text-sm text-brand-gold">Browse all</Link>
+      {/* ===== Popular categories (business content preserved) ===== */}
+      <section className="py-16 lg:py-24">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="lux-eyebrow">Deals & promo codes</p>
+            <h2 className="lux-display mt-5 text-3xl sm:text-4xl">Popular categories</h2>
+          </div>
+          <Link href="/stores" className="hidden items-center gap-2 text-sm text-brand-gold hover:text-brand-gold/80 sm:flex">
+            Browse all <ArrowIcon className="h-4 w-4" />
+          </Link>
         </div>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Stagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" gap={0.05}>
           {categories.map((category) => (
-            <Link key={category.slug} href={`/stores/${category.slug}`} className="market-card rounded-2xl p-5">
-              <p className="text-2xl">{category.icon}</p>
-              <p className="mt-3 font-semibold text-white">{t.categories[camelizeSlug(category.slug)] || category.label}</p>
-              <p className="mt-2 text-sm text-zinc-400">{category.description}</p>
-            </Link>
+            <StaggerItem key={category.slug}>
+              <Link
+                href={`/stores/${category.slug}`}
+                className="group flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand-gold/40 hover:bg-brand-gold/[0.06]"
+              >
+                <span className="text-2xl">{category.icon}</span>
+                <p className="mt-4 font-display font-semibold tracking-tight text-white">
+                  {t.categories[camelizeSlug(category.slug)] || category.label}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-400">{category.description}</p>
+              </Link>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </section>
 
-      <section className="py-6">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {[
-            { title: 'User accounts', body: 'Register, save favorites, track promo codes, and manage profile activity.', href: '/login' },
-            { title: 'Partner portal', body: 'Apply as a merchant, publish offers, manage multiple locations, and track performance.', href: '/partner' },
-            { title: 'Admin control', body: 'Approve partners, manage offers, monitor analytics, and keep content compliant.', href: '/admin' },
-            { title: 'Legal framework', body: 'Terms, privacy, affiliate disclosure, and cookie policy pages ready for rollout.', href: '/terms' }
-          ].map((item) => (
-            <Link key={item.title} href={item.href} className="market-card rounded-2xl p-5">
-              <p className="font-semibold text-white">{item.title}</p>
-              <p className="mt-2 text-sm text-zinc-400">{item.body}</p>
-            </Link>
-          ))}
-        </div>
+      {/* ===== Closing partner CTA ===== */}
+      <section className="pb-8">
+        <Reveal>
+          <div className="lux-hero relative overflow-hidden rounded-3xl border border-white/10 px-8 py-16 text-center sm:px-16">
+            <div className="lux-hero__grain" />
+            <p className="lux-eyebrow justify-center">Partner with GORGONA ONE</p>
+            <h2 className="lux-display mx-auto mt-5 max-w-2xl text-3xl sm:text-4xl">
+              Put your brand inside a luxury ecosystem.
+            </h2>
+            <p className="lux-lede mx-auto mt-5 text-base">
+              Publish verified offers, manage multiple locations, and reach a premium global audience across every section.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <Link href="/partner" className="lux-btn">Join as Partner <ArrowIcon className="h-4 w-4" /></Link>
+              <Link href="/login" className="lux-btn-ghost">Sign In</Link>
+            </div>
+          </div>
+        </Reveal>
       </section>
     </main>
   );

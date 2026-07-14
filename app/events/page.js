@@ -10,6 +10,7 @@ import {
 } from '../../lib/eventsData';
 import { EventGrid } from './EventGrid';
 import { EventsSearch } from './EventsSearch';
+import { SectionHero } from '../components/SectionHero';
 import { getServerTranslations } from '../../lib/serverLocale';
 
 export const metadata = {
@@ -27,14 +28,16 @@ export default async function EventsMarketplacePage() {
   const featuredSports = getFeaturedSportsEvents();
 
   return (
-    <main className="flex-1 py-10">
-      <div className="market-shell mb-8 rounded-[2rem] p-8">
-        <p className="market-pill">{t.events.marketplaceTitle}</p>
-        <h1 className="market-title mt-4">{t.events.marketplaceTitle}</h1>
-        <p className="market-subtitle">{t.events.marketplaceSubtitle}</p>
-      </div>
+    <main className="flex-1 theme-events">
+      <SectionHero
+        eyebrow={t.events.marketplaceTitle}
+        title={t.events.marketplaceTitle}
+        subtitle={t.events.marketplaceSubtitle}
+        kicker="Events · Nightlife · Concerts · VIP experiences"
+        image="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=2400&q=80"
+      />
 
-      <div className="mb-8">
+      <div className="mb-8 mt-8">
         <EventsSearch />
       </div>
 
