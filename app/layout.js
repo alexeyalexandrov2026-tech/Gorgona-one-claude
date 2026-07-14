@@ -24,7 +24,7 @@ const playfair = Playfair_Display({
 
 const fontVariables = [inter, interTight, spaceMono, firaMono, playfair].map((f) => f.variable).join(' ');
 
-const baseUrl = 'https://gorgona-one.vercel.app';
+const baseUrl = 'https://gorgona-one.com';
 
 // Site content is served from a single URL per page (language is chosen via
 // cookie/localStorage, not a URL prefix), so every hreflang variant points
@@ -47,7 +47,7 @@ export const metadata = {
   openGraph: {
     title: 'GORGONA ONE',
     description: 'Discover verified promo codes, premium offers, and hidden deals across the globe.',
-    url: 'https://gorgona-one.vercel.app',
+    url: 'https://gorgona-one.com',
     siteName: 'GORGONA ONE',
     images: [{ url: '/og-image.svg', width: 1200, height: 630 }],
     type: 'website'
