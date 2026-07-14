@@ -64,7 +64,7 @@ export function Parallax({ children, className, distance = 60 }) {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], [distance, -distance]);
   return (
-    <motion.div ref={ref} className={className} style={reduce ? undefined : { y }}>
+    <motion.div ref={ref} className={className} style={reduce ? { position: 'relative' } : { position: 'relative', y }}>
       {children}
     </motion.div>
   );
