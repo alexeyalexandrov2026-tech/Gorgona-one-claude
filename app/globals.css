@@ -196,6 +196,8 @@ a {
     text-transform: uppercase;
     letter-spacing: 0.34em;
     color: var(--lux-accent);
+    /* Keeps the label legible when it sits over bright hero photography. */
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
   }
 
   .lux-eyebrow::before {
