@@ -26,7 +26,7 @@ export default function HomePage() {
   return (
     <main className="flex-1 theme-home">
       {/* ===== Cinematic hero — Planhat editorial foundation ===== */}
-      <section className="lux-hero full-bleed -mt-[60px] flex min-h-[92vh] items-end">
+      <section className="lux-hero full-bleed -mt-[60px] flex min-h-[100svh] items-end">
         <div className="lux-hero__bg">
           <Parallax distance={80} className="h-full">
             <img
