@@ -487,10 +487,25 @@ a {
   }
 }
 
+/* Fashion-zine ticker — black chrome announcement strip (Shopping). */
+@keyframes zine-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@layer components {
+  .zine-marquee {
+    display: flex;
+    width: max-content;
+    animation: zine-marquee 30s linear infinite;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lux-kenburns,
   .lux-grain,
-  .lux-sheen::after {
+  .lux-sheen::after,
+  .zine-marquee {
     animation: none !important;
   }
   .lux-kenburns {
