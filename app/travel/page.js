@@ -47,22 +47,25 @@ export default function TravelLandingPage() {
   return (
     <main className="flex-1 theme-travel">
       {/* Hero — midnight terminal with a single violet beacon */}
-      <section className="lux-hero full-bleed -mt-[60px] flex min-h-[86vh] items-end bg-travel-void">
+      <section className="lux-hero full-bleed -mt-[60px] flex min-h-[92svh] items-end bg-travel-void">
         <div className="lux-hero__bg">
           <Parallax distance={70} className="h-full">
             <img
               src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=2400&q=80"
               alt=""
-              className="h-[115%] w-full object-cover opacity-70"
+              className="lux-kenburns h-[115%] w-full object-cover opacity-80"
             />
           </Parallax>
         </div>
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-travel-void/80 via-travel-void/50 to-[#050505]" />
-        <div className="lux-hero__grain" />
+        {/* z-[-1] keeps the washes above the photo (bg sits at z-[-2]). */}
+        <div className="absolute inset-0 z-[-1] bg-[linear-gradient(180deg,rgba(9,9,9,0.62)_0%,rgba(9,9,9,0.2)_30%,rgba(9,9,9,0.32)_62%,rgba(5,5,5,0.94)_100%)]" />
+        <div className="absolute inset-0 z-[-1] bg-[linear-gradient(80deg,rgba(0,0,0,0.5)_0%,rgba(0,0,0,0.2)_40%,rgba(0,0,0,0)_64%)]" />
         <div
-          className="pointer-events-none absolute -left-40 top-24 -z-10 h-[520px] w-[520px] rounded-full opacity-40 blur-3xl"
+          className="pointer-events-none absolute -left-40 top-24 z-[-1] h-[520px] w-[520px] rounded-full opacity-40 blur-3xl"
           style={{ background: 'radial-gradient(circle, rgba(175,80,255,0.55), transparent 60%)' }}
         />
+        <div className="lux-grain" />
+        <div className="lux-hero__grain" />
 
         <div className="mx-auto w-full max-w-7xl px-4 pb-24 pt-40 sm:px-6 lg:px-8">
           <p className="lux-eyebrow">Travel · Exclusive destinations</p>
@@ -81,11 +84,41 @@ export default function TravelLandingPage() {
         </div>
       </section>
 
+      {/* Departures board — the midnight terminal moment */}
+      <section className="full-bleed border-y border-white/10 bg-travel-void">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="flex items-baseline justify-between font-mono text-[0.64rem] uppercase tracking-[0.28em]">
+            <span className="text-travel-paper/80">Departures — MIA · Miami Intl</span>
+            <span className="text-travel-violet">Live</span>
+          </div>
+          <div className="mt-4 divide-y divide-white/10 font-mono">
+            {[
+              ['MIA', 'Exclusive destinations', '/experiences', 'Boarding'],
+              ['MIA', 'Flights & airfare — Ovago', '/travel/ovago', 'On time'],
+              ['MIA', 'Hotels & stays', '/stores/travel', 'On time'],
+              ['MIA', 'Dining & nightlife', '/restaurants-nightlife', 'Now seating']
+            ].map(([code, dest, href, status]) => (
+              <Link
+                key={dest}
+                href={href}
+                className="group grid grid-cols-[3rem_1fr_auto] items-baseline gap-4 py-3.5 text-[0.72rem] uppercase tracking-[0.18em] sm:grid-cols-[4rem_1fr_auto]"
+              >
+                <span className="text-travel-steel">{code}</span>
+                <span className="text-travel-paper transition-colors group-hover:text-travel-lavender">{dest}</span>
+                <span className="text-travel-violet">{status}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Experience grid */}
       <section className="py-20 lg:py-28">
         <Reveal>
-          <p className="lux-eyebrow">The Journey</p>
-          <h2 className="lux-display mt-5 max-w-2xl text-4xl sm:text-5xl">Every part of the trip, elevated.</h2>
+          <p className="font-mono text-2xl font-medium uppercase leading-none tracking-[0.3em] text-white/25 sm:text-4xl">
+            The Journey
+          </p>
+          <h2 className="lux-display mt-6 max-w-2xl text-4xl sm:text-5xl">Every part of the trip, elevated.</h2>
         </Reveal>
         <Stagger className="mt-12 grid gap-4 md:grid-cols-2" gap={0.08}>
           {experiences.map((item) => (
