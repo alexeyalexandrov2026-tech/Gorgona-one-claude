@@ -26,17 +26,23 @@ export default function HomePage() {
   return (
     <main className="flex-1 theme-home">
       {/* ===== Cinematic hero — Planhat editorial foundation ===== */}
-      <section className="lux-hero full-bleed -mt-[60px] flex min-h-[92vh] items-end">
+      <section className="lux-hero full-bleed -mt-[60px] flex min-h-[100svh] items-end">
         <div className="lux-hero__bg">
           <Parallax distance={80} className="h-full">
             <img
               src="https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=2400&q=80"
               alt=""
-              className="h-[115%] w-full object-cover"
+              className="lux-kenburns h-[115%] w-full object-cover"
             />
           </Parallax>
         </div>
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/70 via-black/45 to-[#050505]" />
+        {/* Legibility washes — z-[-1] keeps them ABOVE the photo (bg sits at
+            z-[-2]); the previous -z-10 accidentally hid them behind it.
+            Top band anchors the nav, the angled left wash carries the text
+            column, and the photo's right side (Sugarloaf) stays clear. */}
+        <div className="absolute inset-0 z-[-1] bg-[linear-gradient(180deg,rgba(0,0,0,0.62)_0%,rgba(0,0,0,0.18)_22%,rgba(0,0,0,0)_45%,rgba(0,0,0,0.30)_78%,rgba(5,5,5,0.9)_100%)]" />
+        <div className="absolute inset-0 z-[-1] bg-[linear-gradient(78deg,rgba(0,0,0,0.68)_0%,rgba(0,0,0,0.36)_36%,rgba(0,0,0,0)_62%)]" />
+        <div className="lux-grain" />
         <div className="lux-hero__grain" />
 
         <div className="mx-auto w-full max-w-7xl px-4 pb-24 pt-40 sm:px-6 lg:px-8">
@@ -49,7 +55,7 @@ export default function HomePage() {
             Global deals · Promo codes · Lifestyle offers
           </motion.p>
 
-          <h1 className="lux-display mt-6 text-[15vw] leading-[0.88] sm:text-7xl lg:text-8xl">
+          <h1 className="lux-display mt-6 text-[15vw] leading-[0.88] [text-shadow:0_4px_44px_rgba(0,0,0,0.5)] sm:text-7xl lg:text-8xl">
             <RiseMask delay={0.05}>GORGONA</RiseMask>
             <RiseMask delay={0.15} className="text-brand-gold">ONE</RiseMask>
           </h1>
@@ -58,7 +64,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="lux-lede mt-8 text-lg sm:text-xl"
+            className="mt-8 max-w-2xl font-display text-xl font-light leading-relaxed tracking-[-0.01em] text-[#eadfc8] [text-shadow:0_2px_20px_rgba(0,0,0,0.65)] sm:text-2xl"
           >
             {t.home.heroSubtitle}
           </motion.p>

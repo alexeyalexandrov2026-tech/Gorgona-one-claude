@@ -196,6 +196,8 @@ a {
     text-transform: uppercase;
     letter-spacing: 0.34em;
     color: var(--lux-accent);
+    /* Keeps the label legible when it sits over bright hero photography. */
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
   }
 
   .lux-eyebrow::before {
@@ -376,6 +378,13 @@ a {
     position: absolute;
     inset: 0;
     z-index: -2;
+    /* Luxurious fallback so the hero is never an empty black box while the
+       photograph streams in (or if it fails). Warm gold spotlight over a
+       deep charcoal stage — reads as intentional cinematography, not a gap. */
+    background:
+      radial-gradient(80% 60% at 22% 8%, color-mix(in srgb, var(--lux-accent) 26%, transparent), transparent 60%),
+      radial-gradient(70% 70% at 85% 30%, rgba(255, 255, 255, 0.06), transparent 55%),
+      linear-gradient(180deg, #0b0b0c 0%, #060606 55%, #050505 100%);
   }
 
   .lux-hero__grain {
@@ -395,5 +404,111 @@ a {
     letter-spacing: 0.24em;
     font-size: 0.7rem;
     color: var(--lux-accent);
+  }
+}
+
+/* ============================================================
+   Cinematic motion primitives
+   "Living frame" behaviour used to make static photography feel
+   like a slow film still — the way Ferrari / BMW landing pages
+   breathe without any 3D or video asset. Fully self-contained
+   (no external requests) and disabled under reduced-motion.
+   ============================================================ */
+
+@keyframes lux-kenburns {
+  0% {
+    transform: scale(1.08) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(1.18) translate3d(-1.6%, -1.4%, 0);
+  }
+}
+
+@keyframes lux-grain-shift {
+  0%   { transform: translate3d(0, 0, 0); }
+  20%  { transform: translate3d(-6%, 4%, 0); }
+  40%  { transform: translate3d(4%, -5%, 0); }
+  60%  { transform: translate3d(-3%, 6%, 0); }
+  80%  { transform: translate3d(5%, 3%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes lux-sheen {
+  0%   { transform: translateX(-120%) skewX(-18deg); opacity: 0; }
+  12%  { opacity: 0.5; }
+  30%  { transform: translateX(220%) skewX(-18deg); opacity: 0; }
+  100% { transform: translateX(220%) skewX(-18deg); opacity: 0; }
+}
+
+@layer components {
+  /* Slow cinematic zoom+pan for hero photography ("living frame"). */
+  .lux-kenburns {
+    animation: lux-kenburns 26s ease-in-out infinite alternate;
+    will-change: transform;
+    transform-origin: 55% 45%;
+  }
+
+  /* True film grain — a self-contained SVG noise tile that drifts
+     slowly so the frame feels alive. Overlaid at low opacity. */
+  .lux-grain {
+    position: absolute;
+    inset: -120%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.10;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+    animation: lux-grain-shift 8s steps(6) infinite;
+  }
+
+  /* One-shot light sweep across a surface (premium "polish" accent). */
+  .lux-sheen {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lux-sheen::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 45%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--lux-accent) 22%, rgba(255, 255, 255, 0.35)),
+      transparent
+    );
+    transform: translateX(-120%) skewX(-18deg);
+    animation: lux-sheen 7s ease-in-out 1.2s infinite;
+    pointer-events: none;
+  }
+}
+
+/* Fashion-zine ticker — black chrome announcement strip (Shopping). */
+@keyframes zine-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@layer components {
+  .zine-marquee {
+    display: flex;
+    width: max-content;
+    animation: zine-marquee 30s linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lux-kenburns,
+  .lux-grain,
+  .lux-sheen::after,
+  .zine-marquee {
+    animation: none !important;
+  }
+  .lux-kenburns {
+    transform: scale(1.06);
   }
 }

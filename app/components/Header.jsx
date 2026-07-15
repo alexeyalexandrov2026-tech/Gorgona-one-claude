@@ -46,7 +46,9 @@ export function Header() {
     <header
       dir="ltr"
       className={`sticky top-0 z-40 border-b transition-colors duration-300 ${
-        scrolled ? 'border-white/10 bg-[#050505]/85 backdrop-blur-xl' : 'border-transparent bg-transparent'
+        scrolled
+          ? 'border-white/10 bg-[#050505]/85 backdrop-blur-xl'
+          : 'border-transparent bg-gradient-to-b from-black/70 via-black/30 to-transparent'
       }`}
     >
       <div className="flex items-center justify-between gap-4 py-4">
@@ -62,7 +64,7 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className="group relative py-1 text-[0.82rem] font-medium text-zinc-300 transition-colors hover:text-white"
+              className="group relative py-1 text-[0.82rem] font-medium text-zinc-100 drop-shadow-[0_1px_6px_rgba(0,0,0,0.7)] transition-colors hover:text-white"
             >
               {labelFor(item)}
               <span

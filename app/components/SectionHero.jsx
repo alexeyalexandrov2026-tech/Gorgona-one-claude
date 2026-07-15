@@ -13,13 +13,15 @@ export function SectionHero({ eyebrow, title, subtitle, image, kicker }) {
       <div className="lux-hero__bg">
         <Parallax distance={70} className="h-full">
           {image ? (
-            <img src={image} alt="" className="h-[115%] w-full object-cover opacity-80" />
+            <img src={image} alt="" className="lux-kenburns h-[115%] w-full object-cover opacity-90" />
           ) : (
             <div className="h-full w-full bg-[#0a0a0a]" />
           )}
         </Parallax>
       </div>
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/70 via-black/40 to-[#050505]" />
+      {/* z-[-1] keeps the wash above the photo (bg is z-[-2]); -z-10 hid it. */}
+      <div className="absolute inset-0 z-[-1] bg-[linear-gradient(180deg,rgba(0,0,0,0.6)_0%,rgba(0,0,0,0.2)_30%,rgba(0,0,0,0.25)_62%,rgba(5,5,5,0.9)_100%)]" />
+      <div className="absolute inset-0 z-[-1] bg-[linear-gradient(80deg,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.22)_40%,rgba(0,0,0,0)_65%)]" />
       <div className="lux-hero__grain" />
 
       <div className="mx-auto w-full max-w-7xl px-4 pb-16 pt-40 sm:px-6 lg:px-8">
