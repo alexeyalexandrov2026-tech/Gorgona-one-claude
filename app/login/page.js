@@ -36,13 +36,17 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (tab === 'signup') {
-        await signUp(form, t.auth);
+        const { needsEmailConfirmation } = await signUp(form, t.auth);
+        if (needsEmailConfirmation) {
+          setSuccess(t.auth.checkEmail);
+          return;
+        }
         setSuccess(t.auth.successSignUp);
       } else {
         await signIn(form, t.auth);
         setSuccess(t.auth.successSignIn);
       }
-      auth?.refresh();
+      await auth?.refresh();
       setTimeout(() => router.push('/profile'), 900);
     } catch (err) {
       setError(err.message);
