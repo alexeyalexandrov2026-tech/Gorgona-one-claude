@@ -19,15 +19,23 @@ export default function YachtsPage() {
 
   return (
     <main className="flex-1 theme-yacht">
-      {/* ===== Aerial marine hero — midnight water ===== */}
+      {/* ===== Aerial marine hero — the boats are the only thing that
+           moves. Real footage (public/videos/yachts-hero.mp4, H.264 21s
+           loop); the still photograph doubles as poster while it streams. ===== */}
       <section className="lux-hero full-bleed -mt-[60px] flex min-h-[92svh] items-end bg-yacht-current">
         <div className="lux-hero__bg">
           <Parallax distance={60} className="h-full">
-            <img
-              src="https://images.unsplash.com/photo-1605281317010-fe5ffe798166?auto=format&fit=crop&w=2400&q=80"
-              alt=""
-              className="lux-kenburns h-[115%] w-full object-cover"
-            />
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              poster="https://images.unsplash.com/photo-1605281317010-fe5ffe798166?auto=format&fit=crop&w=2400&q=80"
+              className="h-[115%] w-full object-cover"
+            >
+              <source src="/videos/yachts-hero.mp4" type="video/mp4" />
+            </video>
           </Parallax>
         </div>
         <div className="absolute inset-0 z-[-1] bg-[linear-gradient(180deg,rgba(3,30,37,0.6)_0%,rgba(3,30,37,0.15)_32%,rgba(0,0,0,0.25)_64%,rgba(3,30,37,0.92)_100%)]" />
@@ -83,13 +91,13 @@ export default function YachtsPage() {
                   />
                 </Link>
                 <div className="lg:col-span-2">
-                  <p className="font-mono text-[0.62rem] uppercase tracking-[0.24em] text-yacht-charcoal/50">
+                  <p className="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-yacht-charcoal/50">
                     {String(index + 1).padStart(2, '0')} · {item.length}
                   </p>
                   <h3 className="mt-3 font-display text-3xl font-light tracking-tight sm:text-4xl">{item.title}</h3>
                   <p className="mt-4 text-sm leading-relaxed text-yacht-charcoal/70">{item.description}</p>
 
-                  <dl className="mt-8 border-t border-yacht-charcoal/15 text-sm">
+                  <dl className="mt-8 border-t border-yacht-bone text-sm">
                     {[
                       [t.yachts.company, item.company],
                       [t.yachts.location, item.location],
@@ -97,7 +105,7 @@ export default function YachtsPage() {
                       [t.yachts.length, item.length],
                       [t.yachts.price, item.price]
                     ].map(([label, value]) => (
-                      <div key={label} className="flex items-baseline justify-between border-b border-yacht-charcoal/15 py-3">
+                      <div key={label} className="flex items-baseline justify-between border-b border-yacht-bone py-3">
                         <dt className="text-yacht-charcoal/50">{label}</dt>
                         <dd className="font-medium">{value}</dd>
                       </div>
@@ -142,7 +150,7 @@ export default function YachtsPage() {
               ].map(([value, label]) => (
                 <div key={label}>
                   <p className="font-display text-4xl font-light">{value}</p>
-                  <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-white/50">{label}</p>
+                  <p className="mt-1 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-white/50">{label}</p>
                 </div>
               ))}
             </div>
