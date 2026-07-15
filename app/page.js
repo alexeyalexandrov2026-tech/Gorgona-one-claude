@@ -32,11 +32,13 @@ export default function HomePage() {
             <img
               src="https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=2400&q=80"
               alt=""
-              className="h-[115%] w-full object-cover"
+              className="lux-kenburns h-[115%] w-full object-cover"
             />
           </Parallax>
         </div>
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/70 via-black/45 to-[#050505]" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/75 via-black/40 to-[#050505]" />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(120%_90%_at_50%_120%,transparent_35%,rgba(0,0,0,0.75)_100%)]" />
+        <div className="lux-grain" />
         <div className="lux-hero__grain" />
 
         <div className="mx-auto w-full max-w-7xl px-4 pb-24 pt-40 sm:px-6 lg:px-8">

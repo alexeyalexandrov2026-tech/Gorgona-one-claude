@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from 'react';
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { motion, useReducedMotion, useScroll, useTransform, useInView } from 'framer-motion';
 
 const easeLux = [0.22, 1, 0.36, 1];
 
@@ -70,16 +70,19 @@ export function Parallax({ children, className, distance = 60 }) {
   );
 }
 
-// A word/line that animates letters or the whole block up from a mask.
+// A word/line that rises up from a mask. Uses useInView (not whileInView)
+// so it fires reliably even when the element is already on screen at mount —
+// e.g. a hero headline above the fold.
 export function RiseMask({ children, className, delay = 0 }) {
   const reduce = useReducedMotion();
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '0px 0px -8% 0px' });
   return (
-    <span className={`block overflow-hidden ${className || ''}`}>
+    <span ref={ref} className={`block overflow-hidden ${className || ''}`}>
       <motion.span
         className="block"
         initial={reduce ? false : { y: '110%' }}
-        whileInView={{ y: '0%' }}
-        viewport={{ once: true }}
+        animate={reduce ? undefined : { y: inView ? '0%' : '110%' }}
         transition={{ duration: 0.9, ease: easeLux, delay }}
       >
         {children}
