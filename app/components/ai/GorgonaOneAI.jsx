@@ -10,6 +10,7 @@ import {
 import { greeting } from '../../../lib/ai/language';
 import { useAITheme } from '../ThemeProvider';
 import { useLocale } from '../LocaleProvider';
+import { useAI } from './AIProvider';
 
 // The ecosystem provider (dynamic index + intent + language) is imported lazily
 // on first interaction so the data-heavy index never weighs down initial load.
@@ -65,6 +66,7 @@ export default function GorgonaOneAI() {
   const router = useRouter();
   const { theme, isDark, toggle } = useAITheme();
   const locale = useLocale();
+  const ai = useAI();
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const engineRef = useRef(null);
@@ -167,7 +169,17 @@ export default function GorgonaOneAI() {
     if (!query.trim()) return;
     const { askEcosystem } = await loadProvider();
     const res = await askEcosystem({ query, locale });
-    if (res.results.length) router.push(res.results[0].href);
+    if (res.results.length) {
+      ai.recordQuery({ query, world: res.world, lang: res.lang, results: res.results, selected: res.results[0] });
+      router.push(res.results[0].href);
+    }
+  }
+
+  // Selecting a surfaced result records the search + choice into the shared AI
+  // session (visible later in the Discovery Room), then navigates.
+  function selectResult(item) {
+    ai.recordQuery({ query, world: activeCluster, results: matches, selected: item });
+    router.push(item.href);
   }
 
   // Simulated microphone (Phase 1).
@@ -255,7 +267,7 @@ export default function GorgonaOneAI() {
                 type="button"
                 className="gai__chip gai__chip--match"
                 title={item.subtitle ? `${item.title} — ${item.subtitle}` : item.title}
-                onClick={() => router.push(item.href)}
+                onClick={() => selectResult(item)}
               >
                 <span className="gai__chipType">{item.type}</span>
                 {item.title}

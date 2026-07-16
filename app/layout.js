@@ -1,10 +1,13 @@
 import './globals.css';
+import './ai-overlays.css';
 import { Inter, Inter_Tight, Space_Mono, Fira_Mono, Playfair_Display } from 'next/font/google';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { LocaleProvider } from './components/LocaleProvider';
 import { AuthProvider } from './components/AuthProvider';
 import { ThemeProvider } from './components/ThemeProvider';
+import { AIProvider } from './components/ai/AIProvider';
+import AIDock from './components/ai/AIDock';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 const interTight = Inter_Tight({
@@ -75,11 +78,16 @@ export default function RootLayout({ children }) {
                 full-site theming can be added later, but consumed only by the AI
                 components today — the rest of the site is unaffected. */}
             <ThemeProvider defaultTheme="dark">
-              <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
-                <Header />
-                {children}
-                <Footer />
-              </div>
+              {/* AI session (history, saved, Discovery Room) persists across all
+                  routes; the dock is the persistent entry point on every page. */}
+              <AIProvider>
+                <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
+                  <Header />
+                  {children}
+                  <Footer />
+                </div>
+                <AIDock />
+              </AIProvider>
             </ThemeProvider>
           </AuthProvider>
         </LocaleProvider>
