@@ -18,10 +18,10 @@ const navItems = [
   { key: 'stores', href: '/stores', label: 'Shopping' },
   { key: null, href: '/vacation-rentals', label: 'Villas' },
   { key: null, href: '/yachts', label: 'Yachts' },
-  { key: null, href: '/rentals', label: 'Car Rentals' },
+  { key: null, href: '/rentals', label: 'Cars' },
   { key: 'sportsbook', href: '/sportsbook', label: 'Sportsbooks' },
   { key: 'events', href: '/events', label: 'Events' },
-  { key: null, href: '/concierge', label: 'AI Concierge' }
+  { key: null, href: '/discovery', label: 'Discovery Room' }
 ];
 
 export function Header() {
@@ -59,12 +59,12 @@ export function Header() {
           <span className="font-mono text-[0.6rem] uppercase tracking-[0.4em] text-brand-gold">One</span>
         </Link>
 
-        <nav className="hidden items-center gap-6 xl:flex">
+        <nav className="hidden items-center gap-3.5 lg:flex xl:gap-6">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="group relative py-1 text-[0.82rem] font-medium text-zinc-100 drop-shadow-[0_1px_6px_rgba(0,0,0,0.7)] transition-colors hover:text-white"
+              className="group relative whitespace-nowrap py-1 text-[0.78rem] font-medium text-zinc-100 drop-shadow-[0_1px_6px_rgba(0,0,0,0.7)] transition-colors hover:text-white xl:text-[0.82rem]"
             >
               {labelFor(item)}
               <span
@@ -99,7 +99,7 @@ export function Header() {
             onClick={() => setMobileNavOpen((value) => !value)}
             aria-expanded={mobileNavOpen}
             aria-label="Menu"
-            className="flex items-center justify-center rounded-full border border-white/10 p-2 text-zinc-300 transition hover:border-brand-gold hover:text-brand-gold xl:hidden"
+            className="flex items-center justify-center rounded-full border border-white/10 p-2 text-zinc-300 transition hover:border-brand-gold hover:text-brand-gold lg:hidden"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               {mobileNavOpen ? (
@@ -126,7 +126,7 @@ export function Header() {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden border-t border-white/10 xl:hidden"
+            className="overflow-hidden border-t border-white/10 lg:hidden"
           >
             <div className="grid grid-cols-2 gap-1 py-3">
               {navItems.map((item) => (
