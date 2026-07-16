@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { SearchBar } from './components/SearchBar';
 import { Reveal, Stagger, StaggerItem, RiseMask, Parallax } from './components/Motion';
-import CategoryOrb from './components/CategoryOrb';
+import GorgonaOneAI from './components/ai/GorgonaOneAI';
 import { ecosystem } from '../lib/ecosystemData';
 import { getTranslation } from '../lib/i18n';
 import { useLocale } from './components/LocaleProvider';
@@ -89,6 +88,24 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== Gorgona One AI — ecosystem intelligence layer (directly below hero) ===== */}
+      <section className="py-16 lg:py-24">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div>
+            <p className="lux-eyebrow">Gorgona One AI</p>
+            <h2 className="lux-display mt-5 max-w-2xl text-3xl sm:text-4xl">
+              Tell the AI what you want. It finds the ecosystem.
+            </h2>
+          </div>
+          <p className="lux-lede text-base md:max-w-sm md:text-right">
+            Not a search box — the intelligence layer of GORGONA ONE. Ask by intent, in your language, by voice or text.
+          </p>
+        </div>
+        <Reveal className="mt-10">
+          <GorgonaOneAI />
+        </Reveal>
+      </section>
+
       {/* ===== The ecosystem — eight worlds ===== */}
       <section className="py-20 lg:py-28">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
@@ -125,29 +142,6 @@ export default function HomePage() {
             </StaggerItem>
           ))}
         </Stagger>
-      </section>
-
-      {/* ===== Search ===== */}
-      <section className="py-6">
-        <Reveal>
-          <SearchBar />
-        </Reveal>
-      </section>
-
-      {/* ===== Popular categories (business content preserved) ===== */}
-      <section className="py-16 lg:py-24">
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="lux-eyebrow">Discover · AI Concierge</p>
-            <h2 className="lux-display mt-5 text-3xl sm:text-4xl">Enter the ecosystem</h2>
-          </div>
-          <Link href="/stores" className="hidden items-center gap-2 text-sm text-brand-gold hover:text-brand-gold/80 sm:flex">
-            Browse all <ArrowIcon className="h-4 w-4" />
-          </Link>
-        </div>
-        <Reveal className="mt-10">
-          <CategoryOrb />
-        </Reveal>
       </section>
 
       {/* ===== Closing partner CTA ===== */}

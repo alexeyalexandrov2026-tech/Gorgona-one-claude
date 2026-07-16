@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { LocaleProvider } from './components/LocaleProvider';
 import { AuthProvider } from './components/AuthProvider';
+import { ThemeProvider } from './components/ThemeProvider';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 const interTight = Inter_Tight({
@@ -70,11 +71,16 @@ export default function RootLayout({ children }) {
       <body className="min-h-screen bg-[#050505] font-sans text-zinc-100 antialiased">
         <LocaleProvider>
           <AuthProvider>
-            <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
-              <Header />
-              {children}
-              <Footer />
-            </div>
+            {/* Theme context for the Gorgona One AI surfaces. Mounted app-wide so
+                full-site theming can be added later, but consumed only by the AI
+                components today — the rest of the site is unaffected. */}
+            <ThemeProvider defaultTheme="dark">
+              <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
+                <Header />
+                {children}
+                <Footer />
+              </div>
+            </ThemeProvider>
           </AuthProvider>
         </LocaleProvider>
       </body>
