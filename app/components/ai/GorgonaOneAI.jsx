@@ -5,10 +5,19 @@ import { useRouter } from 'next/navigation';
 import {
   CONSTELLATIONS,
   discoveryCategories,
-  EXAMPLE_PROMPTS,
-  matchCategories
+  EXAMPLE_PROMPTS
 } from '../../../lib/discoveryCategories';
+import { greeting } from '../../../lib/ai/language';
 import { useAITheme } from '../ThemeProvider';
+import { useLocale } from '../LocaleProvider';
+
+// The ecosystem provider (dynamic index + intent + language) is imported lazily
+// on first interaction so the data-heavy index never weighs down initial load.
+let providerPromise = null;
+function loadProvider() {
+  if (!providerPromise) providerPromise = import('../../../lib/ai/provider');
+  return providerPromise;
+}
 
 // ===========================================================================
 // GORGONA ONE AI — the ecosystem intelligence surface (V2 foundation).
@@ -55,6 +64,7 @@ function palette(theme) {
 export default function GorgonaOneAI() {
   const router = useRouter();
   const { theme, isDark, toggle } = useAITheme();
+  const locale = useLocale();
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const engineRef = useRef(null);
@@ -63,11 +73,18 @@ export default function GorgonaOneAI() {
 
   const [query, setQuery] = useState('');
   const [phase, setPhase] = useState('resting'); // resting | listening | intent
-  const [matches, setMatches] = useState([]);
+  const [matches, setMatches] = useState([]); // ecosystem entities
   const [activeCluster, setActiveCluster] = useState(null);
   const [openCluster, setOpenCluster] = useState(null);
   const [placeholder, setPlaceholder] = useState(EXAMPLE_PROMPTS[0]);
+  const [greetingText, setGreetingText] = useState(() => greeting('en'));
   const listenTimer = useRef(null);
+  const reqId = useRef(0); // guards against out-of-order async results
+
+  // Greet in the user's language (updated after mount to avoid hydration drift).
+  useEffect(() => {
+    setGreetingText(greeting(locale));
+  }, [locale]);
 
   const reduceMotion = usePrefersReducedMotion();
 
@@ -114,12 +131,17 @@ export default function GorgonaOneAI() {
     engineRef.current && engineRef.current.setState({ phase, activeClusterId: activeCluster });
   }, [phase, activeCluster]);
 
-  function runQuery(value) {
-    const found = matchCategories(value, 4);
-    setMatches(found);
-    if (found.length) {
+  // Intent-first discovery over the dynamic ecosystem index (via the provider
+  // seam). Async because the provider is lazy-loaded and models a future backend.
+  async function runQuery(value) {
+    const id = ++reqId.current;
+    const { askEcosystem } = await loadProvider();
+    const res = await askEcosystem({ query: value, locale });
+    if (id !== reqId.current) return; // a newer query superseded this one
+    setMatches(res.results);
+    if (res.results.length) {
       setPhase('intent');
-      setActiveCluster(found[0].cluster);
+      setActiveCluster(res.world);
     } else {
       setPhase('resting');
       setActiveCluster(null);
@@ -130,18 +152,22 @@ export default function GorgonaOneAI() {
     const v = e.target.value;
     setQuery(v);
     if (phase === 'listening') return;
-    if (v.trim()) runQuery(v);
-    else {
+    if (v.trim()) {
+      runQuery(v);
+    } else {
+      reqId.current++; // cancel any in-flight query
       setMatches([]);
       setPhase('resting');
       setActiveCluster(null);
     }
   }
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
-    const found = matchCategories(query, 1);
-    if (found.length) router.push(found[0].href);
+    if (!query.trim()) return;
+    const { askEcosystem } = await loadProvider();
+    const res = await askEcosystem({ query, locale });
+    if (res.results.length) router.push(res.results[0].href);
   }
 
   // Simulated microphone (Phase 1).
@@ -175,8 +201,8 @@ export default function GorgonaOneAI() {
     phase === 'listening'
       ? 'Listening · EN · RU · ES · FR'
       : phase === 'intent' && matches.length
-      ? `Surfacing · ${constellationName(matches[0].cluster)}`
-      : 'Ask, tap to speak, or explore the ecosystem';
+      ? `Surfacing · ${constellationName(activeCluster)}`
+      : greetingText;
 
   return (
     <div ref={wrapRef} className="gai" data-ai-theme={theme}>
@@ -223,14 +249,16 @@ export default function GorgonaOneAI() {
 
         {phase === 'intent' && matches.length > 0 && (
           <div className="gai__matches">
-            {matches.map((cat) => (
+            {matches.slice(0, 5).map((item) => (
               <button
-                key={cat.label + cat.href}
+                key={item.id}
                 type="button"
                 className="gai__chip gai__chip--match"
-                onClick={() => router.push(cat.href)}
+                title={item.subtitle ? `${item.title} — ${item.subtitle}` : item.title}
+                onClick={() => router.push(item.href)}
               >
-                {cat.label}
+                <span className="gai__chipType">{item.type}</span>
+                {item.title}
               </button>
             ))}
           </div>
@@ -682,8 +710,24 @@ const styles = `
   .gai[data-ai-theme="light"] .gai__chip { background: rgba(255, 253, 248, 0.6); border: 1px solid rgba(198, 160, 94, 0.4); color: #5b544a; }
   .gai__chip:hover { border-color: #c6a05e; }
   .gai__chip--match {
-    background: radial-gradient(circle at 40% 30%, #fffef9, #dec088); border-color: #c6a05e; color: #2a2013;
-    box-shadow: 0 6px 16px -8px rgba(138, 101, 40, 0.5);
+    display: inline-flex; align-items: center; gap: 7px; max-width: min(80vw, 320px);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* Theme-scoped so these win over the base themed chip and stay opaque over the
+     glow (results read as solid gold tokens surfacing from the field). */
+  .gai[data-ai-theme="dark"] .gai__chip--match,
+  .gai[data-ai-theme="light"] .gai__chip--match {
+    background: linear-gradient(180deg, #fffef9 0%, #eecf92 55%, #dec088 100%);
+    border: 1px solid #c6a05e; color: #2a2013;
+    box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(60, 45, 12, 0.4);
+  }
+  .gai[data-ai-theme="dark"] .gai__chip--match:hover,
+  .gai[data-ai-theme="light"] .gai__chip--match:hover { border-color: #8a6528; }
+  .gai__chipType {
+    flex: none; font-family: "Space Mono", ui-monospace, monospace; font-size: 8px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: #6d4f1a;
+    border: 1px solid rgba(109, 79, 26, 0.4); border-radius: 5px; padding: 2px 5px;
+    background: rgba(255, 255, 255, 0.35);
   }
 
   .gai__legend {
