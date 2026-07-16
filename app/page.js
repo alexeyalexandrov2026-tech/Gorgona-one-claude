@@ -4,14 +4,10 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { SearchBar } from './components/SearchBar';
 import { Reveal, Stagger, StaggerItem, RiseMask, Parallax } from './components/Motion';
-import { categories } from '../lib/dealsData';
+import CategoryOrb from './components/CategoryOrb';
 import { ecosystem } from '../lib/ecosystemData';
 import { getTranslation } from '../lib/i18n';
 import { useLocale } from './components/LocaleProvider';
-
-function camelizeSlug(slug) {
-  return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-}
 
 const ArrowIcon = ({ className }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -142,29 +138,16 @@ export default function HomePage() {
       <section className="py-16 lg:py-24">
         <div className="flex items-end justify-between">
           <div>
-            <p className="lux-eyebrow">Deals & promo codes</p>
-            <h2 className="lux-display mt-5 text-3xl sm:text-4xl">Popular categories</h2>
+            <p className="lux-eyebrow">Discover · AI Concierge</p>
+            <h2 className="lux-display mt-5 text-3xl sm:text-4xl">Enter the ecosystem</h2>
           </div>
           <Link href="/stores" className="hidden items-center gap-2 text-sm text-brand-gold hover:text-brand-gold/80 sm:flex">
             Browse all <ArrowIcon className="h-4 w-4" />
           </Link>
         </div>
-        <Stagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" gap={0.05}>
-          {categories.map((category) => (
-            <StaggerItem key={category.slug}>
-              <Link
-                href={`/stores/${category.slug}`}
-                className="group flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand-gold/40 hover:bg-brand-gold/[0.06]"
-              >
-                <span className="text-2xl">{category.icon}</span>
-                <p className="mt-4 font-display font-semibold tracking-tight text-white">
-                  {t.categories[camelizeSlug(category.slug)] || category.label}
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-400">{category.description}</p>
-              </Link>
-            </StaggerItem>
-          ))}
-        </Stagger>
+        <Reveal className="mt-10">
+          <CategoryOrb />
+        </Reveal>
       </section>
 
       {/* ===== Closing partner CTA ===== */}
