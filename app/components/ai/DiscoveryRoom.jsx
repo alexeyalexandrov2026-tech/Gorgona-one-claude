@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAI } from './AIProvider';
 import { useAITheme } from '../ThemeProvider';
 import { useLocale } from '../LocaleProvider';
+import { useBodyScrollLock } from '../useBodyScrollLock';
 
 // ===========================================================================
 // The Discovery Room (Phase 3).
@@ -31,6 +32,10 @@ export default function DiscoveryRoom() {
   const [q, setQ] = useState('');
   const [askResults, setAskResults] = useState([]);
   const [busy, setBusy] = useState(false);
+
+  // Prevents the mobile scroll-jump this dialog's own text input used to
+  // trigger - see useBodyScrollLock for the root cause.
+  useBodyScrollLock(roomOpen);
 
   // Close on Escape.
   useEffect(() => {
