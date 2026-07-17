@@ -2,16 +2,11 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { SearchBar } from './components/SearchBar';
 import { Reveal, Stagger, StaggerItem, RiseMask, Parallax } from './components/Motion';
-import { categories } from '../lib/dealsData';
+import GorgonaOneAI from './components/ai/GorgonaOneAI';
 import { ecosystem } from '../lib/ecosystemData';
 import { getTranslation } from '../lib/i18n';
 import { useLocale } from './components/LocaleProvider';
-
-function camelizeSlug(slug) {
-  return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-}
 
 const ArrowIcon = ({ className }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -93,6 +88,24 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== Gorgona One AI — ecosystem intelligence layer (directly below hero) ===== */}
+      <section className="py-16 lg:py-24">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div>
+            <p className="lux-eyebrow">Gorgona One AI</p>
+            <h2 className="lux-display mt-5 max-w-2xl text-3xl sm:text-4xl">
+              Tell the AI what you want. It finds the ecosystem.
+            </h2>
+          </div>
+          <p className="lux-lede text-base md:max-w-sm md:text-right">
+            Not a search box — the intelligence layer of GORGONA ONE. Ask by intent, in your language, by voice or text.
+          </p>
+        </div>
+        <Reveal className="mt-10">
+          <GorgonaOneAI />
+        </Reveal>
+      </section>
+
       {/* ===== The ecosystem — eight worlds ===== */}
       <section className="py-20 lg:py-28">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
@@ -125,42 +138,6 @@ export default function HomePage() {
                   </div>
                   <p className="mt-2 text-sm leading-relaxed text-zinc-300/90">{item.description}</p>
                 </div>
-              </Link>
-            </StaggerItem>
-          ))}
-        </Stagger>
-      </section>
-
-      {/* ===== Search ===== */}
-      <section className="py-6">
-        <Reveal>
-          <SearchBar />
-        </Reveal>
-      </section>
-
-      {/* ===== Popular categories (business content preserved) ===== */}
-      <section className="py-16 lg:py-24">
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="lux-eyebrow">Deals & promo codes</p>
-            <h2 className="lux-display mt-5 text-3xl sm:text-4xl">Popular categories</h2>
-          </div>
-          <Link href="/stores" className="hidden items-center gap-2 text-sm text-brand-gold hover:text-brand-gold/80 sm:flex">
-            Browse all <ArrowIcon className="h-4 w-4" />
-          </Link>
-        </div>
-        <Stagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" gap={0.05}>
-          {categories.map((category) => (
-            <StaggerItem key={category.slug}>
-              <Link
-                href={`/stores/${category.slug}`}
-                className="group flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand-gold/40 hover:bg-brand-gold/[0.06]"
-              >
-                <span className="text-2xl">{category.icon}</span>
-                <p className="mt-4 font-display font-semibold tracking-tight text-white">
-                  {t.categories[camelizeSlug(category.slug)] || category.label}
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-400">{category.description}</p>
               </Link>
             </StaggerItem>
           ))}
