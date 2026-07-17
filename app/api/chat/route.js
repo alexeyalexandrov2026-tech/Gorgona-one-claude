@@ -6,15 +6,12 @@ import { getTranslation } from '../../../lib/i18n';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
-// Upstream Gemini calls must never hang the request indefinitely - a stalled
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free';
+// Upstream OpenRouter calls must never hang the request indefinitely - a stalled
 // fetch previously left the concierge "thinking" forever with no way for the
 // client's own request to resolve. 20s comfortably covers normal latency.
-const GEMINI_TIMEOUT_MS = 20_000;
-
-function geminiEndpoint(model, key) {
-  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
-}
+const OPENROUTER_TIMEOUT_MS = 20_000;
+const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
 // matchSuggestions() returns a stable topic `id` plus an English fallback
 // `label`; resolve the real display label from the request's locale here so
@@ -37,7 +34,7 @@ export async function POST(request) {
   }
 
   const latestUserMessage = [...messages].reverse().find((m) => m.role === 'user')?.content || '';
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
 
   // The site's current locale (sent by the client) drives both the model's
   // reply language and this route's own status/error messages below - none
@@ -58,24 +55,29 @@ export async function POST(request) {
     });
   }
 
-  const contents = messages
-    .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && m.content)
-    .map((m) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: String(m.content).slice(0, 4000) }]
-    }));
+  const chatMessages = [
+    { role: 'system', content: SYSTEM_PROMPT + languageDirective },
+    ...messages
+      .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && m.content)
+      .map((m) => ({ role: m.role, content: String(m.content).slice(0, 4000) }))
+  ];
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), OPENROUTER_TIMEOUT_MS);
 
   try {
-    const response = await fetch(geminiEndpoint(GEMINI_MODEL, apiKey), {
+    const response = await fetch(OPENROUTER_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      },
       body: JSON.stringify({
-        systemInstruction: { role: 'system', parts: [{ text: SYSTEM_PROMPT + languageDirective }] },
-        contents,
-        generationConfig: { temperature: 0.7, topP: 0.9, maxOutputTokens: 480 }
+        model: OPENROUTER_MODEL,
+        messages: chatMessages,
+        temperature: 0.7,
+        top_p: 0.9,
+        max_tokens: 480
       }),
       cache: 'no-store',
       signal: controller.signal
@@ -86,7 +88,7 @@ export async function POST(request) {
       // never the request payload or the API key - and never forward either to
       // the client.
       const errText = await response.text();
-      console.error('Gemini API error', response.status, errText);
+      console.error('OpenRouter API error', response.status, errText);
 
       let reply = t.ai.geminiSnag;
       if (response.status === 429) {
@@ -99,9 +101,7 @@ export async function POST(request) {
     }
 
     const data = await response.json();
-    const reply =
-      data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('').trim() ||
-      t.ai.geminiNoReply;
+    const reply = data?.choices?.[0]?.message?.content?.trim() || t.ai.geminiNoReply;
 
     return NextResponse.json({
       reply,
@@ -110,7 +110,7 @@ export async function POST(request) {
     });
   } catch (error) {
     if (error?.name === 'AbortError') {
-      console.error('Gemini request timed out after', GEMINI_TIMEOUT_MS, 'ms');
+      console.error('OpenRouter request timed out after', OPENROUTER_TIMEOUT_MS, 'ms');
       return NextResponse.json({
         reply: t.ai.geminiTimeout,
         suggestions: [],
@@ -118,7 +118,7 @@ export async function POST(request) {
         error: true
       });
     }
-    console.error('Gemini request failed', error);
+    console.error('OpenRouter request failed', error);
     return NextResponse.json({
       reply: t.ai.geminiUnavailable,
       suggestions: [],
