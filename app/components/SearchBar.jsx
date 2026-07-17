@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { allDeals, categories, getDealDescription } from '../../lib/dealsData';
 import { getYachts } from '../../lib/yachtsData';
@@ -134,6 +134,44 @@ const SPORTSBOOK_PROFILE_SLUGS = {
   'Bally Bet': 'bally-bet'
 };
 
+// Live inventory search (Phase 2): yachts, car rentals, vacation rentals and
+// dining & nightlife results come from /api/search - the same Postgres
+// FTS engine behind the whole platform - so search reflects the canonical
+// database, not a bundled snapshot. Mapped into the exact card shape this
+// component already renders.
+const LIVE_WORLD_LABEL_KEYS = {
+  yachts: 'yachtRentals',
+  'car-rentals': 'carRentals',
+  'vacation-rentals': 'vacationRentals',
+  'dining-nightlife': 'restaurantsNightlife'
+};
+
+function mapLiveResult(item, t) {
+  return {
+    id: `live-${item.world}-${item.slug}`,
+    name: item.title,
+    description: item.description,
+    category: t.search.popular[LIVE_WORLD_LABEL_KEYS[item.world]] || item.category || item.world,
+    promoCode: '',
+    discount: item.price || item.location,
+    href: item.href
+  };
+}
+
+// Experiences are not yet database-backed (Phase 4) - they keep the static
+// client-side match so they never vanish from results.
+function buildExperiencesCatalog(t) {
+  return getExperiences().map((item) => ({
+    id: `experience-${item.id}`,
+    name: item.title,
+    description: item.description,
+    category: t.search.popular.miamiExperiences,
+    promoCode: '',
+    discount: item.price,
+    href: `/experiences/${item.slug}`
+  }));
+}
+
 // Non-deal catalogs (yachts, vacation rentals, experiences, restaurants &
 // nightlife) live outside lib/dealsData.js, each with its own item shape and
 // detail route. Normalized here to the fields the results list already
@@ -186,6 +224,37 @@ export function SearchBar() {
   const [activeCategory, setActiveCategory] = useState('all');
   const t = getTranslation(locale);
 
+  // Live inventory results from the platform search engine. `null` means
+  // "no live results available" (query too short, request in flight, or the
+  // API is unreachable) - the static seed catalog then covers gracefully.
+  const [liveResults, setLiveResults] = useState(null);
+  const searchSeq = useRef(0);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setLiveResults(null);
+      return undefined;
+    }
+    const seq = ++searchSeq.current;
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=12`, { signal: controller.signal });
+        const data = await res.json();
+        if (seq === searchSeq.current) {
+          setLiveResults(Array.isArray(data?.results) ? data.results : null);
+        }
+      } catch {
+        /* aborted or offline - static fallback covers */
+      }
+    }, 250);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query]);
+
   const filteredDeals = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     const deals = allDeals.filter((deal) => {
@@ -206,9 +275,16 @@ export function SearchBar() {
     // The extra catalogs (yachts/vacation rentals/experiences/restaurants)
     // aren't part of the Stores/Coupons category dropdown, so they only
     // participate when no specific category filter is active.
-    const combined = activeCategory !== 'all'
-      ? deals
-      : [...deals, ...buildExtraCatalog(t).filter((item) => !normalized || [item.name, item.category, item.description].join(' ').toLowerCase().includes(normalized))];
+    // Live engine results when we have them; the static seed catalog for the
+    // empty state (browse mode) or when the API has not answered yet.
+    const inventoryItems = normalized.length >= 2 && liveResults
+      ? [
+          ...liveResults.map((item) => mapLiveResult(item, t)),
+          ...buildExperiencesCatalog(t).filter((item) => [item.name, item.category, item.description].join(' ').toLowerCase().includes(normalized))
+        ]
+      : buildExtraCatalog(t).filter((item) => !normalized || [item.name, item.category, item.description].join(' ').toLowerCase().includes(normalized));
+
+    const combined = activeCategory !== 'all' ? deals : [...deals, ...inventoryItems];
 
     // Fixed top-6 window first, then hide pending-replacement brands from
     // it - so their slots stay empty instead of being backfilled by the
@@ -231,7 +307,7 @@ export function SearchBar() {
     const withRentcars = rentcarsMatches ? [...withKxc, rentcars] : withKxc;
     const withOvago = ovagoMatches ? [...withRentcars, ovago] : withRentcars;
     return withOvago.slice(0, 6);
-  }, [activeCategory, query, t]);
+  }, [activeCategory, query, liveResults, t]);
 
   const popularSearches = POPULAR_SEARCH_LINKS.map((item) => ({ ...item, label: t.search.popular[item.key] }));
 
