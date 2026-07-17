@@ -1,12 +1,12 @@
 import { notFound } from 'next/navigation';
-import { getRentalBySlug } from '../../../lib/rentalsData';
+import { getRentalBySlug } from '../../../lib/data/listings';
 import { rentalDescriptions, getContentText } from '../../../lib/contentTranslations';
 import { getServerTranslation } from '../../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
 
-export default function RentalDetailPage({ params }) {
-  const rental = getRentalBySlug(params.slug);
+export default async function RentalDetailPage({ params }) {
+  const rental = await getRentalBySlug(params.slug);
 
   if (!rental) {
     notFound();

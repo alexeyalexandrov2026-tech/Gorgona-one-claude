@@ -64,7 +64,7 @@ export async function POST(request) {
 
   const result = await askBrain({
     messages: chatMessages,
-    systemPrompt: SYSTEM_PROMPT + getEcosystemDigest() + languageDirective
+    systemPrompt: SYSTEM_PROMPT + (await getEcosystemDigest()) + languageDirective
   });
 
   if (result.ok) {

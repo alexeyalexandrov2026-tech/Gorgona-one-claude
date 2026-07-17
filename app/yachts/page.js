@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getYachts } from '../../lib/yachtsData';
+import { getYachts } from '../../lib/data/listings';
 import { getServerTranslation } from '../../lib/serverLocale';
 import { Reveal, Parallax } from '../components/Motion';
 
@@ -10,8 +10,8 @@ export const dynamic = 'force-dynamic';
 // type, photography in generously rounded frames, skeletal ghost controls.
 // The interface stays still — the boats are the only thing that moves.
 
-export default function YachtsPage() {
-  const yachts = getYachts();
+export default async function YachtsPage() {
+  const yachts = await getYachts();
   const { t } = getServerTranslation();
 
   const totalGuests = yachts.reduce((sum, y) => sum + (y.capacity || 0), 0);

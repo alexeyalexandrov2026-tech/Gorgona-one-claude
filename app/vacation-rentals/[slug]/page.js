@@ -1,11 +1,11 @@
 import { notFound } from 'next/navigation';
-import { getVacationRentalBySlug } from '../../../lib/vacationRentalsData';
+import { getVacationRentalBySlug } from '../../../lib/data/listings';
 import { getServerTranslation } from '../../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
 
-export default function VacationRentalDetailPage({ params }) {
-  const property = getVacationRentalBySlug(params.slug);
+export default async function VacationRentalDetailPage({ params }) {
+  const property = await getVacationRentalBySlug(params.slug);
 
   if (!property) {
     notFound();

@@ -1,11 +1,11 @@
 import { notFound } from 'next/navigation';
-import { getVenueBySlug } from '../../../lib/restaurantsNightlifeData';
+import { getVenueBySlug } from '../../../lib/data/listings';
 import { getServerTranslation } from '../../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
 
-export default function VenueDetailPage({ params }) {
-  const venue = getVenueBySlug(params.slug);
+export default async function VenueDetailPage({ params }) {
+  const venue = await getVenueBySlug(params.slug);
 
   if (!venue) {
     notFound();

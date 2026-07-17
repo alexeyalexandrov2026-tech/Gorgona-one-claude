@@ -1,11 +1,11 @@
 import { notFound } from 'next/navigation';
-import { getYachtBySlug } from '../../../lib/yachtsData';
+import { getYachtBySlug } from '../../../lib/data/listings';
 import { getServerTranslation } from '../../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
 
-export default function YachtDetailPage({ params }) {
-  const yacht = getYachtBySlug(params.slug);
+export default async function YachtDetailPage({ params }) {
+  const yacht = await getYachtBySlug(params.slug);
 
   if (!yacht) {
     notFound();
