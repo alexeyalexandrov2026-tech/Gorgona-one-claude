@@ -9,19 +9,19 @@ import { getTranslation } from '../../lib/i18n';
 import { useLocale } from './LocaleProvider';
 import { useAuth } from './AuthProvider';
 
-// Unified GORGONA ONE ecosystem navigation. `key` maps to an existing
-// translation in lib/i18n when available; `label` is the fallback for the
-// new luxury sections that are not yet translated.
+// Unified GORGONA ONE ecosystem navigation. `key` maps to a translation in
+// lib/i18n's `nav` namespace; `label` is the English fallback if a locale is
+// somehow missing that key.
 const navItems = [
   { key: 'home', href: '/', label: 'Home' },
-  { key: null, href: '/travel', label: 'Travel' },
+  { key: 'travel', href: '/travel', label: 'Travel' },
   { key: 'stores', href: '/stores', label: 'Shopping' },
-  { key: null, href: '/vacation-rentals', label: 'Villas' },
-  { key: null, href: '/yachts', label: 'Yachts' },
-  { key: null, href: '/rentals', label: 'Cars' },
+  { key: 'villas', href: '/vacation-rentals', label: 'Villas' },
+  { key: 'yachts', href: '/yachts', label: 'Yachts' },
+  { key: 'cars', href: '/rentals', label: 'Cars' },
   { key: 'sportsbook', href: '/sportsbook', label: 'Sportsbooks' },
   { key: 'events', href: '/events', label: 'Events' },
-  { key: null, href: '/discovery', label: 'Discovery Room' }
+  { key: 'discoveryRoom', href: '/discovery', label: 'Discovery Room' }
 ];
 
 export function Header() {
@@ -78,7 +78,7 @@ export function Header() {
             <button
               type="button"
               onClick={goBack}
-              aria-label="Go back"
+              aria-label={t.ai.goBack}
               className="flex items-center justify-center rounded-full border border-white/10 p-2 text-zinc-300 transition hover:border-brand-gold hover:text-brand-gold lg:hidden"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

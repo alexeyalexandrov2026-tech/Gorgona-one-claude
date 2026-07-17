@@ -126,7 +126,12 @@ export function useVoice() {
   );
 
   const startListening = useCallback(
-    (onResult) => {
+    // `lang` is a BCP-47 tag (e.g. 'ru-RU') the caller derives from the
+    // site's current locale via lib/languages.js's getSpeechLang(). Without
+    // this, recognition always transcribed as English regardless of what
+    // language was actually spoken - Russian speech, for example, would be
+    // forced through an English phonetic model and come out as garbage.
+    (onResult, lang = 'en-US') => {
       if (!recognitionSupported) return;
       // Only one recognition session may run at a time across the whole page;
       // stop whichever surface currently owns it before claiming it here.
@@ -138,7 +143,7 @@ export function useVoice() {
 
       const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognitionImpl();
-      recognition.lang = 'en-US';
+      recognition.lang = lang;
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
       recognition.onresult = (event) => {

@@ -3,13 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useVoice } from './useVoice';
-
-const STARTER_PROMPTS = [
-  'Plan a weekend in Miami',
-  'Find a yacht for 8 guests',
-  'Book a table for a birthday dinner',
-  'Best sportsbook offers right now'
-];
+import { useLocale } from '../LocaleProvider';
+import { getTranslation } from '../../../lib/i18n';
+import { getSpeechLang } from '../../../lib/languages';
 
 function MicIcon({ className }) {
   return (
@@ -45,6 +41,9 @@ function Message({ role, content }) {
 }
 
 export function AiConversation({ variant = 'dock' }) {
+  const locale = useLocale();
+  const t = getTranslation(locale);
+  const STARTER_PROMPTS = t.ai.starterPrompts;
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -70,18 +69,18 @@ export function AiConversation({ variant = 'dock' }) {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: nextMessages })
+        // `locale` tells the concierge which language to reply in - see
+        // app/api/chat/route.js. Without it the reply language wasn't
+        // reliably tied to what the guest had the site set to.
+        body: JSON.stringify({ messages: nextMessages, locale })
       });
       const data = await response.json();
-      const reply = data.reply || "I couldn't reach the concierge just now - please try again.";
+      const reply = data.reply || t.ai.couldntReach;
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
       setSuggestions(data.suggestions || []);
       if (autoSpeak) voice.speak(reply);
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: 'The concierge is temporarily unavailable. Please try again shortly.' }
-      ]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: t.ai.tempUnavailable }]);
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +92,9 @@ export function AiConversation({ variant = 'dock' }) {
       return;
     }
     setAutoSpeak(true);
-    voice.startListening((text) => send(text));
+    // Recognize speech as the site's current language (e.g. 'ru-RU' when the
+    // guest has Russian selected) instead of always assuming English.
+    voice.startListening((text) => send(text), getSpeechLang(locale));
   }
 
   return (
@@ -101,10 +102,7 @@ export function AiConversation({ variant = 'dock' }) {
       <div ref={listRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-1 py-2">
         {messages.length === 0 && (
           <div className="space-y-3">
-            <p className="text-sm text-zinc-400">
-              Ask for anything across the GORGONA ONE ecosystem — travel, dining, yachts, villas, events — and
-              receive elegant, personal recommendations.
-            </p>
+            <p className="text-sm text-zinc-400">{t.ai.introText}</p>
             <div className="flex flex-wrap gap-2">
               {STARTER_PROMPTS.map((prompt) => (
                 <button
@@ -142,7 +140,7 @@ export function AiConversation({ variant = 'dock' }) {
                 href={s.href}
                 className="rounded-full border border-brand-gold/40 bg-brand-gold/10 px-3 py-1.5 text-xs text-brand-gold transition hover:bg-brand-gold hover:text-black"
               >
-                Open {s.label} &rarr;
+                {t.ai.open} {s.label} &rarr;
               </Link>
             ))}
           </div>
@@ -159,14 +157,14 @@ export function AiConversation({ variant = 'dock' }) {
         <input
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder={voice.isListening ? 'Listening…' : 'Ask the concierge anything…'}
+          placeholder={voice.isListening ? t.ai.listeningPlaceholder : t.ai.askPlaceholder}
           className="min-w-0 flex-1 bg-transparent py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none"
         />
         {voice.recognitionSupported && (
           <button
             type="button"
             onClick={handleMicClick}
-            aria-label={voice.isListening ? 'Stop voice input' : 'Start voice input'}
+            aria-label={voice.isListening ? t.ai.stopVoiceInput : t.ai.startVoiceInput}
             aria-pressed={voice.isListening}
             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition ${
               voice.isListening
@@ -181,7 +179,7 @@ export function AiConversation({ variant = 'dock' }) {
           <button
             type="button"
             onClick={() => setAutoSpeak((v) => !v)}
-            aria-label={autoSpeak ? 'Turn off spoken replies' : 'Turn on spoken replies'}
+            aria-label={autoSpeak ? t.ai.turnOffSpokenReplies : t.ai.turnOnSpokenReplies}
             aria-pressed={autoSpeak}
             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition ${
               autoSpeak
@@ -196,24 +194,24 @@ export function AiConversation({ variant = 'dock' }) {
           type="submit"
           className="shrink-0 rounded-full bg-brand-gold px-4 py-2 text-xs font-semibold uppercase tracking-wide text-black transition hover:brightness-110"
         >
-          Ask
+          {t.ai.askButton}
         </button>
       </form>
 
       {voice.isStandalone && voice.synthesisSupported && (
         <div className="mt-3 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2 text-xs text-zinc-400">
-          <span>Concierge voice</span>
+          <span>{t.ai.conciergeVoice}</span>
           <div className="flex gap-1">
             {['female', 'male'].map((gender) => (
               <button
                 key={gender}
                 type="button"
                 onClick={() => voice.setVoiceGender(gender)}
-                className={`rounded-full px-3 py-1 capitalize transition ${
+                className={`rounded-full px-3 py-1 transition ${
                   voice.voiceGender === gender ? 'bg-brand-gold text-black' : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                {gender}
+                {gender === 'male' ? t.ai.genderMale : t.ai.genderFemale}
               </button>
             ))}
           </div>
@@ -222,7 +220,7 @@ export function AiConversation({ variant = 'dock' }) {
 
       {variant === 'room' && !voice.isStandalone && (
         <p className="mt-2 text-center text-[0.65rem] uppercase tracking-[0.2em] text-zinc-600">
-          Add GORGONA ONE to your home screen to choose a male or female concierge voice
+          {t.ai.addToHomeScreenVoiceHint}
         </p>
       )}
     </div>

@@ -4,14 +4,15 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   CONSTELLATIONS,
-  discoveryCategories,
-  EXAMPLE_PROMPTS
+  discoveryCategories
 } from '../../../lib/discoveryCategories';
 import { greeting } from '../../../lib/ai/language';
 import { useAITheme } from '../ThemeProvider';
 import { useLocale } from '../LocaleProvider';
 import { useAI } from './AIProvider';
 import { useVoice } from './useVoice';
+import { getTranslation } from '../../../lib/i18n';
+import { getSpeechLang } from '../../../lib/languages';
 
 // The ecosystem provider (dynamic index + intent + language) is imported lazily
 // on first interaction so the data-heavy index never weighs down initial load.
@@ -65,12 +66,19 @@ export default function GorgonaOneAI() {
   const router = useRouter();
   const { theme, isDark, toggle } = useAITheme();
   const locale = useLocale();
+  const t = getTranslation(locale);
+  const EXAMPLE_PROMPTS = t.ai.examplePrompts;
   const ai = useAI();
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const engineRef = useRef(null);
   const themeRef = useRef(theme);
   themeRef.current = theme;
+  // Read fresh each animation frame (like themeRef) so the canvas-drawn
+  // constellation labels stay in the current language without rebuilding
+  // the particle field on every locale change.
+  const labelRef = useRef(null);
+  labelRef.current = (id) => t.ai.constellations[id]?.short || CONSTELLATIONS.find((c) => c.id === id)?.name || '';
 
   const [query, setQuery] = useState('');
   const [phase, setPhase] = useState('resting'); // resting | listening | intent
@@ -89,16 +97,20 @@ export default function GorgonaOneAI() {
 
   const reduceMotion = usePrefersReducedMotion();
 
-  // Rotating placeholder prompts (paused while typing / not resting).
+  // Rotating placeholder prompts (paused while typing / not resting). Reset
+  // immediately on a language switch so a stale prompt from the previous
+  // language never lingers until the next rotation tick.
   useEffect(() => {
     if (query || phase !== 'resting') return;
     let i = 0;
+    setPlaceholder(EXAMPLE_PROMPTS[0]);
     const id = setInterval(() => {
       i = (i + 1) % EXAMPLE_PROMPTS.length;
       setPlaceholder(EXAMPLE_PROMPTS[i]);
     }, 3600);
     return () => clearInterval(id);
-  }, [query, phase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, phase, locale]);
 
   // Particle engine lifecycle.
   useEffect(() => {
@@ -106,7 +118,11 @@ export default function GorgonaOneAI() {
     const wrap = wrapRef.current;
     if (!canvas || !wrap) return;
 
-    const engine = createField(canvas, wrap, { reduceMotion, getTheme: () => themeRef.current });
+    const engine = createField(canvas, wrap, {
+      reduceMotion,
+      getTheme: () => themeRef.current,
+      getLabel: (id) => labelRef.current(id)
+    });
     engineRef.current = engine;
 
     const io = new IntersectionObserver(
@@ -195,10 +211,11 @@ export default function GorgonaOneAI() {
     setPhase('listening');
     setActiveCluster(null);
     setMatches([]);
+    // Recognize speech as the site's current language, not always English.
     voice.startListening((text) => {
       setQuery(text);
       runQuery(text);
-    });
+    }, getSpeechLang(locale));
   }
 
   // If recognition ends on its own (silence, a recognized phrase, permission
@@ -221,9 +238,9 @@ export default function GorgonaOneAI() {
 
   const stateLine =
     phase === 'listening'
-      ? 'Listening · EN · RU · ES · FR'
+      ? t.ai.listening
       : phase === 'intent' && matches.length
-      ? `Surfacing · ${constellationName(activeCluster)}`
+      ? `${t.ai.surfacing} · ${constellationName(activeCluster, t)}`
       : greetingText;
 
   return (
@@ -235,10 +252,10 @@ export default function GorgonaOneAI() {
         type="button"
         className="gai__theme"
         onClick={toggle}
-        aria-label={isDark ? 'Switch to light atmosphere' : 'Switch to dark atmosphere'}
+        aria-label={isDark ? t.ai.switchToLight : t.ai.switchToDark}
       >
         {isDark ? <SunIcon /> : <MoonIcon />}
-        <span>{isDark ? 'Light' : 'Dark'}</span>
+        <span>{isDark ? t.ai.themeLight : t.ai.themeDark}</span>
       </button>
 
       {/* Console core */}
@@ -251,7 +268,7 @@ export default function GorgonaOneAI() {
             value={query}
             onChange={onChange}
             placeholder={placeholder}
-            aria-label="Ask Gorgona One AI"
+            aria-label={t.ai.askAria}
             autoComplete="off"
           />
           <button
@@ -260,8 +277,8 @@ export default function GorgonaOneAI() {
             onClick={toggleMic}
             aria-pressed={phase === 'listening'}
             aria-disabled={!voice.recognitionSupported}
-            aria-label={phase === 'listening' ? 'Stop listening' : 'Speak your request'}
-            title={voice.recognitionSupported ? undefined : 'Voice input is not supported in this browser'}
+            aria-label={phase === 'listening' ? t.ai.micStop : t.ai.micSpeak}
+            title={voice.recognitionSupported ? undefined : t.ai.micUnsupported}
           >
             <span className="gai__halo" aria-hidden="true" />
             <MicIcon />
@@ -281,7 +298,7 @@ export default function GorgonaOneAI() {
                 title={item.subtitle ? `${item.title} — ${item.subtitle}` : item.title}
                 onClick={() => selectResult(item)}
               >
-                <span className="gai__chipType">{item.type}</span>
+                <span className="gai__chipType">{t.ai.entityTypes[item.type] || item.type}</span>
                 {item.title}
               </button>
             ))}
@@ -305,7 +322,7 @@ export default function GorgonaOneAI() {
                 style={{ '--c': `rgb(${c.color.join(',')})` }}
               >
                 <span className="gai__dot" />
-                {c.name}
+                {t.ai.constellations[c.id]?.full || c.name}
               </button>
               {isOpen && (
                 <div className="gai__items">
@@ -316,7 +333,7 @@ export default function GorgonaOneAI() {
                       className="gai__chip"
                       onClick={() => router.push(cat.href)}
                     >
-                      {cat.label}
+                      {t.ai.categories[cat.id] || cat.label}
                     </button>
                   ))}
                 </div>
@@ -331,9 +348,8 @@ export default function GorgonaOneAI() {
   );
 }
 
-function constellationName(id) {
-  const c = CONSTELLATIONS.find((x) => x.id === id);
-  return c ? c.name : '';
+function constellationName(id, t) {
+  return t.ai.constellations[id]?.full || CONSTELLATIONS.find((x) => x.id === id)?.name || '';
 }
 
 function MicIcon() {
@@ -376,7 +392,7 @@ function usePrefersReducedMotion() {
 // Canvas-2D volumetric field. Framework-agnostic closure; reads the live theme
 // each frame via getTheme() so a theme switch never rebuilds the field.
 // ===========================================================================
-function createField(canvas, wrap, { reduceMotion, getTheme }) {
+function createField(canvas, wrap, { reduceMotion, getTheme, getLabel }) {
   const ctx = canvas.getContext('2d');
   const finePointer = window.matchMedia('(pointer: fine)').matches;
   let DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -567,7 +583,7 @@ function createField(canvas, wrap, { reduceMotion, getTheme }) {
       if (Math.abs(qy - cy) < R * 0.5 && Math.abs(qx - cx) < R * 0.85) continue;
       const col = P.labelBright ? P.labelBright : q.glow;
       ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${la.toFixed(3)})`;
-      ctx.fillText(q.name.replace('World of ', ''), qx, qy);
+      ctx.fillText(getLabel ? getLabel(q.id) : q.name.replace('World of ', ''), qx, qy);
     }
   }
 

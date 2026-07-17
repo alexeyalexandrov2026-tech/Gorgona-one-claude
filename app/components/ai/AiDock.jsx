@@ -5,9 +5,13 @@ import Link from 'next/link';
 import { useAiDock } from './AiDockProvider';
 import { AiConversation } from './AiConversation';
 import { useBodyScrollLock } from '../useBodyScrollLock';
+import { useLocale } from '../LocaleProvider';
+import { getTranslation } from '../../../lib/i18n';
 
 export function AiDock() {
   const { isOpen, close } = useAiDock();
+  const locale = useLocale();
+  const t = getTranslation(locale);
 
   // Prevents the mobile scroll-jump this dialog's own text input used to
   // trigger - see useBodyScrollLock for the root cause.
@@ -34,15 +38,15 @@ export function AiDock() {
       <aside
         role="dialog"
         aria-modal="true"
-        aria-label="GORGONA ONE AI Dock"
+        aria-label={t.ai.aiDockAriaLabel}
         className={`fixed bottom-0 right-0 z-50 flex h-[min(640px,88vh)] w-full flex-col border-t border-white/10 bg-[#0a0a0a]/[0.97] p-5 shadow-premium backdrop-blur-xl transition-transform duration-300 sm:bottom-6 sm:right-6 sm:h-[560px] sm:w-[400px] sm:rounded-[1.75rem] sm:border ${
           isOpen ? 'translate-y-0' : 'translate-y-[110%]'
         }`}
       >
         <div className="mb-3 flex items-center justify-between">
           <div>
-            <p className="font-mono text-[0.62rem] uppercase tracking-[0.3em] text-brand-gold">AI Dock</p>
-            <p className="mt-1 text-sm font-semibold text-white">GORGONA ONE Concierge</p>
+            <p className="font-mono text-[0.62rem] uppercase tracking-[0.3em] text-brand-gold">{t.ai.aiDockLabel}</p>
+            <p className="mt-1 text-sm font-semibold text-white">{t.ai.gorgonaConcierge}</p>
           </div>
           <div className="flex items-center gap-2">
             <Link
@@ -50,12 +54,12 @@ export function AiDock() {
               onClick={close}
               className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-brand-gold hover:text-brand-gold"
             >
-              Discovery Room
+              {t.ai.discoveryRoomLink}
             </Link>
             <button
               type="button"
               onClick={close}
-              aria-label="Close AI Dock"
+              aria-label={t.ai.closeAiDock}
               className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-zinc-300 transition hover:border-brand-gold hover:text-brand-gold"
             >
               ✕
