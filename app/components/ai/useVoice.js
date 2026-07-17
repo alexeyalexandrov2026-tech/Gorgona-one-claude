@@ -53,6 +53,26 @@ let activeRecognition = null;
 // unrelated, currently-playing reply.
 let activeSpeechOwner = null;
 
+// --- Premium TTS (lib/ai/voice.js via /api/tts) ---------------------------
+// Availability is probed lazily ONCE per page (first speak() call) so guests
+// who never use voice never hit the endpoint. When the feature flag is off
+// or the request fails, the browser's speechSynthesis below covers - the
+// concierge voice can never break because of the premium layer.
+let ttsAvailabilityPromise = null;
+function premiumTtsAvailable() {
+  if (!ttsAvailabilityPromise) {
+    ttsAvailabilityPromise = fetch('/api/tts')
+      .then((res) => res.json())
+      .then((data) => Boolean(data?.available))
+      .catch(() => false);
+  }
+  return ttsAvailabilityPromise;
+}
+
+// The single premium audio element playing page-wide, with its owning hook
+// instance - mirrors the activeSpeechOwner contract above.
+let activeAudio = null;
+
 // Splits a reply into short, natural phrases so speechSynthesis reads it as a
 // sequence of sentences rather than one long, flat utterance - and so a very
 // long reply doesn't risk being cut off by engines with per-utterance limits.
@@ -189,14 +209,13 @@ export function useVoice() {
     []
   );
 
-  const speak = useCallback(
-    (text, lang) => {
-      if (!synthesisSupported || !text) return;
+  const systemSpeak = useCallback(
+    (text, lang, requestId) => {
+      if (!synthesisSupported) return;
       window.speechSynthesis.cancel();
       activeSpeechOwner = ownerRef.current;
 
       const voice = pickVoice(voicesRef.current, voiceGender, lang);
-      const requestId = ++speechQueueIdRef.current;
 
       for (const chunk of splitIntoSpeechChunks(text)) {
         const utterance = new window.SpeechSynthesisUtterance(chunk);
@@ -215,10 +234,58 @@ export function useVoice() {
     [synthesisSupported, voiceGender]
   );
 
+  const speak = useCallback(
+    (text, lang) => {
+      if (!text) return;
+      const requestId = ++speechQueueIdRef.current;
+      (async () => {
+        // Premium provider first (feature-flagged server-side); any miss -
+        // flag off, request failure, playback rejection - falls through to
+        // the system voice with the same request id.
+        if (await premiumTtsAvailable()) {
+          try {
+            const res = await fetch('/api/tts', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text })
+            });
+            if (res.ok && requestId === speechQueueIdRef.current) {
+              const blob = await res.blob();
+              if (requestId !== speechQueueIdRef.current) return;
+              if (activeAudio) {
+                activeAudio.el.pause();
+                activeAudio = null;
+              }
+              if (synthesisSupported) window.speechSynthesis.cancel();
+              const el = new Audio(URL.createObjectURL(blob));
+              activeAudio = { el, owner: ownerRef.current };
+              activeSpeechOwner = ownerRef.current;
+              el.onended = () => {
+                if (activeAudio?.el === el) activeAudio = null;
+                URL.revokeObjectURL(el.src);
+              };
+              await el.play();
+              return;
+            }
+          } catch {
+            /* fall through to system voice */
+          }
+        }
+        if (requestId !== speechQueueIdRef.current) return;
+        systemSpeak(text, lang, requestId);
+      })();
+    },
+    [synthesisSupported, systemSpeak]
+  );
+
   const stopSpeaking = useCallback(() => {
     speechQueueIdRef.current += 1;
-    // Only cancel audio this instance actually started - speechSynthesis is
-    // shared across every surface on the page.
+    // Only stop audio this instance actually started - both the premium
+    // audio element and speechSynthesis are shared across every surface.
+    if (activeAudio && activeAudio.owner === ownerRef.current) {
+      activeAudio.el.pause();
+      activeAudio = null;
+    }
     if (synthesisSupported && activeSpeechOwner === ownerRef.current) {
       window.speechSynthesis.cancel();
       activeSpeechOwner = null;

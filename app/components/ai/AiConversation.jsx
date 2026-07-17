@@ -6,6 +6,7 @@ import { useVoice } from './useVoice';
 import { useLocale } from '../LocaleProvider';
 import { getTranslation } from '../../../lib/i18n';
 import { getSpeechLang } from '../../../lib/languages';
+import { postChat } from './chatTransport';
 
 function MicIcon({ className }) {
   return (
@@ -47,6 +48,9 @@ export function AiConversation({ variant = 'dock' }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  // Streaming draft reply (null = none yet; '' = retracted/reset).
+  const [draft, setDraft] = useState(null);
+  const sendSeq = useRef(0);
   const [suggestions, setSuggestions] = useState([]);
   const [autoSpeak, setAutoSpeak] = useState(false);
   const listRef = useRef(null);
@@ -54,7 +58,7 @@ export function AiConversation({ variant = 'dock' }) {
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages, isLoading]);
+  }, [messages, isLoading, draft]);
 
   async function send(rawText) {
     const content = rawText.trim();
@@ -65,24 +69,33 @@ export function AiConversation({ variant = 'dock' }) {
     setIsLoading(true);
     setSuggestions([]);
 
+    const seq = ++sendSeq.current;
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // `locale` tells the concierge which language to reply in - see
-        // app/api/chat/route.js. Without it the reply language wasn't
-        // reliably tied to what the guest had the site set to.
-        body: JSON.stringify({ messages: nextMessages, locale })
+      // `locale` tells the concierge which language to reply in - see
+      // app/api/chat/route.js. postChat streams token deltas when the
+      // platform has streaming enabled and falls back to plain JSON when not.
+      const data = await postChat({
+        messages: nextMessages,
+        locale,
+        onDelta: (chunk) => {
+          if (seq !== sendSeq.current) return;
+          if (chunk === null) setDraft('');
+          else setDraft((prev) => (prev || '') + chunk);
+        }
       });
-      const data = await response.json();
+      if (seq !== sendSeq.current) return;
       const reply = data.reply || t.ai.couldntReach;
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
       setSuggestions(data.suggestions || []);
-      if (autoSpeak) voice.speak(reply);
+      if (autoSpeak) voice.speak(reply, getSpeechLang(locale));
     } catch {
+      if (seq !== sendSeq.current) return;
       setMessages((prev) => [...prev, { role: 'assistant', content: t.ai.tempUnavailable }]);
     } finally {
-      setIsLoading(false);
+      if (seq === sendSeq.current) {
+        setIsLoading(false);
+        setDraft(null);
+      }
     }
   }
 
@@ -122,7 +135,8 @@ export function AiConversation({ variant = 'dock' }) {
           <Message key={index} role={message.role} content={message.content} />
         ))}
 
-        {isLoading && (
+        {isLoading && draft && <Message role="assistant" content={draft} />}
+        {isLoading && !draft && (
           <div className="flex justify-start">
             <div className="flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-gold" />

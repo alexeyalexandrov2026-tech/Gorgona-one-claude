@@ -13,6 +13,7 @@ import { useAI } from './AIProvider';
 import { useVoice } from './useVoice';
 import { getTranslation } from '../../../lib/i18n';
 import { getSpeechLang } from '../../../lib/languages';
+import { postChat } from './chatTransport';
 
 // The ecosystem provider (dynamic index + intent + language) is imported lazily
 // on first interaction so the data-heavy index never weighs down initial load.
@@ -96,6 +97,9 @@ export default function GorgonaOneAI() {
   // full message list is sent each turn, so context is preserved end-to-end.
   const [messages, setMessages] = useState([]);
   const [sending, setSending] = useState(false);
+  // Streaming draft: the assistant reply as it arrives token by token.
+  // `null` = no draft (dots show while sending); '' = retracted/starting.
+  const [draft, setDraft] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [speakReplies, setSpeakReplies] = useState(false);
   const chatRef = useRef(null);
@@ -125,7 +129,7 @@ export default function GorgonaOneAI() {
   useEffect(() => {
     const el = chatRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [messages, sending]);
+  }, [messages, sending, draft]);
 
   function toggleSpeak() {
     setSpeakReplies((v) => {
@@ -150,14 +154,17 @@ export default function GorgonaOneAI() {
     setSuggestions([]);
     runQuery(content); // light the matching constellation while we think
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: nextMessages.slice(-12), locale })
+      const data = await postChat({
+        messages: nextMessages.slice(-12),
+        locale,
+        onDelta: (chunk) => {
+          if (id !== chatReqId.current) return;
+          if (chunk === null) setDraft(''); // server retracted - reset draft
+          else setDraft((prev) => (prev || '') + chunk);
+        }
       });
-      const data = await res.json();
       if (id !== chatReqId.current) return; // superseded by a newer send
-      const reply = data?.reply || t.ai.geminiNoReply;
+      const reply = data?.reply || t.ai.aiNoReply;
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
       setSuggestions(Array.isArray(data?.suggestions) ? data.suggestions.slice(0, 3) : []);
       ai.recordQuery({ query: content, world: activeCluster, results: matches, selected: null });
@@ -166,9 +173,12 @@ export default function GorgonaOneAI() {
       }
     } catch {
       if (id !== chatReqId.current) return;
-      setMessages((prev) => [...prev, { role: 'assistant', content: t.ai.geminiUnavailable }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: t.ai.aiUnavailable }]);
     } finally {
-      if (id === chatReqId.current) setSending(false);
+      if (id === chatReqId.current) {
+        setSending(false);
+        setDraft(null);
+      }
     }
   }
 
@@ -178,6 +188,7 @@ export default function GorgonaOneAI() {
     setMessages([]);
     setSuggestions([]);
     setSending(false);
+    setDraft(null);
   }
 
   // Greet in the user's language (updated after mount to avoid hydration drift).
@@ -375,7 +386,10 @@ export default function GorgonaOneAI() {
                 {m.content}
               </div>
             ))}
-            {sending && (
+            {sending && draft && (
+              <div className="gai__msg gai__msg--ai">{draft}</div>
+            )}
+            {sending && !draft && (
               <div className="gai__msg gai__msg--ai gai__msg--typing" aria-label="Thinking">
                 <span /><span /><span />
               </div>
