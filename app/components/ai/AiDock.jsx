@@ -4,9 +4,14 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useAiDock } from './AiDockProvider';
 import { AiConversation } from './AiConversation';
+import { useBodyScrollLock } from '../useBodyScrollLock';
 
 export function AiDock() {
   const { isOpen, close } = useAiDock();
+
+  // Prevents the mobile scroll-jump this dialog's own text input used to
+  // trigger - see useBodyScrollLock for the root cause.
+  useBodyScrollLock(isOpen);
 
   useEffect(() => {
     if (!isOpen) return undefined;

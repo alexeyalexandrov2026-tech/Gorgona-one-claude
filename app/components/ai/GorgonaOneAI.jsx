@@ -11,6 +11,7 @@ import { greeting } from '../../../lib/ai/language';
 import { useAITheme } from '../ThemeProvider';
 import { useLocale } from '../LocaleProvider';
 import { useAI } from './AIProvider';
+import { useVoice } from './useVoice';
 
 // The ecosystem provider (dynamic index + intent + language) is imported lazily
 // on first interaction so the data-heavy index never weighs down initial load.
@@ -35,8 +36,6 @@ function loadProvider() {
 // to routes that already exist. The dynamic ecosystem index + real intelligence
 // arrive in Phase 2; persistence + Discovery Room in Phase 3.
 // ===========================================================================
-
-const SIM_TRANSCRIPT = 'Find me a yacht charter in Miami this weekend…';
 
 // Per-theme visual language. Structure (shells, core, filaments, motion) is
 // shared; only these values differ.
@@ -80,7 +79,7 @@ export default function GorgonaOneAI() {
   const [openCluster, setOpenCluster] = useState(null);
   const [placeholder, setPlaceholder] = useState(EXAMPLE_PROMPTS[0]);
   const [greetingText, setGreetingText] = useState(() => greeting('en'));
-  const listenTimer = useRef(null);
+  const voice = useVoice();
   const reqId = useRef(0); // guards against out-of-order async results
 
   // Greet in the user's language (updated after mount to avoid hydration drift).
@@ -182,26 +181,37 @@ export default function GorgonaOneAI() {
     router.push(item.href);
   }
 
-  // Simulated microphone (Phase 1).
+  // Real microphone input via the same shared voice service used by the
+  // Discovery Room / AI Dock concierge (app/components/ai/useVoice.js) - one
+  // speech-recognition implementation, one permission flow, one fallback
+  // behavior for both AI surfaces on the site.
   function toggleMic() {
     if (phase === 'listening') {
-      stopListening();
+      voice.stopListening();
+      setPhase(query.trim() ? 'intent' : 'resting');
       return;
     }
-    clearTimeout(listenTimer.current);
+    if (!voice.recognitionSupported) return;
     setPhase('listening');
     setActiveCluster(null);
     setMatches([]);
-    listenTimer.current = setTimeout(() => {
-      setQuery(SIM_TRANSCRIPT.replace(/…$/, ''));
-      runQuery(SIM_TRANSCRIPT);
-    }, 2200);
+    voice.startListening((text) => {
+      setQuery(text);
+      runQuery(text);
+    });
   }
-  function stopListening() {
-    clearTimeout(listenTimer.current);
-    setPhase(query.trim() ? 'intent' : 'resting');
-  }
-  useEffect(() => () => clearTimeout(listenTimer.current), []);
+
+  // If recognition ends on its own (silence, a recognized phrase, permission
+  // denied, or a browser/network error) while we're still showing the
+  // listening state, fall back out of it - runQuery() above already moves the
+  // phase forward the moment a result arrives, so this only fires for the
+  // "nothing came back" cases (no speech, denied, error).
+  useEffect(() => {
+    if (phase === 'listening' && !voice.isListening) {
+      setPhase(query.trim() ? 'intent' : 'resting');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voice.isListening]);
 
   const categoriesByCluster = useMemo(() => {
     const map = {};
@@ -249,14 +259,16 @@ export default function GorgonaOneAI() {
             className="gai__mic"
             onClick={toggleMic}
             aria-pressed={phase === 'listening'}
+            aria-disabled={!voice.recognitionSupported}
             aria-label={phase === 'listening' ? 'Stop listening' : 'Speak your request'}
+            title={voice.recognitionSupported ? undefined : 'Voice input is not supported in this browser'}
           >
             <span className="gai__halo" aria-hidden="true" />
             <MicIcon />
           </button>
         </form>
         <p className="gai__state" aria-live="polite">
-          {phase === 'listening' ? <span className="gai__transcript">{SIM_TRANSCRIPT}</span> : stateLine}
+          {stateLine}
         </p>
 
         {phase === 'intent' && matches.length > 0 && (
