@@ -90,6 +90,96 @@ export default function GorgonaOneAI() {
   const voice = useVoice();
   const reqId = useRef(0); // guards against out-of-order async results
 
+  // --- Real conversation state (the concierge chat lives on the homepage). ---
+  // Restored from sessionStorage so the thread survives client-side navigation
+  // and reloads within the visit; the /api/chat backend holds no session, the
+  // full message list is sent each turn, so context is preserved end-to-end.
+  const [messages, setMessages] = useState([]);
+  const [sending, setSending] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [speakReplies, setSpeakReplies] = useState(false);
+  const chatRef = useRef(null);
+  const inputRef = useRef(null);
+  const chatReqId = useRef(0);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('gorgona-home-chat');
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (Array.isArray(data.messages)) setMessages(data.messages);
+        if (Array.isArray(data.suggestions)) setSuggestions(data.suggestions);
+      }
+      const spk = localStorage.getItem('gorgona-home-speak');
+      if (spk === '1') setSpeakReplies(true);
+    } catch { /* blocked storage - chat still works, just not persisted */ }
+  }, []);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('gorgona-home-chat', JSON.stringify({ messages, suggestions }));
+    } catch { /* non-fatal */ }
+  }, [messages, suggestions]);
+
+  // Keep the newest message in view.
+  useEffect(() => {
+    const el = chatRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages, sending]);
+
+  function toggleSpeak() {
+    setSpeakReplies((v) => {
+      const next = !v;
+      try { localStorage.setItem('gorgona-home-speak', next ? '1' : '0'); } catch { /* non-fatal */ }
+      if (!next) voice.stopSpeaking();
+      return next;
+    });
+  }
+
+  // Send a message to the real concierge backend (/api/chat - OpenRouter).
+  // `viaVoice` marks queries that arrived by microphone: those replies are
+  // spoken aloud even when the always-speak toggle is off.
+  async function sendMessage(text, { viaVoice = false } = {}) {
+    const content = (text || '').trim();
+    if (!content || sending) return;
+    const id = ++chatReqId.current;
+    const nextMessages = [...messages, { role: 'user', content }];
+    setMessages(nextMessages);
+    setQuery('');
+    setSending(true);
+    setSuggestions([]);
+    runQuery(content); // light the matching constellation while we think
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: nextMessages.slice(-12), locale })
+      });
+      const data = await res.json();
+      if (id !== chatReqId.current) return; // superseded by a newer send
+      const reply = data?.reply || t.ai.geminiNoReply;
+      setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
+      setSuggestions(Array.isArray(data?.suggestions) ? data.suggestions.slice(0, 3) : []);
+      ai.recordQuery({ query: content, world: activeCluster, results: matches, selected: null });
+      if ((speakReplies || viaVoice) && voice.synthesisSupported) {
+        voice.speak(reply, getSpeechLang(locale));
+      }
+    } catch {
+      if (id !== chatReqId.current) return;
+      setMessages((prev) => [...prev, { role: 'assistant', content: t.ai.geminiUnavailable }]);
+    } finally {
+      if (id === chatReqId.current) setSending(false);
+    }
+  }
+
+  function clearChat() {
+    chatReqId.current++;
+    voice.stopSpeaking();
+    setMessages([]);
+    setSuggestions([]);
+    setSending(false);
+  }
+
   // Greet in the user's language (updated after mount to avoid hydration drift).
   useEffect(() => {
     setGreetingText(greeting(locale));
@@ -179,15 +269,12 @@ export default function GorgonaOneAI() {
     }
   }
 
-  async function onSubmit(e) {
+  // Submitting talks to the concierge. The previous behavior - router.push()
+  // to the first index match - yanked the guest to another page on their very
+  // first message, which is what kept breaking navigation/session flow.
+  function onSubmit(e) {
     e.preventDefault();
-    if (!query.trim()) return;
-    const { askEcosystem } = await loadProvider();
-    const res = await askEcosystem({ query, locale });
-    if (res.results.length) {
-      ai.recordQuery({ query, world: res.world, lang: res.lang, results: res.results, selected: res.results[0] });
-      router.push(res.results[0].href);
-    }
+    sendMessage(query);
   }
 
   // Selecting a surfaced result records the search + choice into the shared AI
@@ -214,7 +301,9 @@ export default function GorgonaOneAI() {
     // Recognize speech as the site's current language, not always English.
     voice.startListening((text) => {
       setQuery(text);
-      runQuery(text);
+      // A spoken question goes straight to the concierge and the reply is
+      // spoken back - the full voice loop, not just transcription.
+      sendMessage(text, { viaVoice: true });
     }, getSpeechLang(locale));
   }
 
@@ -237,32 +326,74 @@ export default function GorgonaOneAI() {
   }, []);
 
   const stateLine =
-    phase === 'listening'
+    sending
+      ? '· · ·'
+      : phase === 'listening'
       ? t.ai.listening
       : phase === 'intent' && matches.length
       ? `${t.ai.surfacing} · ${constellationName(activeCluster, t)}`
       : greetingText;
 
+  const inChat = messages.length > 0;
+
   return (
-    <div ref={wrapRef} className="gai" data-ai-theme={theme}>
+    <div ref={wrapRef} id="gorgona-one-ai" className="gai" data-ai-theme={theme}>
       <canvas ref={canvasRef} className="gai__canvas" aria-hidden="true" />
 
-      {/* Theme toggle — scoped to the AI surface */}
-      <button
-        type="button"
-        className="gai__theme"
-        onClick={toggle}
-        aria-label={isDark ? t.ai.switchToLight : t.ai.switchToDark}
-      >
-        {isDark ? <SunIcon /> : <MoonIcon />}
-        <span>{isDark ? t.ai.themeLight : t.ai.themeDark}</span>
-      </button>
+      {/* Surface controls — theme + voice replies, scoped to the AI surface */}
+      <div className="gai__controls">
+        <button
+          type="button"
+          className={`gai__theme ${speakReplies ? 'is-on' : ''}`}
+          onClick={toggleSpeak}
+          aria-pressed={speakReplies}
+          aria-label="Toggle spoken replies"
+          title={voice.synthesisSupported ? undefined : t.ai.micUnsupported}
+        >
+          <SpeakerIcon />
+          <span>Voice</span>
+        </button>
+        <button
+          type="button"
+          className="gai__theme"
+          onClick={toggle}
+          aria-label={isDark ? t.ai.switchToLight : t.ai.switchToDark}
+        >
+          {isDark ? <SunIcon /> : <MoonIcon />}
+          <span>{isDark ? t.ai.themeLight : t.ai.themeDark}</span>
+        </button>
+      </div>
 
       {/* Console core */}
-      <div className={`gai__core ${phase === 'listening' ? 'is-listening' : ''} ${phase === 'intent' ? 'is-intent' : ''}`}>
+      <div className={`gai__core ${inChat ? 'is-chat' : ''} ${sending ? 'is-thinking' : ''} ${phase === 'listening' ? 'is-listening' : ''} ${phase === 'intent' ? 'is-intent' : ''}`}>
         <p className="gai__eyebrow">Gorgona One AI</p>
+
+        {inChat && (
+          <div className="gai__chat" ref={chatRef} aria-live="polite">
+            {messages.map((m, i) => (
+              <div key={i} className={`gai__msg ${m.role === 'user' ? 'gai__msg--user' : 'gai__msg--ai'}`}>
+                {m.content}
+              </div>
+            ))}
+            {sending && (
+              <div className="gai__msg gai__msg--ai gai__msg--typing" aria-label="Thinking">
+                <span /><span /><span />
+              </div>
+            )}
+            {!sending && suggestions.length > 0 && (
+              <div className="gai__suggest">
+                {suggestions.map((s) => (
+                  <button key={s.href} type="button" className="gai__chip" onClick={() => router.push(s.href)}>
+                    {s.label} →
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <form className="gai__bar" onSubmit={onSubmit} role="search">
           <input
+            ref={inputRef}
             className="gai__input"
             type="text"
             value={query}
@@ -271,6 +402,11 @@ export default function GorgonaOneAI() {
             aria-label={t.ai.askAria}
             autoComplete="off"
           />
+          {inChat && (
+            <button type="button" className="gai__clear" onClick={clearChat} aria-label="New conversation" title="New conversation">
+              <PlusIcon />
+            </button>
+          )}
           <button
             type="button"
             className="gai__mic"
@@ -372,6 +508,21 @@ function MoonIcon() {
   return (
     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
       <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+    </svg>
+  );
+}
+function SpeakerIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M11 5 6 9H2v6h4l5 4V5z" />
+      <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />
+    </svg>
+  );
+}
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" />
     </svg>
   );
 }
@@ -668,8 +819,31 @@ const styles = `
   }
   .gai__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
-  .gai__theme {
+  /* Hairline gradient ring + inner vignette: the jewellery-case finish that
+     makes the surface read as a built object rather than a flat panel. */
+  .gai::before {
+    content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+    padding: 1px;
+    background: linear-gradient(160deg, rgba(255,236,190,0.5) 0%, rgba(216,180,120,0.12) 28%, rgba(216,180,120,0.05) 55%, rgba(255,226,158,0.35) 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+  }
+  .gai[data-ai-theme="light"]::before {
+    background: linear-gradient(160deg, rgba(255,255,255,0.9) 0%, rgba(198,160,94,0.25) 30%, rgba(198,160,94,0.1) 60%, rgba(255,247,230,0.8) 100%);
+  }
+  .gai::after {
+    content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 1;
+    box-shadow: inset 0 1px 0 rgba(255,240,205,0.1), inset 0 -40px 80px -40px rgba(0,0,0,0.55);
+  }
+  .gai[data-ai-theme="light"]::after {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -40px 80px -50px rgba(96,72,28,0.28);
+  }
+
+  .gai__controls {
     position: absolute; top: 16px; right: 16px; z-index: 6;
+    display: flex; gap: 8px;
+  }
+  .gai__theme {
     display: inline-flex; align-items: center; gap: 6px;
     font-family: "Space Mono", ui-monospace, monospace;
     font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
@@ -684,11 +858,74 @@ const styles = `
   }
   .gai__theme:hover { color: #d8b478; border-color: #d8b478; }
   .gai__theme:focus-visible { outline: 2px solid #c6a05e; outline-offset: 3px; }
+  .gai__theme.is-on { color: #2a2013; background: linear-gradient(180deg, #ffe9b8, #d8b478); border-color: #e9cd93; box-shadow: 0 4px 14px -6px rgba(216,180,120,0.7); }
 
   .gai__core {
     position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
     width: min(88%, 460px); text-align: center; z-index: 3;
+    transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1), top 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   }
+  .gai__core.is-chat { width: min(94%, 640px); top: 50%; }
+
+  /* ---- Conversation panel: glass over the particle field ---- */
+  .gai__chat {
+    max-height: min(46vh, 330px); overflow-y: auto; overscroll-behavior: contain;
+    margin: 0 0 14px; padding: 14px; border-radius: 20px; text-align: left;
+    display: flex; flex-direction: column; gap: 10px;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    scrollbar-width: thin;
+  }
+  .gai[data-ai-theme="dark"] .gai__chat {
+    background: rgba(16, 13, 8, 0.55); border: 1px solid rgba(216, 180, 120, 0.22);
+    box-shadow: inset 0 1px 0 rgba(255,240,205,0.08), 0 24px 50px -30px rgba(0,0,0,0.8);
+    scrollbar-color: rgba(216,180,120,0.4) transparent;
+  }
+  .gai[data-ai-theme="light"] .gai__chat {
+    background: rgba(255, 252, 245, 0.62); border: 1px solid rgba(198, 160, 94, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 24px 50px -32px rgba(96,72,28,0.45);
+    scrollbar-color: rgba(198,160,94,0.45) transparent;
+  }
+  .gai__msg {
+    max-width: 86%; padding: 10px 14px; border-radius: 16px;
+    font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; word-break: break-word;
+    animation: gaiMsgIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes gaiMsgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .gai__msg--user {
+    align-self: flex-end; border-bottom-right-radius: 6px; color: #2a2013;
+    background: linear-gradient(180deg, #fff7e4 0%, #eecf92 60%, #dec088 100%);
+    border: 1px solid rgba(198, 160, 94, 0.55);
+    box-shadow: 0 6px 16px -8px rgba(60, 45, 12, 0.55), inset 0 1px 0 rgba(255,255,255,0.65);
+  }
+  .gai__msg--ai { align-self: flex-start; border-bottom-left-radius: 6px; }
+  .gai[data-ai-theme="dark"] .gai__msg--ai {
+    color: #f0e8d5; background: rgba(255, 240, 205, 0.07);
+    border: 1px solid rgba(216, 180, 120, 0.24);
+    box-shadow: inset 0 1px 0 rgba(255,240,205,0.07);
+  }
+  .gai[data-ai-theme="light"] .gai__msg--ai {
+    color: #33291a; background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(198, 160, 94, 0.3);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px -8px rgba(96,72,28,0.35);
+  }
+  .gai__msg--typing { display: inline-flex; gap: 5px; align-items: center; padding: 13px 16px; }
+  .gai__msg--typing span {
+    width: 5px; height: 5px; border-radius: 50%; background: #d8b478;
+    animation: gaiDot 1.2s ease-in-out infinite;
+  }
+  .gai__msg--typing span:nth-child(2) { animation-delay: 0.18s; }
+  .gai__msg--typing span:nth-child(3) { animation-delay: 0.36s; }
+  @keyframes gaiDot { 0%, 60%, 100% { opacity: 0.25; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+  .gai__suggest { display: flex; flex-wrap: wrap; gap: 7px; padding-top: 2px; }
+
+  .gai__clear {
+    flex: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .gai[data-ai-theme="dark"] .gai__clear { color: #c9b892; border: 1px solid rgba(216,180,120,0.35); }
+  .gai[data-ai-theme="light"] .gai__clear { color: #6b6252; border: 1px solid rgba(198,160,94,0.4); }
+  .gai__clear:hover { color: #d8b478; border-color: #d8b478; transform: rotate(90deg); }
   .gai__eyebrow {
     font-family: "Space Mono", ui-monospace, monospace;
     font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; margin: 0 0 10px;

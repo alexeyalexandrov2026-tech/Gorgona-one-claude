@@ -19,10 +19,15 @@ function scoreVoice(voice, hints) {
   return hints.some((hint) => name.includes(hint)) ? 1 : 0;
 }
 
-function pickVoice(voices, gender) {
+function pickVoice(voices, gender, lang) {
   if (!voices.length) return null;
+  // Prefer voices matching the requested reply language (e.g. 'ru-RU' -> any
+  // 'ru*' voice); fall back to the historical English bias when none match or
+  // no language was requested, so existing speak(text) callers are unchanged.
+  const langPrefix = (lang || '').toLowerCase().split('-')[0];
+  const langVoices = langPrefix ? voices.filter((v) => v.lang?.toLowerCase().startsWith(langPrefix)) : [];
   const englishVoices = voices.filter((v) => v.lang?.toLowerCase().startsWith('en'));
-  const pool = englishVoices.length ? englishVoices : voices;
+  const pool = langVoices.length ? langVoices : englishVoices.length ? englishVoices : voices;
   const hints = gender === 'male' ? MALE_VOICE_HINTS : FEMALE_VOICE_HINTS;
   const ranked = [...pool].sort((a, b) => scoreVoice(b, hints) - scoreVoice(a, hints));
   return ranked[0] || pool[0];
@@ -185,18 +190,18 @@ export function useVoice() {
   );
 
   const speak = useCallback(
-    (text) => {
+    (text, lang) => {
       if (!synthesisSupported || !text) return;
       window.speechSynthesis.cancel();
       activeSpeechOwner = ownerRef.current;
 
-      const voice = pickVoice(voicesRef.current, voiceGender);
+      const voice = pickVoice(voicesRef.current, voiceGender, lang);
       const requestId = ++speechQueueIdRef.current;
 
       for (const chunk of splitIntoSpeechChunks(text)) {
         const utterance = new window.SpeechSynthesisUtterance(chunk);
         if (voice) utterance.voice = voice;
-        utterance.lang = voice?.lang || 'en-US';
+        utterance.lang = voice?.lang || lang || 'en-US';
         utterance.pitch = voiceGender === 'male' ? 0.95 : 1.05;
         utterance.rate = 1;
         utterance.onstart = () => {

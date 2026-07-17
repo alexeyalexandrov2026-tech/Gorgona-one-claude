@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { SYSTEM_PROMPT, matchSuggestions } from '../../../lib/aiEcosystemContext';
 import { getLanguageMeta, isSupportedLanguage, DEFAULT_LANGUAGE } from '../../../lib/languages';
 import { getTranslation } from '../../../lib/i18n';
+import { getEcosystemDigest } from '../../../lib/aiEcosystemDigest';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -136,7 +137,7 @@ export async function POST(request) {
       const response = await callOpenRouter({
         apiKey,
         messages: chatMessages,
-        systemPrompt: SYSTEM_PROMPT + languageDirective
+        systemPrompt: SYSTEM_PROMPT + getEcosystemDigest() + languageDirective
       });
 
       if (response.ok) {
