@@ -212,7 +212,7 @@ export function AiConversation({ variant = 'dock' }) {
         </button>
       </form>
 
-      {voice.isStandalone && voice.synthesisSupported && (
+      {voice.synthesisSupported && (
         <div className="mt-3 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2 text-xs text-zinc-400">
           <span>{t.ai.conciergeVoice}</span>
           <div className="flex gap-1">

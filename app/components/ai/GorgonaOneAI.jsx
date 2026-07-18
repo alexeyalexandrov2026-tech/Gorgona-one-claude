@@ -364,6 +364,17 @@ export default function GorgonaOneAI() {
           <SpeakerIcon />
           <span>Voice</span>
         </button>
+        {speakReplies && voice.synthesisSupported && (
+          <button
+            type="button"
+            className="gai__theme"
+            onClick={() => voice.setVoiceGender(voice.voiceGender === 'male' ? 'female' : 'male')}
+            aria-label={`Voice: ${voice.voiceGender === 'male' ? t.ai.genderMale : t.ai.genderFemale}`}
+            title={`Voice: ${voice.voiceGender === 'male' ? t.ai.genderMale : t.ai.genderFemale}`}
+          >
+            <span>{voice.voiceGender === 'male' ? t.ai.genderMale : t.ai.genderFemale}</span>
+          </button>
+        )}
         <button
           type="button"
           className="gai__theme"

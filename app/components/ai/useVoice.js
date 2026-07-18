@@ -120,6 +120,7 @@ export function useVoice() {
   const recognitionRef = useRef(null);
   const voicesRef = useRef([]);
   const speechQueueIdRef = useRef(0);
+  const silenceTimerRef = useRef(null);
   const ownerRef = useRef(null);
   if (ownerRef.current === null) ownerRef.current = {};
 
@@ -141,14 +142,10 @@ export function useVoice() {
     return () => window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
   }, [synthesisSupported]);
 
-  const setVoiceGender = useCallback(
-    (gender) => {
-      if (!isStandalone) return;
-      setVoiceGenderState(gender);
-      window.localStorage.setItem('gorgona-voice-gender', gender);
-    },
-    [isStandalone]
-  );
+  const setVoiceGender = useCallback((gender) => {
+    setVoiceGenderState(gender);
+    window.localStorage.setItem('gorgona-voice-gender', gender);
+  }, []);
 
   const startListening = useCallback(
     // `lang` is a BCP-47 tag (e.g. 'ru-RU') the caller derives from the
@@ -169,19 +166,63 @@ export function useVoice() {
       const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognitionImpl();
       recognition.lang = lang;
-      recognition.interimResults = false;
+      // Continuous + interim results give us control over end-of-speech.
+      // The browser's default endpointing is far too eager - it cut the guest
+      // off at the first micro-pause and answered mid-sentence. Instead we
+      // keep the session open and finalize ourselves after a short, steady
+      // silence, so the guest is heard fully, then answered promptly.
+      recognition.continuous = true;
+      recognition.interimResults = true;
       recognition.maxAlternatives = 1;
+
+      // How long of a pause (ms) after the guest stops speaking before we
+      // finalize. Long enough not to clip natural pauses, short enough that
+      // the reply feels immediate.
+      const SILENCE_MS = 1200;
+      let finalText = '';
+
+      const clearSilence = () => {
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
+      };
+      const scheduleFinalize = () => {
+        clearSilence();
+        silenceTimerRef.current = setTimeout(() => {
+          // Stopping ends the session -> onend delivers the full transcript.
+          try {
+            recognition.stop();
+          } catch {
+            /* already stopping */
+          }
+        }, SILENCE_MS);
+      };
+
       recognition.onresult = (event) => {
-        const text = event.results[0][0].transcript;
-        onResult?.(text);
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+          const res = event.results[i];
+          if (res.isFinal) finalText += `${res[0].transcript} `;
+          else interim += res[0].transcript;
+        }
+        // Any speech (final or still-forming) restarts the silence countdown,
+        // so a natural mid-sentence pause never triggers a premature answer.
+        if (finalText.trim() || interim.trim()) scheduleFinalize();
       };
       recognition.onend = () => {
+        clearSilence();
         if (activeRecognition === recognition) activeRecognition = null;
         setIsListening(false);
+        const text = finalText.trim();
+        // Deliver once, only when the guest has actually finished - never
+        // mid-utterance.
+        if (text) onResult?.(text);
       };
       recognition.onerror = () => {
         // Covers permission denial, no-speech, network errors, etc. - all
         // simply return the UI to its resting state rather than throwing.
+        clearSilence();
         if (activeRecognition === recognition) activeRecognition = null;
         setIsListening(false);
       };
@@ -194,6 +235,10 @@ export function useVoice() {
   );
 
   const stopListening = useCallback(() => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
     recognitionRef.current?.stop();
     if (activeRecognition === recognitionRef.current) activeRecognition = null;
     setIsListening(false);
@@ -248,8 +293,10 @@ export function useVoice() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               // `lang` (BCP-47) lets server providers pick a voice in the
-              // guest's language; harmless for providers that ignore it.
-              body: JSON.stringify({ text, lang })
+              // guest's language; `gender` selects the premium female/male
+              // voice, matching the same choice used for the system-voice
+              // fallback below.
+              body: JSON.stringify({ text, lang, gender: voiceGender })
             });
             if (res.ok && requestId === speechQueueIdRef.current) {
               const blob = await res.blob();
@@ -277,7 +324,7 @@ export function useVoice() {
         systemSpeak(text, lang, requestId);
       })();
     },
-    [synthesisSupported, systemSpeak]
+    [synthesisSupported, systemSpeak, voiceGender]
   );
 
   const stopSpeaking = useCallback(() => {

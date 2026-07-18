@@ -29,8 +29,9 @@ export async function POST(request) {
   // Optional BCP-47 reply language (e.g. 'ru-RU') so providers that select a
   // voice by language (Google) speak in the guest's language.
   const lang = typeof body?.lang === 'string' ? body.lang.slice(0, 12) : undefined;
+  const gender = body?.gender === 'male' ? 'male' : 'female';
 
-  const result = await synthesizeSpeech(text, { lang });
+  const result = await synthesizeSpeech(text, { lang, gender });
   if (!result.ok) {
     // 503 (not 404): the client treats this as "fall back to system voice".
     return NextResponse.json({ error: 'TTS unavailable.' }, { status: 503 });
