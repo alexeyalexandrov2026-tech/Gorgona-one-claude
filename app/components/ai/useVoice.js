@@ -247,7 +247,9 @@ export function useVoice() {
             const res = await fetch('/api/tts', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ text })
+              // `lang` (BCP-47) lets server providers pick a voice in the
+              // guest's language; harmless for providers that ignore it.
+              body: JSON.stringify({ text, lang })
             });
             if (res.ok && requestId === speechQueueIdRef.current) {
               const blob = await res.blob();

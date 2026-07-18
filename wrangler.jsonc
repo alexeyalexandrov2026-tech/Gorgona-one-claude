@@ -21,6 +21,11 @@
   // touch those.
   "vars": {
     "SUPABASE_URL": "https://kexomoggkzfdmfoyukcm.supabase.co",
-    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtleG9tb2dna3pmZG1mb3l1a2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzOTUwNDAsImV4cCI6MjA5ODk3MTA0MH0.p2ybqbtQbTngj5qQJyhKZ9xYVstl6385COE0KSdje2U"
+    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtleG9tb2dna3pmZG1mb3l1a2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzOTUwNDAsImV4cCI6MjA5ODk3MTA0MH0.p2ybqbtQbTngj5qQJyhKZ9xYVstl6385COE0KSdje2U",
+    // Premium concierge voice: Google Cloud Text-to-Speech (REST + Web-Crypto
+    // service-account auth in lib/ai/voice.js). The credential itself is the
+    // GOOGLE_SERVICE_ACCOUNT* secret (dashboard-managed). With this off/unset
+    // the client silently uses the browser voice - never a regression.
+    "TTS_PROVIDER": "google"
   }
 }
