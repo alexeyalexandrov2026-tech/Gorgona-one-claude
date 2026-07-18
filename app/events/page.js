@@ -75,20 +75,23 @@ export default async function EventsMarketplacePage() {
             {t.events.categories}
           </p>
         </Reveal>
-        <Stagger className="mt-12 grid gap-4 md:grid-cols-2">
+        <Stagger className="mt-12 grid gap-6 md:grid-cols-3">
           {categories.map((category) => (
             <StaggerItem key={category.slug}>
-              <Link href={`/events/category/${category.slug}`} className="lux-tile group flex h-[360px] flex-col justify-end p-7" style={{ height: "360px" }}>
-                <div className="lux-tile__media">
-                  <img src={category.image} alt={category.label} className="h-full w-full object-cover" />
-                </div>
+              <Link href={`/events/category/${category.slug}`} className="lux-tile group flex flex-col items-center justify-center p-12 text-center" style={{ height: "360px" }}>
                 <div className="lux-tile__scrim" />
                 <div className="lux-tile__glow" />
-                <div className="relative">
-                  <p className="lux-caption-upper">{category.icon} {t.events.categoryLabels[category.slug] || category.label}</p>
-                  <div className="mt-2 flex items-center justify-between gap-3">
-                    <h3 className="font-serif text-3xl italic text-white">{t.events.categoryLabels[category.slug] || category.label}</h3>
-                    <ArrowIcon className="h-5 w-5 shrink-0 text-white/70 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white" />
+                <div className="relative flex flex-col items-center gap-8">
+                  <div className="flex h-32 w-32 items-center justify-center rounded-2xl bg-white/5 border border-white/10 shadow-xl backdrop-blur-md transition-all duration-500 group-hover:scale-105 group-hover:bg-white/10 group-hover:border-brand-gold/40 group-hover:shadow-[0_0_40px_rgba(212,175,55,0.2)]">
+                    <span className="text-6xl opacity-80 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110">
+                      {category.icon}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-3xl italic text-white tracking-wide">{t.events.categoryLabels[category.slug] || category.label}</h3>
+                    <p className="lux-caption-upper mt-4 opacity-0 transition-all duration-500 group-hover:opacity-100 flex items-center justify-center gap-2">
+                      Explore events <ArrowIcon className="h-4 w-4" />
+                    </p>
                   </div>
                 </div>
               </Link>
