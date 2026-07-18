@@ -1,8 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  // Must match the Worker name in the Cloudflare dashboard (General -> Name),
-  // otherwise every Git build re-creates the rename warning/auto-PR.
-  "name": "gorgona-one-claude",
+  "name": "gorgonaone-claudeclodflare",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-07-11",
   "compatibility_flags": ["nodejs_compat"],
@@ -12,20 +10,5 @@
   },
   "observability": {
     "enabled": true
-  },
-  // Public runtime configuration. `wrangler deploy` SYNCS vars from this
-  // file - plaintext vars added only in the dashboard are wiped on the next
-  // Git build, so anything non-secret must live here. The Supabase anon key
-  // is public by design (RLS scopes it to published rows). True secrets
-  // (OPENROUTER_API_KEY) stay dashboard-managed Secrets - deploys never
-  // touch those.
-  "vars": {
-    "SUPABASE_URL": "https://kexomoggkzfdmfoyukcm.supabase.co",
-    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtleG9tb2dna3pmZG1mb3l1a2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzOTUwNDAsImV4cCI6MjA5ODk3MTA0MH0.p2ybqbtQbTngj5qQJyhKZ9xYVstl6385COE0KSdje2U",
-    // Premium concierge voice: Google Cloud Text-to-Speech (REST + Web-Crypto
-    // service-account auth in lib/ai/voice.js). The credential itself is the
-    // GOOGLE_SERVICE_ACCOUNT* secret (dashboard-managed). With this off/unset
-    // the client silently uses the browser voice - never a regression.
-    "TTS_PROVIDER": "google"
   }
 }

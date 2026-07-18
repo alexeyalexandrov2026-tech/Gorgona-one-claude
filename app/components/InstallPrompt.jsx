@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useLocale } from './LocaleProvider';
-import { getTranslation } from '../../lib/i18n';
 
 const DISMISS_KEY = 'gorgona-install-dismissed-at';
 const DISMISS_DAYS = 14;
@@ -39,8 +37,6 @@ function ShareIcon({ className }) {
 // beforeinstallprompt and can be installed with one tap; iOS Safari has no
 // such API, so guests there get explicit Share-sheet instructions instead.
 export function InstallPrompt() {
-  const locale = useLocale();
-  const t = getTranslation(locale);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showIosHint, setShowIosHint] = useState(false);
   const [dismissed, setDismissed] = useState(true);
@@ -83,39 +79,41 @@ export function InstallPrompt() {
           <span className="ai-sphere h-full w-full" aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-white">{t.ai.addToHomeScreen}</p>
+          <p className="text-sm font-semibold text-white">Add GORGONA ONE to your Home Screen</p>
           {deferredPrompt ? (
             <>
-              <p className="mt-1 text-xs leading-relaxed text-zinc-400">{t.ai.installHint}</p>
+              <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+                Install the app for a focused, standalone concierge experience.
+              </p>
               <div className="mt-3 flex gap-2">
                 <button
                   type="button"
                   onClick={handleInstallClick}
                   className="rounded-full bg-brand-gold px-4 py-2 text-xs font-semibold uppercase tracking-wide text-black transition hover:brightness-110"
                 >
-                  {t.ai.install}
+                  Install
                 </button>
                 <button
                   type="button"
                   onClick={dismiss}
                   className="rounded-full border border-white/10 px-4 py-2 text-xs text-zinc-400 transition hover:text-white"
                 >
-                  {t.ai.notNow}
+                  Not now
                 </button>
               </div>
             </>
           ) : (
             <>
               <p className="mt-1 flex flex-wrap items-center gap-1 text-xs leading-relaxed text-zinc-400">
-                {t.ai.iosShareHintPre} <ShareIcon className="inline h-3.5 w-3.5 text-brand-gold" /> {t.ai.iosShareHintPost}
-                <span className="text-white">{t.ai.addToHomeScreenQuoted}</span>.
+                Tap <ShareIcon className="inline h-3.5 w-3.5 text-brand-gold" /> Share, then
+                <span className="text-white">&ldquo;Add to Home Screen&rdquo;</span>.
               </p>
               <button
                 type="button"
                 onClick={dismiss}
                 className="mt-3 rounded-full border border-white/10 px-4 py-2 text-xs text-zinc-400 transition hover:text-white"
               >
-                {t.ai.gotIt}
+                Got it
               </button>
             </>
           )}

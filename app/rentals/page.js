@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getRentals } from '../../lib/data/listings';
+import { getRentals } from '../../lib/rentalsData';
 import { rentalDescriptions, getContentText } from '../../lib/contentTranslations';
 import { getServerTranslation } from '../../lib/serverLocale';
 import { Reveal, Stagger, StaggerItem, Parallax } from '../components/Motion';
@@ -21,8 +21,8 @@ function ArrowIcon({ className }) {
   );
 }
 
-export default async function RentalsPage() {
-  const rentals = await getRentals();
+export default function RentalsPage() {
+  const rentals = getRentals();
   const { t, locale } = getServerTranslation();
 
   const featured = rentals.find((item) => item.featured) || rentals[0];

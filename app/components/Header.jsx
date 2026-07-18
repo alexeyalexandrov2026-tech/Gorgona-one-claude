@@ -9,19 +9,19 @@ import { getTranslation } from '../../lib/i18n';
 import { useLocale } from './LocaleProvider';
 import { useAuth } from './AuthProvider';
 
-// Unified GORGONA ONE ecosystem navigation. `key` maps to a translation in
-// lib/i18n's `nav` namespace; `label` is the English fallback if a locale is
-// somehow missing that key.
+// Unified GORGONA ONE ecosystem navigation. `key` maps to an existing
+// translation in lib/i18n when available; `label` is the fallback for the
+// new luxury sections that are not yet translated.
 const navItems = [
   { key: 'home', href: '/', label: 'Home' },
-  { key: 'travel', href: '/travel', label: 'Travel' },
+  { key: null, href: '/travel', label: 'Travel' },
   { key: 'stores', href: '/stores', label: 'Shopping' },
-  { key: 'villas', href: '/vacation-rentals', label: 'Villas' },
-  { key: 'yachts', href: '/yachts', label: 'Yachts' },
-  { key: 'cars', href: '/rentals', label: 'Cars' },
+  { key: null, href: '/vacation-rentals', label: 'Villas' },
+  { key: null, href: '/yachts', label: 'Yachts' },
+  { key: null, href: '/rentals', label: 'Cars' },
   { key: 'sportsbook', href: '/sportsbook', label: 'Sportsbooks' },
   { key: 'events', href: '/events', label: 'Events' },
-  { key: 'discoveryRoom', href: '/discovery', label: 'Discovery Room' }
+  { key: null, href: '/discovery', label: 'Discovery Room' }
 ];
 
 export function Header() {
@@ -32,6 +32,11 @@ export function Header() {
   const router = useRouter();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  // True only once we know this tab actually has somewhere to go back to -
+  // avoids showing a back arrow on a page opened fresh (a bookmark, a shared
+  // link, or the installed PWA's own launch screen), where router.back()
+  // would have nothing to return to.
+  const [canGoBack, setCanGoBack] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -40,14 +45,13 @@ export function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    setCanGoBack(window.history.length > 1);
+  }, [pathname]);
+
   function goBack() {
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      router.back();
-    } else {
-      const segments = pathname.split('/').filter(Boolean);
-      segments.pop();
-      router.push('/' + segments.join('/'));
-    }
+    if (window.history.length > 1) router.back();
+    else router.push('/');
   }
 
   const labelFor = (item) => (item.key && t.nav[item.key]) || item.label;
@@ -68,12 +72,13 @@ export function Header() {
               browser's own back button; installed/standalone PWA mode and
               small screens don't reliably offer one, so this is the minimal
               equivalent in the app's existing button style. Hidden on the
-              homepage (nothing to go "back" from). */}
-          {pathname !== '/' && (
+              homepage (nothing to go "back" from) and when this tab has no
+              history to return to. */}
+          {pathname !== '/' && canGoBack && (
             <button
               type="button"
               onClick={goBack}
-              aria-label={t.ai.goBack}
+              aria-label="Go back"
               className="flex items-center justify-center rounded-full border border-white/10 p-2 text-zinc-300 transition hover:border-brand-gold hover:text-brand-gold lg:hidden"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

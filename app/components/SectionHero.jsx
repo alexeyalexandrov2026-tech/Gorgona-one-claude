@@ -7,21 +7,10 @@ const easeLux = [0.22, 1, 0.36, 1];
 
 // Cinematic full-bleed hero shared by the section landings. The accent color
 // is inherited from the nearest `.theme-*` wrapper via CSS custom properties.
-export function SectionHero({ eyebrow, title, subtitle, image, kicker, video }) {
+export function SectionHero({ eyebrow, title, subtitle, image, kicker }) {
   return (
     <section className="lux-hero full-bleed -mt-[60px] flex min-h-[68vh] items-end">
       <div className="lux-hero__bg">
-        {video && (
-          <video
-            src={video}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 h-full w-full object-cover"
-            style={{ opacity: 0.12 }}
-          />
-        )}
         <Parallax distance={70} className="h-full">
           {image ? (
             <img src={image} alt="" className="lux-kenburns h-[115%] w-full object-cover opacity-90" />

@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import { getExperiences } from '../../lib/data/listings';
+import { getExperiences } from '../../lib/experiencesData';
 import { getServerTranslation } from '../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ExperiencesPage() {
-  const experiences = await getExperiences();
+export default function ExperiencesPage() {
+  const experiences = getExperiences();
   const { t } = getServerTranslation();
 
   return (

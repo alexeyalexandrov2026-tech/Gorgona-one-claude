@@ -1,14 +1,13 @@
 import Link from 'next/link';
-import { VENUE_CATEGORIES } from '../../lib/restaurantsNightlifeData';
-import { getVenuesByCategory } from '../../lib/data/listings';
+import { VENUE_CATEGORIES, getVenuesByCategory } from '../../lib/restaurantsNightlifeData';
 import { getServerTranslation } from '../../lib/serverLocale';
 import { VenueCard } from '../components/VenueCard';
 
 export const dynamic = 'force-dynamic';
 
-export default async function RestaurantsNightlifePage({ searchParams }) {
+export default function RestaurantsNightlifePage({ searchParams }) {
   const activeCategory = searchParams?.category === 'restaurant' || searchParams?.category === 'nightlife' ? searchParams.category : 'all';
-  const venues = await getVenuesByCategory(activeCategory);
+  const venues = getVenuesByCategory(activeCategory);
   const { t } = getServerTranslation();
 
   return (

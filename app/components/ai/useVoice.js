@@ -19,15 +19,10 @@ function scoreVoice(voice, hints) {
   return hints.some((hint) => name.includes(hint)) ? 1 : 0;
 }
 
-function pickVoice(voices, gender, lang) {
+function pickVoice(voices, gender) {
   if (!voices.length) return null;
-  // Prefer voices matching the requested reply language (e.g. 'ru-RU' -> any
-  // 'ru*' voice); fall back to the historical English bias when none match or
-  // no language was requested, so existing speak(text) callers are unchanged.
-  const langPrefix = (lang || '').toLowerCase().split('-')[0];
-  const langVoices = langPrefix ? voices.filter((v) => v.lang?.toLowerCase().startsWith(langPrefix)) : [];
   const englishVoices = voices.filter((v) => v.lang?.toLowerCase().startsWith('en'));
-  const pool = langVoices.length ? langVoices : englishVoices.length ? englishVoices : voices;
+  const pool = englishVoices.length ? englishVoices : voices;
   const hints = gender === 'male' ? MALE_VOICE_HINTS : FEMALE_VOICE_HINTS;
   const ranked = [...pool].sort((a, b) => scoreVoice(b, hints) - scoreVoice(a, hints));
   return ranked[0] || pool[0];
@@ -52,26 +47,6 @@ let activeRecognition = null;
 // unmounting (navigating away) could silence the always-mounted AI Dock's
 // unrelated, currently-playing reply.
 let activeSpeechOwner = null;
-
-// --- Premium TTS (lib/ai/voice.js via /api/tts) ---------------------------
-// Availability is probed lazily ONCE per page (first speak() call) so guests
-// who never use voice never hit the endpoint. When the feature flag is off
-// or the request fails, the browser's speechSynthesis below covers - the
-// concierge voice can never break because of the premium layer.
-let ttsAvailabilityPromise = null;
-function premiumTtsAvailable() {
-  if (!ttsAvailabilityPromise) {
-    ttsAvailabilityPromise = fetch('/api/tts')
-      .then((res) => res.json())
-      .then((data) => Boolean(data?.available))
-      .catch(() => false);
-  }
-  return ttsAvailabilityPromise;
-}
-
-// The single premium audio element playing page-wide, with its owning hook
-// instance - mirrors the activeSpeechOwner contract above.
-let activeAudio = null;
 
 // Splits a reply into short, natural phrases so speechSynthesis reads it as a
 // sequence of sentences rather than one long, flat utterance - and so a very
@@ -120,7 +95,6 @@ export function useVoice() {
   const recognitionRef = useRef(null);
   const voicesRef = useRef([]);
   const speechQueueIdRef = useRef(0);
-  const silenceTimerRef = useRef(null);
   const ownerRef = useRef(null);
   if (ownerRef.current === null) ownerRef.current = {};
 
@@ -142,18 +116,17 @@ export function useVoice() {
     return () => window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
   }, [synthesisSupported]);
 
-  const setVoiceGender = useCallback((gender) => {
-    setVoiceGenderState(gender);
-    window.localStorage.setItem('gorgona-voice-gender', gender);
-  }, []);
+  const setVoiceGender = useCallback(
+    (gender) => {
+      if (!isStandalone) return;
+      setVoiceGenderState(gender);
+      window.localStorage.setItem('gorgona-voice-gender', gender);
+    },
+    [isStandalone]
+  );
 
   const startListening = useCallback(
-    // `lang` is a BCP-47 tag (e.g. 'ru-RU') the caller derives from the
-    // site's current locale via lib/languages.js's getSpeechLang(). Without
-    // this, recognition always transcribed as English regardless of what
-    // language was actually spoken - Russian speech, for example, would be
-    // forced through an English phonetic model and come out as garbage.
-    (onResult, lang = 'en-US') => {
+    (onResult) => {
       if (!recognitionSupported) return;
       // Only one recognition session may run at a time across the whole page;
       // stop whichever surface currently owns it before claiming it here.
@@ -165,64 +138,20 @@ export function useVoice() {
 
       const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognitionImpl();
-      recognition.lang = lang;
-      // Continuous + interim results give us control over end-of-speech.
-      // The browser's default endpointing is far too eager - it cut the guest
-      // off at the first micro-pause and answered mid-sentence. Instead we
-      // keep the session open and finalize ourselves after a short, steady
-      // silence, so the guest is heard fully, then answered promptly.
-      recognition.continuous = true;
-      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
       recognition.maxAlternatives = 1;
-
-      // How long of a pause (ms) after the guest stops speaking before we
-      // finalize. Long enough not to clip natural pauses, short enough that
-      // the reply feels immediate.
-      const SILENCE_MS = 1200;
-      let finalText = '';
-
-      const clearSilence = () => {
-        if (silenceTimerRef.current) {
-          clearTimeout(silenceTimerRef.current);
-          silenceTimerRef.current = null;
-        }
-      };
-      const scheduleFinalize = () => {
-        clearSilence();
-        silenceTimerRef.current = setTimeout(() => {
-          // Stopping ends the session -> onend delivers the full transcript.
-          try {
-            recognition.stop();
-          } catch {
-            /* already stopping */
-          }
-        }, SILENCE_MS);
-      };
-
       recognition.onresult = (event) => {
-        let interim = '';
-        for (let i = event.resultIndex; i < event.results.length; i += 1) {
-          const res = event.results[i];
-          if (res.isFinal) finalText += `${res[0].transcript} `;
-          else interim += res[0].transcript;
-        }
-        // Any speech (final or still-forming) restarts the silence countdown,
-        // so a natural mid-sentence pause never triggers a premature answer.
-        if (finalText.trim() || interim.trim()) scheduleFinalize();
+        const text = event.results[0][0].transcript;
+        onResult?.(text);
       };
       recognition.onend = () => {
-        clearSilence();
         if (activeRecognition === recognition) activeRecognition = null;
         setIsListening(false);
-        const text = finalText.trim();
-        // Deliver once, only when the guest has actually finished - never
-        // mid-utterance.
-        if (text) onResult?.(text);
       };
       recognition.onerror = () => {
         // Covers permission denial, no-speech, network errors, etc. - all
         // simply return the UI to its resting state rather than throwing.
-        clearSilence();
         if (activeRecognition === recognition) activeRecognition = null;
         setIsListening(false);
       };
@@ -235,10 +164,6 @@ export function useVoice() {
   );
 
   const stopListening = useCallback(() => {
-    if (silenceTimerRef.current) {
-      clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = null;
-    }
     recognitionRef.current?.stop();
     if (activeRecognition === recognitionRef.current) activeRecognition = null;
     setIsListening(false);
@@ -254,18 +179,19 @@ export function useVoice() {
     []
   );
 
-  const systemSpeak = useCallback(
-    (text, lang, requestId) => {
-      if (!synthesisSupported) return;
+  const speak = useCallback(
+    (text) => {
+      if (!synthesisSupported || !text) return;
       window.speechSynthesis.cancel();
       activeSpeechOwner = ownerRef.current;
 
-      const voice = pickVoice(voicesRef.current, voiceGender, lang);
+      const voice = pickVoice(voicesRef.current, voiceGender);
+      const requestId = ++speechQueueIdRef.current;
 
       for (const chunk of splitIntoSpeechChunks(text)) {
         const utterance = new window.SpeechSynthesisUtterance(chunk);
         if (voice) utterance.voice = voice;
-        utterance.lang = voice?.lang || lang || 'en-US';
+        utterance.lang = voice?.lang || 'en-US';
         utterance.pitch = voiceGender === 'male' ? 0.95 : 1.05;
         utterance.rate = 1;
         utterance.onstart = () => {
@@ -279,62 +205,10 @@ export function useVoice() {
     [synthesisSupported, voiceGender]
   );
 
-  const speak = useCallback(
-    (text, lang) => {
-      if (!text) return;
-      const requestId = ++speechQueueIdRef.current;
-      (async () => {
-        // Premium provider first (feature-flagged server-side); any miss -
-        // flag off, request failure, playback rejection - falls through to
-        // the system voice with the same request id.
-        if (await premiumTtsAvailable()) {
-          try {
-            const res = await fetch('/api/tts', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              // `lang` (BCP-47) lets server providers pick a voice in the
-              // guest's language; `gender` selects the premium female/male
-              // voice, matching the same choice used for the system-voice
-              // fallback below.
-              body: JSON.stringify({ text, lang, gender: voiceGender })
-            });
-            if (res.ok && requestId === speechQueueIdRef.current) {
-              const blob = await res.blob();
-              if (requestId !== speechQueueIdRef.current) return;
-              if (activeAudio) {
-                activeAudio.el.pause();
-                activeAudio = null;
-              }
-              if (synthesisSupported) window.speechSynthesis.cancel();
-              const el = new Audio(URL.createObjectURL(blob));
-              activeAudio = { el, owner: ownerRef.current };
-              activeSpeechOwner = ownerRef.current;
-              el.onended = () => {
-                if (activeAudio?.el === el) activeAudio = null;
-                URL.revokeObjectURL(el.src);
-              };
-              await el.play();
-              return;
-            }
-          } catch {
-            /* fall through to system voice */
-          }
-        }
-        if (requestId !== speechQueueIdRef.current) return;
-        systemSpeak(text, lang, requestId);
-      })();
-    },
-    [synthesisSupported, systemSpeak, voiceGender]
-  );
-
   const stopSpeaking = useCallback(() => {
     speechQueueIdRef.current += 1;
-    // Only stop audio this instance actually started - both the premium
-    // audio element and speechSynthesis are shared across every surface.
-    if (activeAudio && activeAudio.owner === ownerRef.current) {
-      activeAudio.el.pause();
-      activeAudio = null;
-    }
+    // Only cancel audio this instance actually started - speechSynthesis is
+    // shared across every surface on the page.
     if (synthesisSupported && activeSpeechOwner === ownerRef.current) {
       window.speechSynthesis.cancel();
       activeSpeechOwner = null;

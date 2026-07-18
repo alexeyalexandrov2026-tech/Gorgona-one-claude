@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { allDeals, categories, getDealDescription } from '../../lib/dealsData';
 import { getYachts } from '../../lib/yachtsData';
@@ -21,6 +21,80 @@ const POPULAR_SEARCH_LINKS = [
 
 function camelizeSlug(slug) {
   return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+}
+
+// Temporarily held out of the Search Results preview only - pending
+// replacement brands. Left in lib/dealsData.js and every other section
+// (Stores, Coupons, etc.) untouched.
+// Best Buy: replaced in this preview by the Ovago card below (Best Buy
+// stays fully intact in Stores and everywhere else). Ovago: added here too
+// since it's a real lib/dealsData.js travel entry now - hiding it from this
+// capped 6-item window avoids it duplicating the dedicated card below;
+// its real listing still renders in full on /stores/travel.
+const HIDDEN_FROM_SEARCH_RESULTS = ['Target', 'Newegg', 'Macy’s', 'Nordstrom', 'Best Buy', 'Ovago'];
+
+// Fills one of the slots freed up above with the new KXC partner card.
+// Scoped to the Search Results preview only, same as the hidden list.
+const KXC_AFFILIATE_LINK = 'https://www.awin1.com/cread.php?awinmid=53985&awinaffid=2982101&ued=https%3A%2F%2Fkxclothing.com%2F';
+
+function buildKxcDeal(t) {
+  const category = t.categories.shopping;
+  const name = 'Kinetix Casual Luxury (KXC)';
+  return {
+    id: 'kxc-shopping',
+    name,
+    logo: '/images/brands/kinetix-casual-luxury.svg',
+    // KXC's mark is dark text - it needs the white backing plate to read
+    // on the dark cards. Amazon/Best Buy/Newegg's marks already include
+    // their own light/reversed colorway, so they sit directly on the card.
+    logoOnSolid: true,
+    description: t.category.dealDescriptionTemplate.replace('{name}', name).replace('{category}', category),
+    category,
+    promoCode: '',
+    discount: 'New season styles',
+    href: KXC_AFFILIATE_LINK
+  };
+}
+
+// Fills the slot freed up by hiding Newegg above. Scoped to the Search
+// Results preview only, same as the hidden list.
+const RENTCARS_AFFILIATE_LINK = 'https://click.linksynergy.com/fs-bin/click?id=BsBQ7p%2fMcbE&offerid=1791245.3&type=3&subid=0';
+
+function buildRentcarsDeal(t) {
+  const category = t.categories.shopping;
+  const name = 'Rentcars.com';
+  return {
+    id: 'rentcars-shopping',
+    name,
+    logo: '/images/brands/rentcars-shopping.svg',
+    description: t.category.dealDescriptionTemplate.replace('{name}', name).replace('{category}', category),
+    category,
+    promoCode: '',
+    discount: 'Worldwide car rental deals',
+    href: RENTCARS_AFFILIATE_LINK
+  };
+}
+
+// Fills the Search Results slot freed up by hiding Best Buy above. Scoped to
+// the Search Results preview only, same as the hidden list. Links to
+// Ovago's own profile page (below), which hosts its real deals and their
+// individual affiliate links, rather than a single generic href here.
+function buildOvagoDeal(t) {
+  const category = t.categories.travel;
+  const name = 'Ovago';
+  return {
+    id: 'ovago-travel',
+    name,
+    logo: '/images/brands/ovago-travel.svg',
+    // Ovago's mark is dark on transparent, same situation as KXC above - it
+    // needs the white backing plate to read on the dark cards.
+    logoOnSolid: true,
+    description: t.category.dealDescriptionTemplate.replace('{name}', name).replace('{category}', category),
+    category,
+    promoCode: '',
+    discount: 'Flight deals and discounts',
+    href: '/travel/ovago'
+  };
 }
 
 // Logos for the Search Results preview only (the same brand's card in
@@ -59,31 +133,6 @@ const SPORTSBOOK_PROFILE_SLUGS = {
   'ESPN BET': 'espn-bet',
   'Bally Bet': 'bally-bet'
 };
-
-// Live inventory search (Phase 2): yachts, car rentals, vacation rentals and
-// dining & nightlife results come from /api/search - the same Postgres
-// FTS engine behind the whole platform - so search reflects the canonical
-// database, not a bundled snapshot. Mapped into the exact card shape this
-// component already renders.
-const LIVE_WORLD_LABEL_KEYS = {
-  yachts: 'yachtRentals',
-  'car-rentals': 'carRentals',
-  'vacation-rentals': 'vacationRentals',
-  'dining-nightlife': 'restaurantsNightlife',
-  experiences: 'miamiExperiences'
-};
-
-function mapLiveResult(item, t) {
-  return {
-    id: `live-${item.world}-${item.slug}`,
-    name: item.title,
-    description: item.description,
-    category: t.search.popular[LIVE_WORLD_LABEL_KEYS[item.world]] || item.category || item.world,
-    promoCode: '',
-    discount: item.price || item.location,
-    href: item.href
-  };
-}
 
 // Non-deal catalogs (yachts, vacation rentals, experiences, restaurants &
 // nightlife) live outside lib/dealsData.js, each with its own item shape and
@@ -137,37 +186,6 @@ export function SearchBar() {
   const [activeCategory, setActiveCategory] = useState('all');
   const t = getTranslation(locale);
 
-  // Live inventory results from the platform search engine. `null` means
-  // "no live results available" (query too short, request in flight, or the
-  // API is unreachable) - the static seed catalog then covers gracefully.
-  const [liveResults, setLiveResults] = useState(null);
-  const searchSeq = useRef(0);
-
-  useEffect(() => {
-    const q = query.trim();
-    if (q.length < 2) {
-      setLiveResults(null);
-      return undefined;
-    }
-    const seq = ++searchSeq.current;
-    const controller = new AbortController();
-    const timer = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=12`, { signal: controller.signal });
-        const data = await res.json();
-        if (seq === searchSeq.current) {
-          setLiveResults(Array.isArray(data?.results) ? data.results : null);
-        }
-      } catch {
-        /* aborted or offline - static fallback covers */
-      }
-    }, 250);
-    return () => {
-      clearTimeout(timer);
-      controller.abort();
-    };
-  }, [query]);
-
   const filteredDeals = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     const deals = allDeals.filter((deal) => {
@@ -188,35 +206,51 @@ export function SearchBar() {
     // The extra catalogs (yachts/vacation rentals/experiences/restaurants)
     // aren't part of the Stores/Coupons category dropdown, so they only
     // participate when no specific category filter is active.
-    // Live engine results when we have them; the static seed catalog for the
-    // empty state (browse mode) or when the API has not answered yet.
-    const inventoryItems = normalized.length >= 2 && liveResults
-      ? liveResults.map((item) => mapLiveResult(item, t))
-      : buildExtraCatalog(t).filter((item) => !normalized || [item.name, item.category, item.description].join(' ').toLowerCase().includes(normalized));
+    const combined = activeCategory !== 'all'
+      ? deals
+      : [...deals, ...buildExtraCatalog(t).filter((item) => !normalized || [item.name, item.category, item.description].join(' ').toLowerCase().includes(normalized))];
 
-    const combined = activeCategory !== 'all' ? deals : [...deals, ...inventoryItems];
+    // Fixed top-6 window first, then hide pending-replacement brands from
+    // it - so their slots stay empty instead of being backfilled by the
+    // next result in line. Every other section still shows these brands.
+    const windowed = combined.slice(0, 6).filter((item) => !HIDDEN_FROM_SEARCH_RESULTS.includes(item.name));
 
-    return combined.slice(0, 6);
-  }, [activeCategory, query, liveResults, t]);
+    const kxc = buildKxcDeal(t);
+    const kxcMatches = (activeCategory === 'all' || activeCategory === 'shopping')
+      && (!normalized || [kxc.name, kxc.category, kxc.description, kxc.discount].join(' ').toLowerCase().includes(normalized));
+
+    const rentcars = buildRentcarsDeal(t);
+    const rentcarsMatches = (activeCategory === 'all' || activeCategory === 'shopping')
+      && (!normalized || [rentcars.name, rentcars.category, rentcars.description, rentcars.discount].join(' ').toLowerCase().includes(normalized));
+
+    const ovago = buildOvagoDeal(t);
+    const ovagoMatches = activeCategory === 'all'
+      && (!normalized || [ovago.name, ovago.category, ovago.description, ovago.discount].join(' ').toLowerCase().includes(normalized));
+
+    const withKxc = kxcMatches ? [...windowed, kxc] : windowed;
+    const withRentcars = rentcarsMatches ? [...withKxc, rentcars] : withKxc;
+    const withOvago = ovagoMatches ? [...withRentcars, ovago] : withRentcars;
+    return withOvago.slice(0, 6);
+  }, [activeCategory, query, t]);
 
   const popularSearches = POPULAR_SEARCH_LINKS.map((item) => ({ ...item, label: t.search.popular[item.key] }));
 
   return (
-    <div className="w-full rounded-2xl border border-white/20 bg-black/60 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-premium sm:p-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={t.search.placeholder}
-          className="flex-1 rounded-full border border-white/20 bg-black/60 px-6 py-4 text-base tracking-wide text-white outline-none transition hover:border-white/30 focus:border-brand-gold focus:bg-black/80"
+          className="flex-1 rounded-full border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none"
         />
-        <select value={activeCategory} onChange={(event) => setActiveCategory(event.target.value)} className="appearance-none rounded-full border border-white/20 bg-black/60 px-6 py-4 text-base tracking-wide text-white outline-none transition hover:border-white/30 focus:border-brand-gold focus:bg-black/80 cursor-pointer">
+        <select value={activeCategory} onChange={(event) => setActiveCategory(event.target.value)} className="rounded-full border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none">
           <option value="all">{t.category.allCategories}</option>
           {categories.map((category) => (
             <option key={category.slug} value={category.slug}>{t.categories[camelizeSlug(category.slug)] || category.label}</option>
           ))}
         </select>
-        <button className="rounded-full bg-brand-gold px-8 py-4 text-base font-semibold tracking-wide text-black transition hover:bg-white hover:text-black shadow-[0_0_20px_rgba(212,175,55,0.3)]">{t.buttons.search}</button>
+        <button className="rounded-full bg-brand-gold px-4 py-3 text-sm font-medium text-black">{t.buttons.search}</button>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">

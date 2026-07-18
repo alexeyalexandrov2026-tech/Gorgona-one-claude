@@ -4,16 +4,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   CONSTELLATIONS,
-  discoveryCategories
+  discoveryCategories,
+  EXAMPLE_PROMPTS
 } from '../../../lib/discoveryCategories';
 import { greeting } from '../../../lib/ai/language';
 import { useAITheme } from '../ThemeProvider';
 import { useLocale } from '../LocaleProvider';
 import { useAI } from './AIProvider';
 import { useVoice } from './useVoice';
-import { getTranslation } from '../../../lib/i18n';
-import { getSpeechLang } from '../../../lib/languages';
-import { postChat } from './chatTransport';
 
 // The ecosystem provider (dynamic index + intent + language) is imported lazily
 // on first interaction so the data-heavy index never weighs down initial load.
@@ -67,19 +65,12 @@ export default function GorgonaOneAI() {
   const router = useRouter();
   const { theme, isDark, toggle } = useAITheme();
   const locale = useLocale();
-  const t = getTranslation(locale);
-  const EXAMPLE_PROMPTS = t.ai.examplePrompts;
   const ai = useAI();
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const engineRef = useRef(null);
   const themeRef = useRef(theme);
   themeRef.current = theme;
-  // Read fresh each animation frame (like themeRef) so the canvas-drawn
-  // constellation labels stay in the current language without rebuilding
-  // the particle field on every locale change.
-  const labelRef = useRef(null);
-  labelRef.current = (id) => t.ai.constellations[id]?.short || CONSTELLATIONS.find((c) => c.id === id)?.name || '';
 
   const [query, setQuery] = useState('');
   const [phase, setPhase] = useState('resting'); // resting | listening | intent
@@ -91,106 +82,6 @@ export default function GorgonaOneAI() {
   const voice = useVoice();
   const reqId = useRef(0); // guards against out-of-order async results
 
-  // --- Real conversation state (the concierge chat lives on the homepage). ---
-  // Restored from sessionStorage so the thread survives client-side navigation
-  // and reloads within the visit; the /api/chat backend holds no session, the
-  // full message list is sent each turn, so context is preserved end-to-end.
-  const [messages, setMessages] = useState([]);
-  const [sending, setSending] = useState(false);
-  // Streaming draft: the assistant reply as it arrives token by token.
-  // `null` = no draft (dots show while sending); '' = retracted/starting.
-  const [draft, setDraft] = useState(null);
-  const [suggestions, setSuggestions] = useState([]);
-  const [speakReplies, setSpeakReplies] = useState(false);
-  const chatRef = useRef(null);
-  const inputRef = useRef(null);
-  const chatReqId = useRef(0);
-
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem('gorgona-home-chat');
-      if (raw) {
-        const data = JSON.parse(raw);
-        if (Array.isArray(data.messages)) setMessages(data.messages);
-        if (Array.isArray(data.suggestions)) setSuggestions(data.suggestions);
-      }
-      const spk = localStorage.getItem('gorgona-home-speak');
-      if (spk === '1') setSpeakReplies(true);
-    } catch { /* blocked storage - chat still works, just not persisted */ }
-  }, []);
-
-  useEffect(() => {
-    try {
-      sessionStorage.setItem('gorgona-home-chat', JSON.stringify({ messages, suggestions }));
-    } catch { /* non-fatal */ }
-  }, [messages, suggestions]);
-
-  // Keep the newest message in view.
-  useEffect(() => {
-    const el = chatRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages, sending, draft]);
-
-  function toggleSpeak() {
-    setSpeakReplies((v) => {
-      const next = !v;
-      try { localStorage.setItem('gorgona-home-speak', next ? '1' : '0'); } catch { /* non-fatal */ }
-      if (!next) voice.stopSpeaking();
-      return next;
-    });
-  }
-
-  // Send a message to the real concierge backend (/api/chat - OpenRouter).
-  // `viaVoice` marks queries that arrived by microphone: those replies are
-  // spoken aloud even when the always-speak toggle is off.
-  async function sendMessage(text, { viaVoice = false } = {}) {
-    const content = (text || '').trim();
-    if (!content || sending) return;
-    const id = ++chatReqId.current;
-    const nextMessages = [...messages, { role: 'user', content }];
-    setMessages(nextMessages);
-    setQuery('');
-    setSending(true);
-    setSuggestions([]);
-    runQuery(content); // light the matching constellation while we think
-    try {
-      const data = await postChat({
-        messages: nextMessages.slice(-12),
-        locale,
-        onDelta: (chunk) => {
-          if (id !== chatReqId.current) return;
-          if (chunk === null) setDraft(''); // server retracted - reset draft
-          else setDraft((prev) => (prev || '') + chunk);
-        }
-      });
-      if (id !== chatReqId.current) return; // superseded by a newer send
-      const reply = data?.reply || t.ai.aiNoReply;
-      setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
-      setSuggestions(Array.isArray(data?.suggestions) ? data.suggestions.slice(0, 3) : []);
-      ai.recordQuery({ query: content, world: activeCluster, results: matches, selected: null });
-      if ((speakReplies || viaVoice) && voice.synthesisSupported) {
-        voice.speak(reply, getSpeechLang(locale));
-      }
-    } catch {
-      if (id !== chatReqId.current) return;
-      setMessages((prev) => [...prev, { role: 'assistant', content: t.ai.aiUnavailable }]);
-    } finally {
-      if (id === chatReqId.current) {
-        setSending(false);
-        setDraft(null);
-      }
-    }
-  }
-
-  function clearChat() {
-    chatReqId.current++;
-    voice.stopSpeaking();
-    setMessages([]);
-    setSuggestions([]);
-    setSending(false);
-    setDraft(null);
-  }
-
   // Greet in the user's language (updated after mount to avoid hydration drift).
   useEffect(() => {
     setGreetingText(greeting(locale));
@@ -198,20 +89,16 @@ export default function GorgonaOneAI() {
 
   const reduceMotion = usePrefersReducedMotion();
 
-  // Rotating placeholder prompts (paused while typing / not resting). Reset
-  // immediately on a language switch so a stale prompt from the previous
-  // language never lingers until the next rotation tick.
+  // Rotating placeholder prompts (paused while typing / not resting).
   useEffect(() => {
     if (query || phase !== 'resting') return;
     let i = 0;
-    setPlaceholder(EXAMPLE_PROMPTS[0]);
     const id = setInterval(() => {
       i = (i + 1) % EXAMPLE_PROMPTS.length;
       setPlaceholder(EXAMPLE_PROMPTS[i]);
     }, 3600);
     return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, phase, locale]);
+  }, [query, phase]);
 
   // Particle engine lifecycle.
   useEffect(() => {
@@ -219,11 +106,7 @@ export default function GorgonaOneAI() {
     const wrap = wrapRef.current;
     if (!canvas || !wrap) return;
 
-    const engine = createField(canvas, wrap, {
-      reduceMotion,
-      getTheme: () => themeRef.current,
-      getLabel: (id) => labelRef.current(id)
-    });
+    const engine = createField(canvas, wrap, { reduceMotion, getTheme: () => themeRef.current });
     engineRef.current = engine;
 
     const io = new IntersectionObserver(
@@ -280,12 +163,15 @@ export default function GorgonaOneAI() {
     }
   }
 
-  // Submitting talks to the concierge. The previous behavior - router.push()
-  // to the first index match - yanked the guest to another page on their very
-  // first message, which is what kept breaking navigation/session flow.
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
-    sendMessage(query);
+    if (!query.trim()) return;
+    const { askEcosystem } = await loadProvider();
+    const res = await askEcosystem({ query, locale });
+    if (res.results.length) {
+      ai.recordQuery({ query, world: res.world, lang: res.lang, results: res.results, selected: res.results[0] });
+      router.push(res.results[0].href);
+    }
   }
 
   // Selecting a surfaced result records the search + choice into the shared AI
@@ -309,13 +195,10 @@ export default function GorgonaOneAI() {
     setPhase('listening');
     setActiveCluster(null);
     setMatches([]);
-    // Recognize speech as the site's current language, not always English.
     voice.startListening((text) => {
       setQuery(text);
-      // A spoken question goes straight to the concierge and the reply is
-      // spoken back - the full voice loop, not just transcription.
-      sendMessage(text, { viaVoice: true });
-    }, getSpeechLang(locale));
+      runQuery(text);
+    });
   }
 
   // If recognition ends on its own (silence, a recognized phrase, permission
@@ -337,109 +220,48 @@ export default function GorgonaOneAI() {
   }, []);
 
   const stateLine =
-    sending
-      ? '· · ·'
-      : phase === 'listening'
-      ? t.ai.listening
+    phase === 'listening'
+      ? 'Listening · EN · RU · ES · FR'
       : phase === 'intent' && matches.length
-      ? `${t.ai.surfacing} · ${constellationName(activeCluster, t)}`
+      ? `Surfacing · ${constellationName(activeCluster)}`
       : greetingText;
 
-  const inChat = messages.length > 0;
-
   return (
-    <div ref={wrapRef} id="gorgona-one-ai" className="gai" data-ai-theme={theme}>
+    <div ref={wrapRef} className="gai" data-ai-theme={theme}>
       <canvas ref={canvasRef} className="gai__canvas" aria-hidden="true" />
 
-      {/* Surface controls — theme + voice replies, scoped to the AI surface */}
-      <div className="gai__controls">
-        <button
-          type="button"
-          className={`gai__theme ${speakReplies ? 'is-on' : ''}`}
-          onClick={toggleSpeak}
-          aria-pressed={speakReplies}
-          aria-label="Toggle spoken replies"
-          title={voice.synthesisSupported ? undefined : t.ai.micUnsupported}
-        >
-          <SpeakerIcon />
-          <span>Voice</span>
-        </button>
-        {speakReplies && voice.synthesisSupported && (
-          <button
-            type="button"
-            className="gai__theme"
-            onClick={() => voice.setVoiceGender(voice.voiceGender === 'male' ? 'female' : 'male')}
-            aria-label={`Voice: ${voice.voiceGender === 'male' ? t.ai.genderMale : t.ai.genderFemale}`}
-            title={`Voice: ${voice.voiceGender === 'male' ? t.ai.genderMale : t.ai.genderFemale}`}
-          >
-            <span>{voice.voiceGender === 'male' ? t.ai.genderMale : t.ai.genderFemale}</span>
-          </button>
-        )}
-        <button
-          type="button"
-          className="gai__theme"
-          onClick={toggle}
-          aria-label={isDark ? t.ai.switchToLight : t.ai.switchToDark}
-        >
-          {isDark ? <SunIcon /> : <MoonIcon />}
-          <span>{isDark ? t.ai.themeLight : t.ai.themeDark}</span>
-        </button>
-      </div>
+      {/* Theme toggle — scoped to the AI surface */}
+      <button
+        type="button"
+        className="gai__theme"
+        onClick={toggle}
+        aria-label={isDark ? 'Switch to light atmosphere' : 'Switch to dark atmosphere'}
+      >
+        {isDark ? <SunIcon /> : <MoonIcon />}
+        <span>{isDark ? 'Light' : 'Dark'}</span>
+      </button>
 
       {/* Console core */}
-      <div className={`gai__core ${inChat ? 'is-chat' : ''} ${sending ? 'is-thinking' : ''} ${phase === 'listening' ? 'is-listening' : ''} ${phase === 'intent' ? 'is-intent' : ''}`}>
+      <div className={`gai__core ${phase === 'listening' ? 'is-listening' : ''} ${phase === 'intent' ? 'is-intent' : ''}`}>
         <p className="gai__eyebrow">Gorgona One AI</p>
-
-        {inChat && (
-          <div className="gai__chat" ref={chatRef} aria-live="polite">
-            {messages.map((m, i) => (
-              <div key={i} className={`gai__msg ${m.role === 'user' ? 'gai__msg--user' : 'gai__msg--ai'}`}>
-                {m.content}
-              </div>
-            ))}
-            {sending && draft && (
-              <div className="gai__msg gai__msg--ai">{draft}</div>
-            )}
-            {sending && !draft && (
-              <div className="gai__msg gai__msg--ai gai__msg--typing" aria-label="Thinking">
-                <span /><span /><span />
-              </div>
-            )}
-            {!sending && suggestions.length > 0 && (
-              <div className="gai__suggest">
-                {suggestions.map((s) => (
-                  <button key={s.href} type="button" className="gai__chip" onClick={() => router.push(s.href)}>
-                    {s.label} →
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
         <form className="gai__bar" onSubmit={onSubmit} role="search">
           <input
-            ref={inputRef}
             className="gai__input"
             type="text"
             value={query}
             onChange={onChange}
             placeholder={placeholder}
-            aria-label={t.ai.askAria}
+            aria-label="Ask Gorgona One AI"
             autoComplete="off"
           />
-          {inChat && (
-            <button type="button" className="gai__clear" onClick={clearChat} aria-label="New conversation" title="New conversation">
-              <PlusIcon />
-            </button>
-          )}
           <button
             type="button"
             className="gai__mic"
             onClick={toggleMic}
             aria-pressed={phase === 'listening'}
             aria-disabled={!voice.recognitionSupported}
-            aria-label={phase === 'listening' ? t.ai.micStop : t.ai.micSpeak}
-            title={voice.recognitionSupported ? undefined : t.ai.micUnsupported}
+            aria-label={phase === 'listening' ? 'Stop listening' : 'Speak your request'}
+            title={voice.recognitionSupported ? undefined : 'Voice input is not supported in this browser'}
           >
             <span className="gai__halo" aria-hidden="true" />
             <MicIcon />
@@ -459,7 +281,7 @@ export default function GorgonaOneAI() {
                 title={item.subtitle ? `${item.title} — ${item.subtitle}` : item.title}
                 onClick={() => selectResult(item)}
               >
-                <span className="gai__chipType">{t.ai.entityTypes[item.type] || item.type}</span>
+                <span className="gai__chipType">{item.type}</span>
                 {item.title}
               </button>
             ))}
@@ -483,7 +305,7 @@ export default function GorgonaOneAI() {
                 style={{ '--c': `rgb(${c.color.join(',')})` }}
               >
                 <span className="gai__dot" />
-                {t.ai.constellations[c.id]?.full || c.name}
+                {c.name}
               </button>
               {isOpen && (
                 <div className="gai__items">
@@ -494,7 +316,7 @@ export default function GorgonaOneAI() {
                       className="gai__chip"
                       onClick={() => router.push(cat.href)}
                     >
-                      {t.ai.categories[cat.id] || cat.label}
+                      {cat.label}
                     </button>
                   ))}
                 </div>
@@ -509,8 +331,9 @@ export default function GorgonaOneAI() {
   );
 }
 
-function constellationName(id, t) {
-  return t.ai.constellations[id]?.full || CONSTELLATIONS.find((x) => x.id === id)?.name || '';
+function constellationName(id) {
+  const c = CONSTELLATIONS.find((x) => x.id === id);
+  return c ? c.name : '';
 }
 
 function MicIcon() {
@@ -536,21 +359,6 @@ function MoonIcon() {
     </svg>
   );
 }
-function SpeakerIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M11 5 6 9H2v6h4l5 4V5z" />
-      <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />
-    </svg>
-  );
-}
-function PlusIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  );
-}
 
 function usePrefersReducedMotion() {
   const [reduce, setReduce] = useState(false);
@@ -568,7 +376,7 @@ function usePrefersReducedMotion() {
 // Canvas-2D volumetric field. Framework-agnostic closure; reads the live theme
 // each frame via getTheme() so a theme switch never rebuilds the field.
 // ===========================================================================
-function createField(canvas, wrap, { reduceMotion, getTheme, getLabel }) {
+function createField(canvas, wrap, { reduceMotion, getTheme }) {
   const ctx = canvas.getContext('2d');
   const finePointer = window.matchMedia('(pointer: fine)').matches;
   let DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -581,12 +389,6 @@ function createField(canvas, wrap, { reduceMotion, getTheme, getLabel }) {
 
   const state = { phase: 'resting', activeClusterId: null };
   const mouse = { x: 0, y: 0, on: false };
-
-  const particlePool = [];
-  for (let i = 0; i < 2200; i++) {
-    particlePool.push({ p: null, sx: 0, sy: 0, depth: 0 });
-  }
-
 
   // Pre-render one radial glow sprite per constellation (bright glow color).
   const sprites = {};
@@ -622,9 +424,6 @@ function createField(canvas, wrap, { reduceMotion, getTheme, getLabel }) {
   }
   function build(target) {
     count = target; pts = [];
-    while (particlePool.length < count) {
-      particlePool.push({ p: null, sx: 0, sy: 0, depth: 0 });
-    }
     const ids = CONSTELLATIONS.map((c) => c.id);
     for (let i = 0; i < count; i++) {
       const u = (i + 0.5) / count;
@@ -686,6 +485,7 @@ function createField(canvas, wrap, { reduceMotion, getTheme, getLabel }) {
     ctx.fill();
 
     // particles (depth-sorted)
+    const buf = [];
     for (let i = 0; i < count; i++) {
       const p = pts[i];
       let rr = p.r * breathe * pull;
@@ -699,20 +499,13 @@ function createField(canvas, wrap, { reduceMotion, getTheme, getLabel }) {
         const dx = sx - mouse.x, dy = sy - mouse.y, d = Math.hypot(dx, dy);
         if (d < 100) { const f = ((100 - d) / 100) * 0.22; sx -= dx * f; sy -= dy * f; }
       }
-      const item = particlePool[i];
-      item.p = p;
-      item.sx = sx;
-      item.sy = sy;
-      item.depth = (pr.z + 1) / 2;
+      buf.push({ p, sx, sy, depth: (pr.z + 1) / 2 });
     }
-    for (let i = count; i < particlePool.length; i++) {
-      particlePool[i].depth = 999999;
-    }
-    particlePool.sort((a, b) => a.depth - b.depth);
+    buf.sort((a, b) => a.depth - b.depth);
 
     ctx.globalCompositeOperation = P.blend;
-    for (let k = 0; k < count; k++) {
-      const b = particlePool[k], p = b.p, depth = b.depth;
+    for (let k = 0; k < buf.length; k++) {
+      const b = buf[k], p = b.p, depth = b.depth;
       let a, sz;
       if (intent) {
         const on = p.cl === hot;
@@ -774,7 +567,7 @@ function createField(canvas, wrap, { reduceMotion, getTheme, getLabel }) {
       if (Math.abs(qy - cy) < R * 0.5 && Math.abs(qx - cx) < R * 0.85) continue;
       const col = P.labelBright ? P.labelBright : q.glow;
       ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${la.toFixed(3)})`;
-      ctx.fillText(getLabel ? getLabel(q.id) : q.name.replace('World of ', ''), qx, qy);
+      ctx.fillText(q.name.replace('World of ', ''), qx, qy);
     }
   }
 
@@ -859,31 +652,8 @@ const styles = `
   }
   .gai__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
-  /* Hairline gradient ring + inner vignette: the jewellery-case finish that
-     makes the surface read as a built object rather than a flat panel. */
-  .gai::before {
-    content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
-    padding: 1px;
-    background: linear-gradient(160deg, rgba(255,236,190,0.5) 0%, rgba(216,180,120,0.12) 28%, rgba(216,180,120,0.05) 55%, rgba(255,226,158,0.35) 100%);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor; mask-composite: exclude;
-  }
-  .gai[data-ai-theme="light"]::before {
-    background: linear-gradient(160deg, rgba(255,255,255,0.9) 0%, rgba(198,160,94,0.25) 30%, rgba(198,160,94,0.1) 60%, rgba(255,247,230,0.8) 100%);
-  }
-  .gai::after {
-    content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 1;
-    box-shadow: inset 0 1px 0 rgba(255,240,205,0.1), inset 0 -40px 80px -40px rgba(0,0,0,0.55);
-  }
-  .gai[data-ai-theme="light"]::after {
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -40px 80px -50px rgba(96,72,28,0.28);
-  }
-
-  .gai__controls {
-    position: absolute; top: 16px; right: 16px; z-index: 6;
-    display: flex; gap: 8px;
-  }
   .gai__theme {
+    position: absolute; top: 16px; right: 16px; z-index: 6;
     display: inline-flex; align-items: center; gap: 6px;
     font-family: "Space Mono", ui-monospace, monospace;
     font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
@@ -898,74 +668,11 @@ const styles = `
   }
   .gai__theme:hover { color: #d8b478; border-color: #d8b478; }
   .gai__theme:focus-visible { outline: 2px solid #c6a05e; outline-offset: 3px; }
-  .gai__theme.is-on { color: #2a2013; background: linear-gradient(180deg, #ffe9b8, #d8b478); border-color: #e9cd93; box-shadow: 0 4px 14px -6px rgba(216,180,120,0.7); }
 
   .gai__core {
     position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
     width: min(88%, 460px); text-align: center; z-index: 3;
-    transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1), top 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .gai__core.is-chat { width: min(94%, 640px); top: 50%; }
-
-  /* ---- Conversation panel: glass over the particle field ---- */
-  .gai__chat {
-    max-height: min(46vh, 330px); overflow-y: auto; overscroll-behavior: contain;
-    margin: 0 0 14px; padding: 14px; border-radius: 20px; text-align: left;
-    display: flex; flex-direction: column; gap: 10px;
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    scrollbar-width: thin;
-  }
-  .gai[data-ai-theme="dark"] .gai__chat {
-    background: rgba(16, 13, 8, 0.55); border: 1px solid rgba(216, 180, 120, 0.22);
-    box-shadow: inset 0 1px 0 rgba(255,240,205,0.08), 0 24px 50px -30px rgba(0,0,0,0.8);
-    scrollbar-color: rgba(216,180,120,0.4) transparent;
-  }
-  .gai[data-ai-theme="light"] .gai__chat {
-    background: rgba(255, 252, 245, 0.62); border: 1px solid rgba(198, 160, 94, 0.28);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 24px 50px -32px rgba(96,72,28,0.45);
-    scrollbar-color: rgba(198,160,94,0.45) transparent;
-  }
-  .gai__msg {
-    max-width: 86%; padding: 10px 14px; border-radius: 16px;
-    font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; word-break: break-word;
-    animation: gaiMsgIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  @keyframes gaiMsgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-  .gai__msg--user {
-    align-self: flex-end; border-bottom-right-radius: 6px; color: #2a2013;
-    background: linear-gradient(180deg, #fff7e4 0%, #eecf92 60%, #dec088 100%);
-    border: 1px solid rgba(198, 160, 94, 0.55);
-    box-shadow: 0 6px 16px -8px rgba(60, 45, 12, 0.55), inset 0 1px 0 rgba(255,255,255,0.65);
-  }
-  .gai__msg--ai { align-self: flex-start; border-bottom-left-radius: 6px; }
-  .gai[data-ai-theme="dark"] .gai__msg--ai {
-    color: #f0e8d5; background: rgba(255, 240, 205, 0.07);
-    border: 1px solid rgba(216, 180, 120, 0.24);
-    box-shadow: inset 0 1px 0 rgba(255,240,205,0.07);
-  }
-  .gai[data-ai-theme="light"] .gai__msg--ai {
-    color: #33291a; background: rgba(255, 255, 255, 0.75);
-    border: 1px solid rgba(198, 160, 94, 0.3);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px -8px rgba(96,72,28,0.35);
-  }
-  .gai__msg--typing { display: inline-flex; gap: 5px; align-items: center; padding: 13px 16px; }
-  .gai__msg--typing span {
-    width: 5px; height: 5px; border-radius: 50%; background: #d8b478;
-    animation: gaiDot 1.2s ease-in-out infinite;
-  }
-  .gai__msg--typing span:nth-child(2) { animation-delay: 0.18s; }
-  .gai__msg--typing span:nth-child(3) { animation-delay: 0.36s; }
-  @keyframes gaiDot { 0%, 60%, 100% { opacity: 0.25; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
-  .gai__suggest { display: flex; flex-wrap: wrap; gap: 7px; padding-top: 2px; }
-
-  .gai__clear {
-    flex: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    background: transparent; transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-  }
-  .gai[data-ai-theme="dark"] .gai__clear { color: #c9b892; border: 1px solid rgba(216,180,120,0.35); }
-  .gai[data-ai-theme="light"] .gai__clear { color: #6b6252; border: 1px solid rgba(198,160,94,0.4); }
-  .gai__clear:hover { color: #d8b478; border-color: #d8b478; transform: rotate(90deg); }
   .gai__eyebrow {
     font-family: "Space Mono", ui-monospace, monospace;
     font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; margin: 0 0 10px;

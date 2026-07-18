@@ -1,30 +1,20 @@
 import Link from 'next/link';
 import { Reveal, Stagger, StaggerItem } from '../components/Motion';
 import { AiConversation } from '../components/ai/AiConversation';
-import { getServerTranslation } from '../../lib/serverLocale';
 
-// Locale is read from a cookie (see lib/serverLocale.js), so this page must
-// render per-request rather than being statically generated once at build
-// time with whichever locale happened to be set then.
-export const dynamic = 'force-dynamic';
+export const metadata = {
+  title: 'The Discovery Room | GORGONA ONE',
+  description: 'Your AI concierge for the entire GORGONA ONE ecosystem — travel, dining, stays, yachts, cars, sportsbooks and events.'
+};
 
-export function generateMetadata() {
-  const { t } = getServerTranslation();
-  return {
-    title: `${t.ai.discoveryEyebrow.split(' · ')[0]} | GORGONA ONE`,
-    description: t.ai.discoveryHeroSubtitle
-  };
-}
+const capabilities = [
+  { title: 'Travel planning', copy: 'Itineraries, flights, and stays tailored to how you like to travel.', href: '/travel' },
+  { title: 'Dining & nightlife', copy: 'Tables, chef’s counters and after-dark venues, matched to the moment.', href: '/restaurants-nightlife' },
+  { title: 'Shopping guidance', copy: 'Personal picks across fashion, technology and lifestyle.', href: '/stores' },
+  { title: 'Experience curation', copy: 'Yachts, villas, events and nightlife matched to the moment.', href: '/experiences' }
+];
 
 export default function DiscoveryRoomPage() {
-  const { t } = getServerTranslation();
-  const capabilities = [
-    { title: t.ai.capTravelTitle, copy: t.ai.capTravelCopy, href: '/travel' },
-    { title: t.ai.capDiningTitle, copy: t.ai.capDiningCopy, href: '/restaurants-nightlife' },
-    { title: t.ai.capShoppingTitle, copy: t.ai.capShoppingCopy, href: '/stores' },
-    { title: t.ai.capExperienceTitle, copy: t.ai.capExperienceCopy, href: '/experiences' }
-  ];
-
   return (
     <main className="flex-1 theme-concierge">
       <section className="lux-hero full-bleed -mt-[60px] flex min-h-[70vh] items-center">
@@ -39,13 +29,18 @@ export default function DiscoveryRoomPage() {
           </Reveal>
           <div className="text-center lg:text-left">
             <Reveal>
-              <p className="lux-eyebrow justify-center lg:justify-start">{t.ai.discoveryEyebrow}</p>
+              <p className="lux-eyebrow justify-center lg:justify-start">The Discovery Room · AI Concierge</p>
             </Reveal>
             <Reveal delay={0.08}>
-              <h1 className="lux-display mt-6 text-4xl sm:text-5xl lg:text-6xl">{t.ai.discoveryHeroTitle}</h1>
+              <h1 className="lux-display mt-6 text-4xl sm:text-5xl lg:text-6xl">
+                Ask for anything. We&rsquo;ll take it from here.
+              </h1>
             </Reveal>
             <Reveal delay={0.16}>
-              <p className="lux-lede mx-auto mt-6 text-lg lg:mx-0">{t.ai.discoveryHeroSubtitle}</p>
+              <p className="lux-lede mx-auto mt-6 text-lg lg:mx-0">
+                A personal AI concierge for the entire GORGONA ONE ecosystem — travel, dining, stays, yachts, cars,
+                sportsbooks and events. Type or speak, and it will point you to the right corner of the ecosystem.
+              </p>
             </Reveal>
           </div>
         </div>
@@ -61,8 +56,8 @@ export default function DiscoveryRoomPage() {
 
       <section className="pb-20 lg:pb-28">
         <Reveal>
-          <p className="lux-eyebrow">{t.ai.capabilitiesEyebrow}</p>
-          <h2 className="lux-display mt-5 max-w-2xl text-4xl sm:text-5xl">{t.ai.capabilitiesTitle}</h2>
+          <p className="lux-eyebrow">Capabilities</p>
+          <h2 className="lux-display mt-5 max-w-2xl text-4xl sm:text-5xl">One assistant, the whole ecosystem.</h2>
         </Reveal>
         <Stagger className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" gap={0.06}>
           {capabilities.map((c) => (

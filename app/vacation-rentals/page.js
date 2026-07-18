@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getVacationRentals } from '../../lib/data/listings';
+import { getVacationRentals } from '../../lib/vacationRentalsData';
 import { getServerTranslation } from '../../lib/serverLocale';
 import { Reveal, Parallax } from '../components/Motion';
 
@@ -10,8 +10,8 @@ export const dynamic = 'force-dynamic';
 // museum tags label everything, cards are image-first with no chrome, and
 // the Miami architecture in the photography is the only color on the page.
 
-export default async function VacationRentalsPage() {
-  const properties = await getVacationRentals();
+export default function VacationRentalsPage() {
+  const properties = getVacationRentals();
   const { t } = getServerTranslation();
 
   const neighborhoods = [...new Set(properties.map((p) => p.location))];

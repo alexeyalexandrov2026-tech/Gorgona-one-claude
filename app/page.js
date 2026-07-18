@@ -25,10 +25,8 @@ export default function HomePage() {
         <div className="lux-hero__bg">
           <Parallax distance={80} className="h-full">
             <img
-              src="https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=1600&q=72"
+              src="https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=2400&q=80"
               alt=""
-              fetchPriority="high"
-              decoding="async"
               className="lux-kenburns h-[115%] w-full object-cover"
             />
           </Parallax>
@@ -72,9 +70,9 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.42, ease: [0.22, 1, 0.36, 1] }}
             className="mt-10 flex flex-wrap gap-3"
           >
-            <a href="#gorgona-one-ai" className="lux-btn">Talk to Gorgona One AI <ArrowIcon className="h-4 w-4" /></a>
-            <Link href="/stores" className="lux-btn-ghost">Explore Marketplace</Link>
+            <Link href="/stores" className="lux-btn">Explore Marketplace <ArrowIcon className="h-4 w-4" /></Link>
             <Link href="/coupons" className="lux-btn-ghost">Browse Deals</Link>
+            <Link href="/concierge" className="lux-btn-ghost">Ask the Concierge</Link>
           </motion.div>
 
           <div className="mt-16 flex items-center gap-3 text-zinc-500">
