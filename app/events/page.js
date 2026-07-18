@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { Reveal, Stagger, StaggerItem, Parallax } from '../components/Motion';
 import {
-  EVENT_CATEGORY_GROUPS,
   getEventCategories,
   getFeaturedEvents,
   getTrendingEvents,
