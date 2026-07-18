@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   // Must match the Worker name in the Cloudflare dashboard (General -> Name),
   // otherwise every Git build re-creates the rename warning/auto-PR.
-  "name": "gorgona-one-claude",
+  "name": "gorgonaone-claudeclodflare",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-07-11",
   "compatibility_flags": ["nodejs_compat"],
