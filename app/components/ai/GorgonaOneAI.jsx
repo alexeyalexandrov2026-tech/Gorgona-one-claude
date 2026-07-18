@@ -582,6 +582,12 @@ function createField(canvas, wrap, { reduceMotion, getTheme, getLabel }) {
   const state = { phase: 'resting', activeClusterId: null };
   const mouse = { x: 0, y: 0, on: false };
 
+  const particlePool = [];
+  for (let i = 0; i < 2200; i++) {
+    particlePool.push({ p: null, sx: 0, sy: 0, depth: 0 });
+  }
+
+
   // Pre-render one radial glow sprite per constellation (bright glow color).
   const sprites = {};
   CONSTELLATIONS.forEach((c) => (sprites[c.id] = makeSprite(c.glow || c.color)));
@@ -616,6 +622,9 @@ function createField(canvas, wrap, { reduceMotion, getTheme, getLabel }) {
   }
   function build(target) {
     count = target; pts = [];
+    while (particlePool.length < count) {
+      particlePool.push({ p: null, sx: 0, sy: 0, depth: 0 });
+    }
     const ids = CONSTELLATIONS.map((c) => c.id);
     for (let i = 0; i < count; i++) {
       const u = (i + 0.5) / count;
@@ -677,7 +686,6 @@ function createField(canvas, wrap, { reduceMotion, getTheme, getLabel }) {
     ctx.fill();
 
     // particles (depth-sorted)
-    const buf = [];
     for (let i = 0; i < count; i++) {
       const p = pts[i];
       let rr = p.r * breathe * pull;
@@ -691,13 +699,20 @@ function createField(canvas, wrap, { reduceMotion, getTheme, getLabel }) {
         const dx = sx - mouse.x, dy = sy - mouse.y, d = Math.hypot(dx, dy);
         if (d < 100) { const f = ((100 - d) / 100) * 0.22; sx -= dx * f; sy -= dy * f; }
       }
-      buf.push({ p, sx, sy, depth: (pr.z + 1) / 2 });
+      const item = particlePool[i];
+      item.p = p;
+      item.sx = sx;
+      item.sy = sy;
+      item.depth = (pr.z + 1) / 2;
     }
-    buf.sort((a, b) => a.depth - b.depth);
+    for (let i = count; i < particlePool.length; i++) {
+      particlePool[i].depth = 999999;
+    }
+    particlePool.sort((a, b) => a.depth - b.depth);
 
     ctx.globalCompositeOperation = P.blend;
-    for (let k = 0; k < buf.length; k++) {
-      const b = buf[k], p = b.p, depth = b.depth;
+    for (let k = 0; k < count; k++) {
+      const b = particlePool[k], p = b.p, depth = b.depth;
       let a, sz;
       if (intent) {
         const on = p.cl === hot;

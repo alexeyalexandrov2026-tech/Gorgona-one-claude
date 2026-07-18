@@ -32,11 +32,6 @@ export function Header() {
   const router = useRouter();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  // True only once we know this tab actually has somewhere to go back to -
-  // avoids showing a back arrow on a page opened fresh (a bookmark, a shared
-  // link, or the installed PWA's own launch screen), where router.back()
-  // would have nothing to return to.
-  const [canGoBack, setCanGoBack] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -45,13 +40,14 @@ export function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => {
-    setCanGoBack(window.history.length > 1);
-  }, [pathname]);
-
   function goBack() {
-    if (window.history.length > 1) router.back();
-    else router.push('/');
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      const segments = pathname.split('/').filter(Boolean);
+      segments.pop();
+      router.push('/' + segments.join('/'));
+    }
   }
 
   const labelFor = (item) => (item.key && t.nav[item.key]) || item.label;
@@ -72,9 +68,8 @@ export function Header() {
               browser's own back button; installed/standalone PWA mode and
               small screens don't reliably offer one, so this is the minimal
               equivalent in the app's existing button style. Hidden on the
-              homepage (nothing to go "back" from) and when this tab has no
-              history to return to. */}
-          {pathname !== '/' && canGoBack && (
+              homepage (nothing to go "back" from). */}
+          {pathname !== '/' && (
             <button
               type="button"
               onClick={goBack}

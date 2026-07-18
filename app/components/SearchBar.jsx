@@ -23,80 +23,6 @@ function camelizeSlug(slug) {
   return slug.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
-// Temporarily held out of the Search Results preview only - pending
-// replacement brands. Left in lib/dealsData.js and every other section
-// (Stores, Coupons, etc.) untouched.
-// Best Buy: replaced in this preview by the Ovago card below (Best Buy
-// stays fully intact in Stores and everywhere else). Ovago: added here too
-// since it's a real lib/dealsData.js travel entry now - hiding it from this
-// capped 6-item window avoids it duplicating the dedicated card below;
-// its real listing still renders in full on /stores/travel.
-const HIDDEN_FROM_SEARCH_RESULTS = ['Target', 'Newegg', 'Macy’s', 'Nordstrom', 'Best Buy', 'Ovago'];
-
-// Fills one of the slots freed up above with the new KXC partner card.
-// Scoped to the Search Results preview only, same as the hidden list.
-const KXC_AFFILIATE_LINK = 'https://www.awin1.com/cread.php?awinmid=53985&awinaffid=2982101&ued=https%3A%2F%2Fkxclothing.com%2F';
-
-function buildKxcDeal(t) {
-  const category = t.categories.shopping;
-  const name = 'Kinetix Casual Luxury (KXC)';
-  return {
-    id: 'kxc-shopping',
-    name,
-    logo: '/images/brands/kinetix-casual-luxury.svg',
-    // KXC's mark is dark text - it needs the white backing plate to read
-    // on the dark cards. Amazon/Best Buy/Newegg's marks already include
-    // their own light/reversed colorway, so they sit directly on the card.
-    logoOnSolid: true,
-    description: t.category.dealDescriptionTemplate.replace('{name}', name).replace('{category}', category),
-    category,
-    promoCode: '',
-    discount: 'New season styles',
-    href: KXC_AFFILIATE_LINK
-  };
-}
-
-// Fills the slot freed up by hiding Newegg above. Scoped to the Search
-// Results preview only, same as the hidden list.
-const RENTCARS_AFFILIATE_LINK = 'https://click.linksynergy.com/fs-bin/click?id=BsBQ7p%2fMcbE&offerid=1791245.3&type=3&subid=0';
-
-function buildRentcarsDeal(t) {
-  const category = t.categories.shopping;
-  const name = 'Rentcars.com';
-  return {
-    id: 'rentcars-shopping',
-    name,
-    logo: '/images/brands/rentcars-shopping.svg',
-    description: t.category.dealDescriptionTemplate.replace('{name}', name).replace('{category}', category),
-    category,
-    promoCode: '',
-    discount: 'Worldwide car rental deals',
-    href: RENTCARS_AFFILIATE_LINK
-  };
-}
-
-// Fills the Search Results slot freed up by hiding Best Buy above. Scoped to
-// the Search Results preview only, same as the hidden list. Links to
-// Ovago's own profile page (below), which hosts its real deals and their
-// individual affiliate links, rather than a single generic href here.
-function buildOvagoDeal(t) {
-  const category = t.categories.travel;
-  const name = 'Ovago';
-  return {
-    id: 'ovago-travel',
-    name,
-    logo: '/images/brands/ovago-travel.svg',
-    // Ovago's mark is dark on transparent, same situation as KXC above - it
-    // needs the white backing plate to read on the dark cards.
-    logoOnSolid: true,
-    description: t.category.dealDescriptionTemplate.replace('{name}', name).replace('{category}', category),
-    category,
-    promoCode: '',
-    discount: 'Flight deals and discounts',
-    href: '/travel/ovago'
-  };
-}
-
 // Logos for the Search Results preview only (the same brand's card in
 // Stores/Coupons/etc. is untouched). Keyed by deal name so it only applies
 // to these specific cards, not every brand that happens to pass through
@@ -270,47 +196,27 @@ export function SearchBar() {
 
     const combined = activeCategory !== 'all' ? deals : [...deals, ...inventoryItems];
 
-    // Fixed top-6 window first, then hide pending-replacement brands from
-    // it - so their slots stay empty instead of being backfilled by the
-    // next result in line. Every other section still shows these brands.
-    const windowed = combined.slice(0, 6).filter((item) => !HIDDEN_FROM_SEARCH_RESULTS.includes(item.name));
-
-    const kxc = buildKxcDeal(t);
-    const kxcMatches = (activeCategory === 'all' || activeCategory === 'shopping')
-      && (!normalized || [kxc.name, kxc.category, kxc.description, kxc.discount].join(' ').toLowerCase().includes(normalized));
-
-    const rentcars = buildRentcarsDeal(t);
-    const rentcarsMatches = (activeCategory === 'all' || activeCategory === 'shopping')
-      && (!normalized || [rentcars.name, rentcars.category, rentcars.description, rentcars.discount].join(' ').toLowerCase().includes(normalized));
-
-    const ovago = buildOvagoDeal(t);
-    const ovagoMatches = activeCategory === 'all'
-      && (!normalized || [ovago.name, ovago.category, ovago.description, ovago.discount].join(' ').toLowerCase().includes(normalized));
-
-    const withKxc = kxcMatches ? [...windowed, kxc] : windowed;
-    const withRentcars = rentcarsMatches ? [...withKxc, rentcars] : withKxc;
-    const withOvago = ovagoMatches ? [...withRentcars, ovago] : withRentcars;
-    return withOvago.slice(0, 6);
+    return combined.slice(0, 6);
   }, [activeCategory, query, liveResults, t]);
 
   const popularSearches = POPULAR_SEARCH_LINKS.map((item) => ({ ...item, label: t.search.popular[item.key] }));
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-premium sm:p-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+    <div className="w-full rounded-2xl border border-white/20 bg-black/60 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center">
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={t.search.placeholder}
-          className="flex-1 rounded-full border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none"
+          className="flex-1 rounded-full border border-white/20 bg-black/60 px-6 py-4 text-base tracking-wide text-white outline-none transition hover:border-white/30 focus:border-brand-gold focus:bg-black/80"
         />
-        <select value={activeCategory} onChange={(event) => setActiveCategory(event.target.value)} className="rounded-full border border-white/10 bg-black/50 px-4 py-3 text-sm text-white outline-none">
+        <select value={activeCategory} onChange={(event) => setActiveCategory(event.target.value)} className="appearance-none rounded-full border border-white/20 bg-black/60 px-6 py-4 text-base tracking-wide text-white outline-none transition hover:border-white/30 focus:border-brand-gold focus:bg-black/80 cursor-pointer">
           <option value="all">{t.category.allCategories}</option>
           {categories.map((category) => (
             <option key={category.slug} value={category.slug}>{t.categories[camelizeSlug(category.slug)] || category.label}</option>
           ))}
         </select>
-        <button className="rounded-full bg-brand-gold px-4 py-3 text-sm font-medium text-black">{t.buttons.search}</button>
+        <button className="rounded-full bg-brand-gold px-8 py-4 text-base font-semibold tracking-wide text-black transition hover:bg-white hover:text-black shadow-[0_0_20px_rgba(212,175,55,0.3)]">{t.buttons.search}</button>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">

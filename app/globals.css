@@ -361,8 +361,28 @@ a {
   }
 
   .theme-events {
-    --lux-accent: #d4af37;
-    --lux-accent-soft: rgba(212, 175, 55, 0.14);
+    --lux-accent: #af50ff;
+    --lux-accent-soft: rgba(175, 80, 255, 0.14);
+    --events-card-border: #423738;
+    --events-card-bg: rgba(0, 0, 0, 0.6);
+    --events-card-hover-glow: 0 0 28px -4px rgba(175, 80, 255, 0.45);
+  }
+
+  .theme-events .market-card {
+    border-color: var(--events-card-border);
+    background: var(--events-card-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  .theme-events .market-card:hover {
+    border-color: #af50ff;
+    background: rgba(175, 80, 255, 0.08);
+    box-shadow: var(--events-card-hover-glow);
+  }
+
+  .theme-events .lux-tile {
+    border-color: var(--events-card-border);
   }
 
   .theme-concierge {
