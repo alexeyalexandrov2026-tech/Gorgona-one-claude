@@ -1,11 +1,11 @@
 import { notFound } from 'next/navigation';
-import { getExperienceBySlug } from '../../../lib/experiencesData';
+import { getExperienceBySlug } from '../../../lib/data/listings';
 import { getServerTranslation } from '../../../lib/serverLocale';
 
 export const dynamic = 'force-dynamic';
 
-export default function ExperienceDetailPage({ params }) {
-  const experience = getExperienceBySlug(params.slug);
+export default async function ExperienceDetailPage({ params }) {
+  const experience = await getExperienceBySlug(params.slug);
 
   if (!experience) {
     notFound();

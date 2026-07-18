@@ -143,7 +143,8 @@ const LIVE_WORLD_LABEL_KEYS = {
   yachts: 'yachtRentals',
   'car-rentals': 'carRentals',
   'vacation-rentals': 'vacationRentals',
-  'dining-nightlife': 'restaurantsNightlife'
+  'dining-nightlife': 'restaurantsNightlife',
+  experiences: 'miamiExperiences'
 };
 
 function mapLiveResult(item, t) {
@@ -156,20 +157,6 @@ function mapLiveResult(item, t) {
     discount: item.price || item.location,
     href: item.href
   };
-}
-
-// Experiences are not yet database-backed (Phase 4) - they keep the static
-// client-side match so they never vanish from results.
-function buildExperiencesCatalog(t) {
-  return getExperiences().map((item) => ({
-    id: `experience-${item.id}`,
-    name: item.title,
-    description: item.description,
-    category: t.search.popular.miamiExperiences,
-    promoCode: '',
-    discount: item.price,
-    href: `/experiences/${item.slug}`
-  }));
 }
 
 // Non-deal catalogs (yachts, vacation rentals, experiences, restaurants &
@@ -278,10 +265,7 @@ export function SearchBar() {
     // Live engine results when we have them; the static seed catalog for the
     // empty state (browse mode) or when the API has not answered yet.
     const inventoryItems = normalized.length >= 2 && liveResults
-      ? [
-          ...liveResults.map((item) => mapLiveResult(item, t)),
-          ...buildExperiencesCatalog(t).filter((item) => [item.name, item.category, item.description].join(' ').toLowerCase().includes(normalized))
-        ]
+      ? liveResults.map((item) => mapLiveResult(item, t))
       : buildExtraCatalog(t).filter((item) => !normalized || [item.name, item.category, item.description].join(' ').toLowerCase().includes(normalized));
 
     const combined = activeCategory !== 'all' ? deals : [...deals, ...inventoryItems];
