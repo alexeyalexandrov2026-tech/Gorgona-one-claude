@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { getTranslation } from '../../lib/i18n';
@@ -18,10 +18,10 @@ const navItems = [
   { key: 'stores', href: '/stores', label: 'Shopping' },
   { key: null, href: '/vacation-rentals', label: 'Villas' },
   { key: null, href: '/yachts', label: 'Yachts' },
-  { key: null, href: '/rentals', label: 'Car Rentals' },
+  { key: null, href: '/rentals', label: 'Cars' },
   { key: 'sportsbook', href: '/sportsbook', label: 'Sportsbooks' },
   { key: 'events', href: '/events', label: 'Events' },
-  { key: null, href: '/concierge', label: 'AI Concierge' }
+  { key: null, href: '/discovery', label: 'Discovery Room' }
 ];
 
 export function Header() {
@@ -29,8 +29,14 @@ export function Header() {
   const t = getTranslation(locale);
   const auth = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  // True only once we know this tab actually has somewhere to go back to -
+  // avoids showing a back arrow on a page opened fresh (a bookmark, a shared
+  // link, or the installed PWA's own launch screen), where router.back()
+  // would have nothing to return to.
+  const [canGoBack, setCanGoBack] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -38,6 +44,15 @@ export function Header() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    setCanGoBack(window.history.length > 1);
+  }, [pathname]);
+
+  function goBack() {
+    if (window.history.length > 1) router.back();
+    else router.push('/');
+  }
 
   const labelFor = (item) => (item.key && t.nav[item.key]) || item.label;
   const isActive = (href) => (href === '/' ? pathname === '/' : pathname.startsWith(href));
@@ -52,19 +67,39 @@ export function Header() {
       }`}
     >
       <div className="flex items-center justify-between gap-4 py-4">
-        <Link href="/" className="group flex items-baseline gap-2">
-          <span className="font-display text-lg font-semibold tracking-[0.34em] text-white transition-colors group-hover:text-brand-gold">
-            GORGONA
-          </span>
-          <span className="font-mono text-[0.6rem] uppercase tracking-[0.4em] text-brand-gold">One</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          {/* Mobile-only back navigation. Desktop users already have the
+              browser's own back button; installed/standalone PWA mode and
+              small screens don't reliably offer one, so this is the minimal
+              equivalent in the app's existing button style. Hidden on the
+              homepage (nothing to go "back" from) and when this tab has no
+              history to return to. */}
+          {pathname !== '/' && canGoBack && (
+            <button
+              type="button"
+              onClick={goBack}
+              aria-label="Go back"
+              className="flex items-center justify-center rounded-full border border-white/10 p-2 text-zinc-300 transition hover:border-brand-gold hover:text-brand-gold lg:hidden"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+          )}
+          <Link href="/" className="group flex items-baseline gap-2">
+            <span className="font-display text-lg font-semibold tracking-[0.34em] text-white transition-colors group-hover:text-brand-gold">
+              GORGONA
+            </span>
+            <span className="font-mono text-[0.6rem] uppercase tracking-[0.4em] text-brand-gold">One</span>
+          </Link>
+        </div>
 
-        <nav className="hidden items-center gap-6 xl:flex">
+        <nav className="hidden items-center gap-3.5 lg:flex xl:gap-6">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="group relative py-1 text-[0.82rem] font-medium text-zinc-100 drop-shadow-[0_1px_6px_rgba(0,0,0,0.7)] transition-colors hover:text-white"
+              className="group relative whitespace-nowrap py-1 text-[0.78rem] font-medium text-zinc-100 drop-shadow-[0_1px_6px_rgba(0,0,0,0.7)] transition-colors hover:text-white xl:text-[0.82rem]"
             >
               {labelFor(item)}
               <span
@@ -99,7 +134,7 @@ export function Header() {
             onClick={() => setMobileNavOpen((value) => !value)}
             aria-expanded={mobileNavOpen}
             aria-label="Menu"
-            className="flex items-center justify-center rounded-full border border-white/10 p-2 text-zinc-300 transition hover:border-brand-gold hover:text-brand-gold xl:hidden"
+            className="flex items-center justify-center rounded-full border border-white/10 p-2 text-zinc-300 transition hover:border-brand-gold hover:text-brand-gold lg:hidden"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               {mobileNavOpen ? (
@@ -126,7 +161,7 @@ export function Header() {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden border-t border-white/10 xl:hidden"
+            className="overflow-hidden border-t border-white/10 lg:hidden"
           >
             <div className="grid grid-cols-2 gap-1 py-3">
               {navItems.map((item) => (

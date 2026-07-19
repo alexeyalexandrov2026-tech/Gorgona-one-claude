@@ -8,7 +8,7 @@ const sections = [
   { label: 'Car Rentals', href: '/rentals' },
   { label: 'Sportsbooks', href: '/sportsbook' },
   { label: 'Events & Entertainment', href: '/events' },
-  { label: 'AI Concierge', href: '/concierge' }
+  { label: 'Discovery Room', href: '/discovery' }
 ];
 
 const company = [
