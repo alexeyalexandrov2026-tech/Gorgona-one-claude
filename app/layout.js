@@ -1,9 +1,17 @@
 import './globals.css';
+import './ai-overlays.css';                              
 import { Inter, Inter_Tight, Space_Mono, Fira_Mono, Playfair_Display } from 'next/font/google';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { LocaleProvider } from './components/LocaleProvider';
 import { AuthProvider } from './components/AuthProvider';
+import { ThemeProvider } from './components/ThemeProvider';    
+import { AIProvider } from './components/ai/AIProvider';      
+import DiscoveryDock from './components/ai/DiscoveryDock';    
+import { AiDockProvider } from './components/ai/AiDockProvider'; 
+import { AiSphere } from './components/ai/AiSphere';         
+import { AiDock } from './components/ai/AiDock';             
+import { InstallPrompt } from './components/InstallPrompt';   
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 const interTight = Inter_Tight({
@@ -70,11 +78,21 @@ export default function RootLayout({ children }) {
       <body className="min-h-screen bg-[#050505] font-sans text-zinc-100 antialiased">
         <LocaleProvider>
           <AuthProvider>
-            <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
-              <Header />
-              {children}
-              <Footer />
-            </div>
+            <ThemeProvider>
+              <AIProvider>
+                <AiDockProvider>
+                  <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
+                    <Header />
+                    {children}
+                    <Footer />
+                    <DiscoveryDock />
+                    <AiSphere />
+                    <AiDock />
+                    <InstallPrompt />
+                  </div>
+                </AiDockProvider>
+              </AIProvider>
+            </ThemeProvider>
           </AuthProvider>
         </LocaleProvider>
       </body>

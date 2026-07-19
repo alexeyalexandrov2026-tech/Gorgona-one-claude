@@ -30,11 +30,11 @@
   - Status: ✅ COMPLETE
 
 ### Upcoming phases (in order)
-- [ ] **Commit 2** — STEPS 1+5 (leaf modules + env)
-- [ ] **Commit 3** — STEPS 2+3 (data + intent layers)
-- [ ] **Commit 4** — STEP 4 (API routes)
-- [ ] **Commit 5** — STEPS 6+7+8+9 (UI components + PWA + CSS)
-- [ ] **Commit 6** — STEPS 10+11 (critical wiring: layout + homepage)
+- [x] **Commit 2** — STEPS 1+5 (leaf modules + env)
+- [x] **Commit 3** — STEPS 2+3 (data + intent layers)
+- [x] **Commit 4** — STEP 4 (API routes)
+- [x] **Commit 5** — STEPS 6+7+8+9 (UI components + PWA + CSS)
+- [x] **Commit 6** — STEPS 10+11 (critical wiring: layout + homepage)
 - [ ] **Commit 7** — STEPS 12+13+14 (discovery page, header/footer)
 - [ ] **Commit 8** — STEPS 15+16+17 (CSS, manifest, i18n)
 - [ ] **Commit 9** — STEPS 18+19+20 (data updates, brands, restaurants)
