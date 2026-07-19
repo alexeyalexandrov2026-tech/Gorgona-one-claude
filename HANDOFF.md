@@ -39,7 +39,7 @@
 - [x] **Commit 8** — STEPS 15+16+17 (CSS, manifest, i18n)
 - [x] **Commit 9** — STEPS 18+19+20 (data updates, brands, restaurants)
 - [x] **Commit 10** — STEP 21 (seed scripts, architecture docs)
-- [ ] **Integration Test** — STEP 22 (full E2E verification)
+- [x] **Integration Test** — STEP 22 (full E2E verification)
 
 ## Local environment notes for the next agent
 **Env vars needed in `.env.local` (NAMES ONLY — get real/test values from the project owner):**
