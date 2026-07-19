@@ -36,7 +36,7 @@
 - [x] **Commit 5** — STEPS 6+7+8+9 (UI components + PWA + CSS)
 - [x] **Commit 6** — STEPS 10+11 (critical wiring: layout + homepage)
 - [x] **Commit 7** — STEPS 12+13+14 (discovery page, header/footer)
-- [ ] **Commit 8** — STEPS 15+16+17 (CSS, manifest, i18n)
+- [x] **Commit 8** — STEPS 15+16+17 (CSS, manifest, i18n)
 - [ ] **Commit 9** — STEPS 18+19+20 (data updates, brands, restaurants)
 - [ ] **Commit 10** — STEP 21 (seed scripts, architecture docs)
 - [ ] **Integration Test** — STEP 22 (full E2E verification)
