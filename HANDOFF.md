@@ -52,5 +52,6 @@
 
 ## Last session summary
 - Agent/tool used: Antigravity (Gemini 3.1 Pro)
-- What happened: Verified that all steps from the Plan.md (from Commit 1 up to STEP 22) have been successfully completed, tested, and pushed to the repository. The project compiles without any errors (`npx next build` passed).
-- Next action: Wait for further instructions from the user. The `Plan.md` rebuild blueprint is completely finished.
+- What happened: Replaced the direct Gemini/OpenRouter AI logic with **9router** integration. 9router now sits in the `ai-router/` directory and acts as the brain for Gorgona One. `package.json` scripts have been updated to use `concurrently` to run both the main app and 9router simultaneously. `app/api/chat/route.js` and `lib/ai/brain.js` have been updated to point to `http://localhost:20128/v1/chat/completions` using the OpenAI-compatible format.
+- Next action: Test the frontend locally by running `npm run dev` and configuring 9router via its dashboard (`http://localhost:20128`).
+

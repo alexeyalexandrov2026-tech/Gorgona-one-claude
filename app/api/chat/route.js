@@ -10,10 +10,6 @@ const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 // client's own request to resolve. 20s comfortably covers normal latency.
 const GEMINI_TIMEOUT_MS = 20_000;
 
-function geminiEndpoint(model, key) {
-  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
-}
-
 export async function POST(request) {
   let body;
   try {
@@ -39,24 +35,32 @@ export async function POST(request) {
     });
   }
 
-  const contents = messages
-    .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && m.content)
-    .map((m) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: String(m.content).slice(0, 4000) }]
-    }));
+  const openaiMessages = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    ...messages
+      .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && m.content)
+      .map((m) => ({
+        role: m.role,
+        content: String(m.content).slice(0, 4000)
+      }))
+  ];
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
 
   try {
-    const response = await fetch(geminiEndpoint(GEMINI_MODEL, apiKey), {
+    const response = await fetch('http://localhost:20128/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
       body: JSON.stringify({
-        systemInstruction: { role: 'system', parts: [{ text: SYSTEM_PROMPT }] },
-        contents,
-        generationConfig: { temperature: 0.7, topP: 0.9, maxOutputTokens: 480 }
+        model: GEMINI_MODEL,
+        messages: openaiMessages,
+        temperature: 0.7,
+        top_p: 0.9,
+        max_tokens: 480
       }),
       cache: 'no-store',
       signal: controller.signal
@@ -81,7 +85,7 @@ export async function POST(request) {
 
     const data = await response.json();
     const reply =
-      data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('').trim() ||
+      data?.choices?.[0]?.message?.content?.trim() ||
       "I couldn't quite catch that - could you rephrase?";
 
     return NextResponse.json({
