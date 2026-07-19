@@ -47,12 +47,12 @@ export default function HomePage() {
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             className="lux-eyebrow"
           >
-            Global deals · Promo codes · Lifestyle offers
+            {t.home.heroEyebrow}
           </motion.p>
 
           <h1 className="lux-display mt-6 text-[15vw] leading-[0.88] [text-shadow:0_4px_44px_rgba(0,0,0,0.5)] sm:text-7xl lg:text-8xl">
-            <RiseMask delay={0.05}>GORGONA</RiseMask>
-            <RiseMask delay={0.15} className="text-brand-gold">ONE</RiseMask>
+            <RiseMask delay={0.05}>{t.home.titleGorgona}</RiseMask>
+            <RiseMask delay={0.15} className="text-brand-gold">{t.home.titleOne}</RiseMask>
           </h1>
 
           <motion.p
@@ -70,13 +70,13 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.42, ease: [0.22, 1, 0.36, 1] }}
             className="mt-10 flex flex-wrap gap-3"
           >
-            <Link href="/stores" className="lux-btn">Explore Marketplace <ArrowIcon className="h-4 w-4" /></Link>
-            <Link href="/coupons" className="lux-btn-ghost">Browse Deals</Link>
-            <Link href="/concierge" className="lux-btn-ghost">Ask the Concierge</Link>
+            <Link href="/stores" className="lux-btn">{t.home.exploreMarketplace} <ArrowIcon className="h-4 w-4" /></Link>
+            <Link href="/coupons" className="lux-btn-ghost">{t.home.browseDeals}</Link>
+            <Link href="/concierge" className="lux-btn-ghost">{t.home.askConcierge}</Link>
           </motion.div>
 
           <div className="mt-16 flex items-center gap-3 text-zinc-500">
-            <span className="font-mono text-[0.65rem] uppercase tracking-[0.3em]">Scroll to explore</span>
+            <span className="font-mono text-[0.65rem] uppercase tracking-[0.3em]">{t.home.scrollExplore}</span>
             <motion.span
               animate={{ y: [0, 6, 0] }}
               transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
@@ -92,13 +92,13 @@ export default function HomePage() {
       <section className="py-16 lg:py-24">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <p className="lux-eyebrow">Gorgona One AI</p>
+            <p className="lux-eyebrow">{t.home.aiEyebrow}</p>
             <h2 className="lux-display mt-5 max-w-2xl text-3xl sm:text-4xl">
-              Tell the AI what you want. It finds the ecosystem.
+              {t.home.aiTitle}
             </h2>
           </div>
           <p className="lux-lede text-base md:max-w-sm md:text-right">
-            Not a search box — the intelligence layer of GORGONA ONE. Ask by intent, in your language, by voice or text.
+            {t.home.aiLede}
           </p>
         </div>
         <Reveal className="mt-10">
@@ -110,14 +110,13 @@ export default function HomePage() {
       <section className="py-20 lg:py-28">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <p className="lux-eyebrow">The Ecosystem</p>
+            <p className="lux-eyebrow">{t.home.ecosystemEyebrow}</p>
             <h2 className="lux-display mt-5 max-w-2xl text-4xl sm:text-5xl">
-              Eight worlds. One membership.
+              {t.home.ecosystemTitle}
             </h2>
           </div>
           <p className="lux-lede text-base md:text-right">
-            Travel, shopping, stays, yachts, cars, sportsbooks, events and an AI concierge — every experience wrapped in
-            a single luxury design language.
+            {t.home.ecosystemLede}
           </p>
         </div>
 
@@ -149,16 +148,16 @@ export default function HomePage() {
         <Reveal>
           <div className="lux-hero relative overflow-hidden rounded-3xl border border-white/10 px-8 py-16 text-center sm:px-16">
             <div className="lux-hero__grain" />
-            <p className="lux-eyebrow justify-center">Partner with GORGONA ONE</p>
+            <p className="lux-eyebrow justify-center">{t.home.partnerEyebrow}</p>
             <h2 className="lux-display mx-auto mt-5 max-w-2xl text-3xl sm:text-4xl">
-              Put your brand inside a luxury ecosystem.
+              {t.home.partnerTitle}
             </h2>
             <p className="lux-lede mx-auto mt-5 text-base">
-              Publish verified offers, manage multiple locations, and reach a premium global audience across every section.
+              {t.home.partnerLede}
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Link href="/partner" className="lux-btn">Join as Partner <ArrowIcon className="h-4 w-4" /></Link>
-              <Link href="/login" className="lux-btn-ghost">Sign In</Link>
+              <Link href="/partner" className="lux-btn">{t.home.joinPartner} <ArrowIcon className="h-4 w-4" /></Link>
+              <Link href="/login" className="lux-btn-ghost">{t.home.signIn}</Link>
             </div>
           </div>
         </Reveal>
