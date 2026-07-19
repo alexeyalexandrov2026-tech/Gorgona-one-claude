@@ -10,6 +10,7 @@ import {
 import { greeting } from '../../../lib/ai/language';
 import { useAITheme } from '../ThemeProvider';
 import { useLocale } from '../LocaleProvider';
+import { getTranslation } from '../../../lib/i18n';
 import { useAI } from './AIProvider';
 import { useVoice } from './useVoice';
 
@@ -65,6 +66,7 @@ export default function GorgonaOneAI() {
   const router = useRouter();
   const { theme, isDark, toggle } = useAITheme();
   const locale = useLocale();
+  const t = getTranslation(locale);
   const ai = useAI();
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
@@ -221,9 +223,9 @@ export default function GorgonaOneAI() {
 
   const stateLine =
     phase === 'listening'
-      ? 'Listening · EN · RU · ES · FR'
+      ? `${t.ai?.listening || 'Listening'} · EN · RU · ES · FR`
       : phase === 'intent' && matches.length
-      ? `Surfacing · ${constellationName(activeCluster)}`
+      ? `${t.ai?.surfacing || 'Surfacing'} · ${constellationName(activeCluster, t)}`
       : greetingText;
 
   return (
@@ -235,10 +237,10 @@ export default function GorgonaOneAI() {
         type="button"
         className="gai__theme"
         onClick={toggle}
-        aria-label={isDark ? 'Switch to light atmosphere' : 'Switch to dark atmosphere'}
+        aria-label={isDark ? (t.ai?.switchToLight || 'Switch to light atmosphere') : (t.ai?.switchToDark || 'Switch to dark atmosphere')}
       >
         {isDark ? <SunIcon /> : <MoonIcon />}
-        <span>{isDark ? 'Light' : 'Dark'}</span>
+        <span>{isDark ? (t.ai?.light || 'Light') : (t.ai?.dark || 'Dark')}</span>
       </button>
 
       {/* Console core */}
@@ -251,7 +253,7 @@ export default function GorgonaOneAI() {
             value={query}
             onChange={onChange}
             placeholder={placeholder}
-            aria-label="Ask Gorgona One AI"
+            aria-label={t.ai?.askPlaceholder || "Ask Gorgona One AI"}
             autoComplete="off"
           />
           <button
@@ -260,7 +262,7 @@ export default function GorgonaOneAI() {
             onClick={toggleMic}
             aria-pressed={phase === 'listening'}
             aria-disabled={!voice.recognitionSupported}
-            aria-label={phase === 'listening' ? 'Stop listening' : 'Speak your request'}
+            aria-label={phase === 'listening' ? (t.ai?.stopListening || 'Stop listening') : (t.ai?.speakRequest || 'Speak your request')}
             title={voice.recognitionSupported ? undefined : 'Voice input is not supported in this browser'}
           >
             <span className="gai__halo" aria-hidden="true" />
@@ -305,7 +307,7 @@ export default function GorgonaOneAI() {
                 style={{ '--c': `rgb(${c.color.join(',')})` }}
               >
                 <span className="gai__dot" />
-                {c.name}
+                {t.constellations?.[c.key] || c.name}
               </button>
               {isOpen && (
                 <div className="gai__items">
@@ -316,7 +318,7 @@ export default function GorgonaOneAI() {
                       className="gai__chip"
                       onClick={() => router.push(cat.href)}
                     >
-                      {cat.label}
+                      {t.discovery?.[cat.key] || cat.label}
                     </button>
                   ))}
                 </div>
@@ -331,9 +333,10 @@ export default function GorgonaOneAI() {
   );
 }
 
-function constellationName(id) {
+function constellationName(id, t) {
   const c = CONSTELLATIONS.find((x) => x.id === id);
-  return c ? c.name : '';
+  if (!c) return '';
+  return t?.constellations?.[c.key] || c.name;
 }
 
 function MicIcon() {
