@@ -14,14 +14,14 @@ import { useAuth } from './AuthProvider';
 // new luxury sections that are not yet translated.
 const navItems = [
   { key: 'home', href: '/', label: 'Home' },
-  { key: null, href: '/travel', label: 'Travel' },
+  { key: 'travel', href: '/travel', label: 'Travel' },
   { key: 'stores', href: '/stores', label: 'Shopping' },
-  { key: null, href: '/vacation-rentals', label: 'Villas' },
-  { key: null, href: '/yachts', label: 'Yachts' },
-  { key: null, href: '/rentals', label: 'Cars' },
+  { key: 'villas', href: '/vacation-rentals', label: 'Villas' },
+  { key: 'yachts', href: '/yachts', label: 'Yachts' },
+  { key: 'cars', href: '/rentals', label: 'Cars' },
   { key: 'sportsbook', href: '/sportsbook', label: 'Sportsbooks' },
   { key: 'events', href: '/events', label: 'Events' },
-  { key: null, href: '/discovery', label: 'Discovery Room' }
+  { key: 'discovery', href: '/discovery', label: 'Discovery' }
 ];
 
 export function Header() {
