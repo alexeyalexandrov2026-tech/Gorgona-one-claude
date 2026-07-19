@@ -38,7 +38,7 @@
 - [x] **Commit 7** — STEPS 12+13+14 (discovery page, header/footer)
 - [x] **Commit 8** — STEPS 15+16+17 (CSS, manifest, i18n)
 - [x] **Commit 9** — STEPS 18+19+20 (data updates, brands, restaurants)
-- [ ] **Commit 10** — STEP 21 (seed scripts, architecture docs)
+- [x] **Commit 10** — STEP 21 (seed scripts, architecture docs)
 - [ ] **Integration Test** — STEP 22 (full E2E verification)
 
 ## Local environment notes for the next agent
