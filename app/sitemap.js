@@ -1,9 +1,13 @@
-import { stores, sportsbooks } from '../lib/mockData';
+import { getSportsbooks } from '../lib/sportsbooksData';
 import { categories, allDeals } from '../lib/dealsData';
-import { EVENT_CATEGORIES, LEAGUES, getAllEvents } from '../lib/eventsData';
+import { EVENT_CATEGORIES, LEAGUES } from '../lib/mockEventsData';
+import { getAllEvents } from '../lib/eventsData';
 
-export default function sitemap() {
+export default async function sitemap() {
   const baseUrl = 'https://gorgona-one.com';
+  const sportsbooks = await getSportsbooks();
+  const stores = []; // Removed stores as it's handled by dealsData now
+
   const routes = [
     '',
     '/stores',
@@ -63,7 +67,8 @@ export default function sitemap() {
     priority: 0.6
   }));
 
-  const eventRoutes = getAllEvents().map((event) => ({
+  const events = await getAllEvents();
+  const eventRoutes = events.map((event) => ({
     url: `${baseUrl}/events/${event.slug}`,
     lastModified: new Date(),
     changeFrequency: 'daily',

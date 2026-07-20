@@ -1,5 +1,6 @@
 import './globals.css';
 import './ai-overlays.css';                              
+import Script from 'next/script';
 import { Inter, Inter_Tight, Space_Mono, Fira_Mono, Playfair_Display } from 'next/font/google';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -95,6 +96,14 @@ export default function RootLayout({ children }) {
             </ThemeProvider>
           </AuthProvider>
         </LocaleProvider>
+        {process.env.NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN && (
+          <Script
+            defer
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={`{"token": "${process.env.NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN}"}`}
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { sportsbooks } from '../../lib/mockData';
+import { getSportsbooks } from '../../lib/sportsbooksData';
 import { sportsbookDescriptions, getContentText } from '../../lib/contentTranslations';
 import { getServerTranslation } from '../../lib/serverLocale';
 import { SectionHero } from '../components/SectionHero';
@@ -75,7 +75,8 @@ const SPORTSBOOK_BANNER_STYLES = {
   }
 };
 
-export default function SportsbookPage() {
+export default async function SportsbookPage() {
+  const sportsbooks = await getSportsbooks();
   const { t, locale } = getServerTranslation();
 
   return (

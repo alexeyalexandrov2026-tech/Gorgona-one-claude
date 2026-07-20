@@ -9,11 +9,11 @@ export function AuthProvider({ children }) {
   const [session, setSessionState] = useState(null);
 
   useEffect(() => {
-    setSessionState(getSession());
+    getSession().then(session => setSessionState(session));
   }, []);
 
   function refresh() {
-    setSessionState(getSession());
+    getSession().then(session => setSessionState(session));
   }
 
   function signOut() {

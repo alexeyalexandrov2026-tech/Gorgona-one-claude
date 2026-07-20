@@ -24,16 +24,8 @@ export async function POST(request) {
   }
 
   const latestUserMessage = [...messages].reverse().find((m) => m.role === 'user')?.content || '';
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    return NextResponse.json({
-      reply:
-        "The Discovery Room isn't connected to Gemini yet - add a GEMINI_API_KEY to the environment to bring the AI concierge online. In the meantime, explore Travel, Restaurants, Shopping, Villas, Yachts, Car Rentals, Sportsbooks and Events from the navigation above.",
-      suggestions: matchSuggestions(latestUserMessage),
-      configured: false
-    });
-  }
+  // The ai-router handles API keys and model routing; we just pass a dummy key
+  const apiKey = 'sk-local';
 
   const openaiMessages = [
     { role: 'system', content: SYSTEM_PROMPT },

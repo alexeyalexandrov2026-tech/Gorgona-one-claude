@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { sportsbooks } from '../../../lib/mockData';
+import { getSportsbookBySlug } from '../../../lib/sportsbooksData';
 import { sportsbookDescriptions, getContentText } from '../../../lib/contentTranslations';
 import { getServerTranslation } from '../../../lib/serverLocale';
 
@@ -91,8 +91,8 @@ const PROFILE_FEATURES = [
   { title: 'Secure & Safe', sub: 'Your privacy matters', d: 'M4 11h16v10H4zM8 11V7a4 4 0 0 1 8 0v4' }
 ];
 
-export default function SportsbookProfilePage({ params }) {
-  const sportsbook = sportsbooks.find((entry) => entry.slug === params.slug);
+export default async function SportsbookProfilePage({ params }) {
+  const sportsbook = await getSportsbookBySlug(params.slug);
 
   if (!sportsbook) {
     notFound();

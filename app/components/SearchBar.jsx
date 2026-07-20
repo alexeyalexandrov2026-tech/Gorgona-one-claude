@@ -66,7 +66,7 @@ function buildRentcarsDeal(t) {
   return {
     id: 'rentcars-shopping',
     name,
-    logo: '/images/brands/rentcars-shopping.svg',
+    logo: '/images/brands/rentcars-shopping.webp',
     description: t.category.dealDescriptionTemplate.replace('{name}', name).replace('{category}', category),
     category,
     promoCode: '',

@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { categories, getDealsByCategory } from '../../../lib/dealsData';
-import { SearchBar } from '../../components/SearchBar';
 import { StoreCard } from '../../components/StoreCard';
 import { getServerTranslation } from '../../../lib/serverLocale';
 
@@ -50,17 +49,7 @@ export default function CategoryPage({ params }) {
         <p className="mt-3 max-w-2xl text-zinc-400">{t.categoryDescriptions[camelizeSlug(category.slug)] || category.description}</p>
       </div>
 
-      <div className="mb-8">
-        <SearchBar />
-      </div>
 
-      <div className="mb-8 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {categories.map((item) => (
-          <Link key={item.slug} href={`/stores/${item.slug}`} className={`rounded-2xl border px-4 py-3 text-sm transition ${item.slug === params.category ? 'border-brand-gold bg-brand-gold/10 text-brand-gold' : 'border-white/10 bg-white/5 text-zinc-300 hover:border-brand-gold hover:text-brand-gold'}`}>
-            {item.icon} {t.categories[camelizeSlug(item.slug)] || item.label}
-          </Link>
-        ))}
-      </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         {!isBetting && deals.map((deal) => (

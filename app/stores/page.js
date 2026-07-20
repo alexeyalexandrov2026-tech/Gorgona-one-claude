@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { categories, featuredDeals } from '../../lib/dealsData';
-import { SearchBar } from '../components/SearchBar';
 import { ZineStoreCard } from '../components/ZineStoreCard';
 import { Reveal, Parallax } from '../components/Motion';
 import { getServerTranslation } from '../../lib/serverLocale';
@@ -98,11 +97,6 @@ export default function StoresPage() {
             <h1 className="mt-6 max-w-3xl font-display text-5xl font-light leading-[1.02] tracking-tight text-white [text-shadow:0_4px_44px_rgba(0,0,0,0.5)] sm:text-6xl lg:text-7xl">
               {t.category.exploreStores}
             </h1>
-          </Reveal>
-          <Reveal delay={0.16}>
-            <div className="mt-10 max-w-3xl">
-              <SearchBar />
-            </div>
           </Reveal>
         </div>
       </section>
