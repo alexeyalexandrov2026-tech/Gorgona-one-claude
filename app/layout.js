@@ -1,19 +1,17 @@
 import './globals.css';
-import './ai-overlays.css';
+import './ai-overlays.css';                              
 import { Inter, Inter_Tight, Space_Mono, Fira_Mono, Playfair_Display } from 'next/font/google';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { LocaleProvider } from './components/LocaleProvider';
 import { AuthProvider } from './components/AuthProvider';
-// Track A — themed AI ecosystem surfaces (particle sphere + Discovery Room).
-import { ThemeProvider } from './components/ThemeProvider';
-import { AIProvider } from './components/ai/AIProvider';
-import DiscoveryDock from './components/ai/DiscoveryDock';
-// Track B — Gemini concierge dock, site-wide orb, PWA install prompt.
-import { AiDockProvider } from './components/ai/AiDockProvider';
-import { AiSphere } from './components/ai/AiSphere';
-import { AiDock } from './components/ai/AiDock';
-import { InstallPrompt } from './components/InstallPrompt';
+import { ThemeProvider } from './components/ThemeProvider';    
+import { AIProvider } from './components/ai/AIProvider';      
+import DiscoveryDock from './components/ai/DiscoveryDock';    
+import { AiDockProvider } from './components/ai/AiDockProvider'; 
+import { AiSphere } from './components/ai/AiSphere';         
+import { AiDock } from './components/ai/AiDock';             
+import { InstallPrompt } from './components/InstallPrompt';   
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 const interTight = Inter_Tight({
@@ -42,17 +40,10 @@ const baseUrl = 'https://gorgona-one.com';
 // language is determined client-side rather than through distinct routes.
 const HREFLANG_CODES = ['en-US', 'ru', 'es', 'he-IL', 'zh', 'pt', 'uk', 'ja', 'ko', 'de', 'ar', 'tr', 'fa', 'it', 'fr', 'pl'];
 
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  viewportFit: 'cover',
-  themeColor: '#050505'
-};
-
 export const metadata = {
-  title: 'GORGONA ONE | Luxury AI concierge, travel, dining and lifestyle',
-  description: 'A luxury AI concierge ecosystem for travel, dining, shopping, stays, yachts, cars, sportsbooks and events.',
-  keywords: ['luxury concierge', 'AI concierge', 'travel offers', 'restaurant deals', 'yacht rentals', 'villa rentals'],
+  title: 'GORGONA ONE | Global deals, promo codes, and lifestyle offers',
+  description: 'Premium marketplace for shopping, restaurants, entertainment, travel, sports, and betting deals.',
+  keywords: ['coupons', 'deals', 'discounts', 'sportsbook promos', 'travel offers', 'restaurant deals'],
   metadataBase: new URL(baseUrl),
   alternates: {
     canonical: baseUrl,
@@ -61,22 +52,9 @@ export const metadata = {
       'x-default': baseUrl
     }
   },
-  icons: {
-    icon: [
-      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' }
-    ],
-    apple: '/apple-touch-icon.png'
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'GORGONA ONE'
-  },
   openGraph: {
     title: 'GORGONA ONE',
-    description: 'A luxury AI concierge ecosystem — travel, dining, shopping, stays, yachts, cars and events.',
+    description: 'Discover verified promo codes, premium offers, and hidden deals across the globe.',
     url: 'https://gorgona-one.com',
     siteName: 'GORGONA ONE',
     images: [{ url: '/og-image.svg', width: 1200, height: 630 }],
@@ -85,7 +63,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'GORGONA ONE',
-    description: 'A luxury AI concierge ecosystem — travel, dining, shopping, stays, yachts, cars and events.'
+    description: 'Unlock hidden deals with verified coupons and premium offers.'
   },
   verification: {
     other: {
@@ -100,21 +78,18 @@ export default function RootLayout({ children }) {
       <body className="min-h-screen bg-[#050505] font-sans text-zinc-100 antialiased">
         <LocaleProvider>
           <AuthProvider>
-            {/* Both AI systems are preserved and coexist. Track A: theme + the
-                persistent Discovery Room session/dock. Track B: the Gemini
-                concierge dock provider, site-wide orb, and PWA install prompt. */}
-            <ThemeProvider defaultTheme="dark">
+            <ThemeProvider>
               <AIProvider>
                 <AiDockProvider>
                   <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
                     <Header />
                     {children}
                     <Footer />
+                    <DiscoveryDock />
+                    <AiSphere />
+                    <AiDock />
+                    <InstallPrompt />
                   </div>
-                  <InstallPrompt />
-                  <AiSphere />
-                  <AiDock />
-                  <DiscoveryDock />
                 </AiDockProvider>
               </AIProvider>
             </ThemeProvider>

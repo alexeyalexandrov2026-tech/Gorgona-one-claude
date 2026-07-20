@@ -56,7 +56,7 @@ export default function RentalsPage() {
           </Reveal>
           <Reveal delay={0.08}>
             <h1 className="mt-6 font-display text-4xl font-medium uppercase leading-[1.05] tracking-[0.12em] text-white [text-shadow:0_4px_44px_rgba(0,0,0,0.55)] sm:text-6xl lg:text-7xl">
-              The Fleet
+              {t.rentals?.fleet || 'The Fleet'}
             </h1>
           </Reveal>
           <Reveal delay={0.16}>
@@ -88,9 +88,9 @@ export default function RentalsPage() {
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px px-4 sm:px-6 lg:grid-cols-4 lg:px-8">
           {[
             [String(rentals.length).padStart(2, '0'), t.rentals.pill],
-            [String(categories.length).padStart(2, '0'), 'Collections'],
-            ['24/7', 'Concierge delivery'],
-            ['Miami', '& beyond']
+            [String(categories.length).padStart(2, '0'), t.rentals?.collections || 'Collections'],
+            ['24/7', t.rentals?.conciergeDelivery || 'Concierge delivery'],
+            ['Miami', t.rentals?.beyond || '& beyond']
           ].map(([value, label]) => (
             <div key={label} className="flex items-baseline gap-3 py-6">
               <span className="font-display text-2xl font-light text-white">{value}</span>
@@ -178,16 +178,16 @@ export default function RentalsPage() {
       <section className="full-bleed bg-black">
         <div className="mx-auto max-w-7xl px-4 py-24 text-center sm:px-6 lg:px-8">
           <Reveal>
-            <p className="lux-eyebrow justify-center">Concierge</p>
+            <p className="lux-eyebrow justify-center">{t.rentals?.conciergeEyebrow || 'Concierge'}</p>
           </Reveal>
           <Reveal delay={0.08}>
             <h2 className="mx-auto mt-6 max-w-2xl font-display text-3xl font-medium uppercase leading-[1.15] tracking-[0.12em] text-white sm:text-4xl">
-              Arrive in something unforgettable
+              {t.rentals?.unforgettable || 'Arrive in something unforgettable'}
             </h2>
           </Reveal>
           <Reveal delay={0.16}>
             <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-ferrari-fumo">
-              White-glove pickup, delivery to your villa or marina, and a concierge on call for every kilometre.
+              {t.rentals?.whiteGlove || 'White-glove pickup, delivery to your villa or marina, and a concierge on call for every kilometre.'}
             </p>
           </Reveal>
           <Reveal delay={0.24}>
@@ -202,7 +202,7 @@ export default function RentalsPage() {
                 href="/concierge"
                 className="border border-transparent px-8 py-3.5 font-mono text-[0.7rem] uppercase tracking-[0.22em] text-ferrari-fumo transition-colors hover:text-white"
               >
-                Ask the Concierge
+                {t.rentals?.askConcierge || 'Ask the Concierge'}
               </Link>
             </div>
           </Reveal>

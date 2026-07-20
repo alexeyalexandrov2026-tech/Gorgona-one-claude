@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAI } from './AIProvider';
 import { useAITheme } from '../ThemeProvider';
 import { useLocale } from '../LocaleProvider';
+import { getTranslation } from '../../../lib/i18n';
 import { useBodyScrollLock } from '../useBodyScrollLock';
 
 // ===========================================================================
@@ -28,6 +29,7 @@ export default function DiscoveryRoom() {
   const { theme } = useAITheme();
   const router = useRouter();
   const locale = useLocale();
+  const t = getTranslation(locale);
 
   const [q, setQ] = useState('');
   const [askResults, setAskResults] = useState([]);
@@ -74,9 +76,9 @@ export default function DiscoveryRoom() {
         <header className="dr__head">
           <div>
             <p className="dr__eyebrow">Gorgona One AI</p>
-            <h2 className="dr__title">Discovery Room</h2>
+            <h2 className="dr__title">{t.ai?.discoveryRoom || 'Discovery Room'}</h2>
           </div>
-          <button type="button" className="dr__close" onClick={closeRoom} aria-label="Close Discovery Room">✕</button>
+          <button type="button" className="dr__close" onClick={closeRoom} aria-label={t.ai?.closeAI || "Close Discovery Room"}>✕</button>
         </header>
 
         <form className="dr__ask" onSubmit={onAsk} role="search">
@@ -84,38 +86,38 @@ export default function DiscoveryRoom() {
             className="dr__input"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Ask from anywhere…"
-            aria-label="Ask Gorgona One AI"
+            placeholder={t.ai?.askAnywhere || "Ask from anywhere…"}
+            aria-label={t.ai?.askPlaceholder || "Ask Gorgona One AI"}
           />
-          <button type="submit" className="dr__go" disabled={busy}>{busy ? '…' : 'Ask'}</button>
+          <button type="submit" className="dr__go" disabled={busy}>{busy ? '…' : (t.ai?.ask || 'Ask')}</button>
         </form>
 
         <div className="dr__body">
           {askResults.length > 0 && (
-            <Section title="Results">
+            <Section title={t.ai?.results || "Results"}>
               {askResults.map((r) => (
-                <ResultRow key={r.id} r={r} onGo={go} onSave={saveResult} onUnsave={removeSaved} saved={isSaved(r.id)} />
+                <ResultRow key={r.id} r={r} onGo={go} onSave={saveResult} onUnsave={removeSaved} saved={isSaved(r.id)} t={t} />
               ))}
             </Section>
           )}
 
           <Section
-            title={`Saved${saved.length ? ` · ${saved.length}` : ''}`}
-            empty={saved.length === 0 ? 'Pin results to keep them here — they stay while you browse.' : null}
+            title={`${t.ai?.saved || 'Saved'}${saved.length ? ` · ${saved.length}` : ''}`}
+            empty={saved.length === 0 ? (t.ai?.pinResults || 'Pin results to keep them here — they stay while you browse.') : null}
           >
             {saved.map((r) => (
-              <ResultRow key={r.id} r={r} onGo={go} onUnsave={removeSaved} saved onSave={saveResult} />
+              <ResultRow key={r.id} r={r} onGo={go} onUnsave={removeSaved} saved onSave={saveResult} t={t} />
             ))}
           </Section>
 
           <Section
-            title="Recent searches"
-            action={history.length ? { label: 'Clear', onClick: clearHistory } : null}
-            empty={history.length === 0 ? 'Your searches appear here and are kept across the site.' : null}
+            title={t.ai?.recentSearches || "Recent searches"}
+            action={history.length ? { label: t.ai?.clear || 'Clear', onClick: clearHistory } : null}
+            empty={history.length === 0 ? (t.ai?.searchesKept || 'Your searches appear here and are kept across the site.') : null}
           >
             {history.map((h) => (
               <div key={h.id} className="dr__hist">
-                <button type="button" className="dr__histQ" onClick={() => setQ(h.query)} title="Reuse this search">
+                <button type="button" className="dr__histQ" onClick={() => setQ(h.query)} title={t.ai?.reuseSearch || "Reuse this search"}>
                   <span className="dr__histIcon" aria-hidden="true">↻</span>
                   {h.query}
                 </button>
@@ -134,7 +136,7 @@ export default function DiscoveryRoom() {
         </div>
 
         <footer className="dr__foot">
-          <button type="button" className="dr__return" onClick={returnToAI}>Return to Gorgona One AI</button>
+          <button type="button" className="dr__return" onClick={returnToAI}>{t.ai?.returnToAI || 'Return to Gorgona One AI'}</button>
         </footer>
       </aside>
 
@@ -154,7 +156,7 @@ function Section({ title, action, empty, children }) {
   );
 }
 
-function ResultRow({ r, onGo, onSave, onUnsave, saved }) {
+function ResultRow({ r, onGo, onSave, onUnsave, saved, t }) {
   return (
     <div className="dr__row">
       <button type="button" className="dr__rowMain" onClick={() => onGo(r)}>
@@ -166,8 +168,8 @@ function ResultRow({ r, onGo, onSave, onUnsave, saved }) {
         type="button"
         className={`dr__pin ${saved ? 'is-saved' : ''}`}
         onClick={() => (saved ? onUnsave(r.id) : onSave(r))}
-        aria-label={saved ? 'Remove from saved' : 'Save'}
-        title={saved ? 'Saved' : 'Save'}
+        aria-label={saved ? (t?.ai?.removeFromSaved || 'Remove from saved') : (t?.ai?.save || 'Save')}
+        title={saved ? (t?.ai?.saved || 'Saved') : (t?.ai?.save || 'Save')}
       >
         {saved ? '★' : '☆'}
       </button>
